@@ -25,12 +25,16 @@ def get_affine_from_imgs(img_a, img_b):
     img_b_fft *= h[None,]
 
     img_a_fft_polar, img_a_fft_polar_logbase = polar_transformer(
-        img_a_fft[..., None], out_size=(H, W), device=device
+        img_a_fft[..., None],
+        out_size=(H, W),
+        device=device,
     )
     img_a_fft_polar = img_a_fft_polar.permute(3, 0, 1, 2)[0]
 
     img_b_fft_polar, img_b_fft_polar_logbase = polar_transformer(
-        img_b_fft[..., None], out_size=(H, W), device=device
+        img_b_fft[..., None],
+        out_size=(H, W),
+        device=device,
     )
     img_b_fft_polar = img_b_fft_polar.permute(3, 0, 1, 2)[0]
 
@@ -50,17 +54,26 @@ def get_affine_from_imgs(img_a, img_b):
     center = torch.Tensor([W / 2, H / 2]).to(device)[None,].repeat(2, 1)
     # center = torch.Tensor([0, 0]).to(device)[None,]
     M = get_affine_matrix2d(
-        translations=transl, angle=angle, scale=scale, center=center
+        translations=transl,
+        angle=angle,
+        scale=scale,
+        center=center,
     )
     imgs_a_rot_scaled = warp_affine(
-        img_a[None,].repeat(2, 1, 1, 1), M=M[:, :2, :3], dsize=(H, W)
+        img_a[None,].repeat(2, 1, 1, 1),
+        M=M[:, :2, :3],
+        dsize=(H, W),
     )
 
     transl1_x, transl1_y, corr1 = get_corr_amax(
-        imgs_a_rot_scaled[0], img_b, return_corr=True
+        imgs_a_rot_scaled[0],
+        img_b,
+        return_corr=True,
     )
     transl2_x, transl2_y, corr2 = get_corr_amax(
-        imgs_a_rot_scaled[1], img_b, return_corr=True
+        imgs_a_rot_scaled[1],
+        img_b,
+        return_corr=True,
     )
     if corr1 > corr2:
         transl_x, transl_y = transl1_x, transl1_y
@@ -74,7 +87,10 @@ def get_affine_from_imgs(img_a, img_b):
     transl = torch.Tensor([transl_x, transl_y]).to(device)[None,]
 
     M = get_affine_matrix2d(
-        translations=transl, angle=angle, scale=scale, center=center
+        translations=transl,
+        angle=angle,
+        scale=scale,
+        center=center,
     )
     return M[0]
 
@@ -99,7 +115,7 @@ def get_corr_amax(img_a, img_b, return_corr=False):
     R[:, :, :, 1] = real_a * imag_b - real_b * imag_a
 
     r0 = torch.sqrt(real_a**2 + imag_a**2 + eps) * torch.sqrt(
-        real_b**2 + imag_b**2 + eps
+        real_b**2 + imag_b**2 + eps,
     )
     R[:, :, :, 0] = R[:, :, :, 0].clone() / (r0 + eps).to(device)
     R[:, :, :, 1] = R[:, :, :, 1].clone() / (r0 + eps).to(device)
@@ -285,7 +301,7 @@ def polar_transformer(U, out_size, device, log=True, radius_factor=0.707):
         EXCESS_CONST = 1.1
 
         logbase = torch.exp(
-            torch.log(W * EXCESS_CONST / 2) / W
+            torch.log(W * EXCESS_CONST / 2) / W,
         )  # 10. ** (torch.log10(maxR) / W)
         # torch.exp(torch.log(W*EXCESS_CONST/2) / W) #
         # get radius in pix
@@ -311,7 +327,8 @@ def polar_transformer(U, out_size, device, log=True, radius_factor=0.707):
 
         input_transformed = _interpolate(input_dim, x_s_flat, y_s_flat, out_size)
         output = torch.reshape(
-            input_transformed, [num_batch, out_height, out_width, num_channels]
+            input_transformed,
+            [num_batch, out_height, out_width, num_channels],
         )  # .to(device)
         return output, logbase
 

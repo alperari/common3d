@@ -6,7 +6,12 @@ import torch
 
 
 def batch_point_face_distance(
-    verts1, faces1, pts2, verts1_mask=None, faces1_mask=None, pts2_mask=None
+    verts1,
+    faces1,
+    pts2,
+    verts1_mask=None,
+    faces1_mask=None,
+    pts2_mask=None,
 ):
     """
     Args:
@@ -125,7 +130,8 @@ def batch_chamfer_distance(
         )
 
         pairs_pred_gt = torch.cat(
-            [pairs_pred_from_gt, pairs_gt_from_pred], dim=1
+            [pairs_pred_from_gt, pairs_gt_from_pred],
+            dim=1,
         )  # B x M+N x 2
     else:
         pairs_pred_gt = pairs_pred_from_gt
@@ -156,12 +162,12 @@ def batch_chamfer_distance(
         pts1_mask = pts1_mask.clone() * pts1_weights
 
     chamfer_dist_mean_pred_from_gt = (chamfer_dist_pairwise[:, :M] * pts2_mask).sum(
-        dim=-1
+        dim=-1,
     ) / (pts2_mask.sum(dim=-1) + 1e-10)
 
     if not only_pts2_nn:
         chamfer_dist_mean_gt_from_pred = (chamfer_dist_pairwise[:, M:] * pts1_mask).sum(
-            dim=-1
+            dim=-1,
         ) / (pts1_mask.sum(dim=-1) + 1e-10)
         chamfer_dist = (
             chamfer_dist_mean_pred_from_gt + chamfer_dist_mean_gt_from_pred
@@ -183,7 +189,12 @@ Args:
 
 
 def batch_point_face_distance_v2(
-    verts1, faces1, pts2, verts1_mask=None, faces1_mask=None, pts2_mask=None
+    verts1,
+    faces1,
+    pts2,
+    verts1_mask=None,
+    faces1_mask=None,
+    pts2_mask=None,
 ):
     """
     Args:
@@ -240,11 +251,15 @@ def points_faces_dist(pts3d, verts, faces):
     faces_normals = faces_normals / (faces_normals.norm(dim=-1, keepdim=True) + 1e-15)
 
     pts3d_signed_dist_to_faces = torch.einsum(
-        "fd,fd->f", faces_normals, verts[faces[:, 0]]
+        "fd,fd->f",
+        faces_normals,
+        verts[faces[:, 0]],
     )[
         None,
     ] - torch.einsum(
-        "fd,pd->pf", faces_normals, pts3d
+        "fd,pd->pf",
+        faces_normals,
+        pts3d,
     )
 
     pts3d_on_faces = (
@@ -260,13 +275,19 @@ def points_faces_dist(pts3d, verts, faces):
     edge12_pts_faces = verts2_pts_faces - verts1_pts_faces
 
     pts3d_signed_dist_to_edge01 = torch.einsum(
-        "pfd,pfd->pf", edge01_pts_faces, pts3d_on_faces - verts0_pts_faces
+        "pfd,pfd->pf",
+        edge01_pts_faces,
+        pts3d_on_faces - verts0_pts_faces,
     )
     pts3d_signed_dist_to_edge02 = torch.einsum(
-        "pfd,pfd->pf", edge02_pts_faces, pts3d_on_faces - verts0_pts_faces
+        "pfd,pfd->pf",
+        edge02_pts_faces,
+        pts3d_on_faces - verts0_pts_faces,
     )
     pts3d_signed_dist_to_edge12 = torch.einsum(
-        "pfd,pfd->pf", edge12_pts_faces, pts3d_on_faces - verts1_pts_faces
+        "pfd,pfd->pf",
+        edge12_pts_faces,
+        pts3d_on_faces - verts1_pts_faces,
     )
 
     pts3d_signed_dist_to_edge01 = pts3d_signed_dist_to_edge01.clamp(0.0, 1.0)
@@ -302,7 +323,7 @@ def points_faces_dist(pts3d, verts, faces):
     X[~A_full_rank_mask] = torch.Tensor([-1, -1, -1]).to(device=X.device, dtype=X.dtype)
 
     pts3d_on_faces_closest = (A @ X[..., None]).squeeze(
-        -1
+        -1,
     )  #  pts3d_on_faces.clone()  # * 0
     pts3d_on_faces_closest_v0 = (
         (X[:, :, 0] >= 0.0) * (X[:, :, 1] <= 0.0) * (X[:, :, 2] <= 0.0)

@@ -308,7 +308,7 @@ class OD3D_FrameMaskMixin(OD3D_MaskTypeMixin):
         mask_bin = self.get_mask_bin()
         mask_np = np.uint8(mask_bin.numpy()[0] * 255.0)
         mask_dt = torch.FloatTensor(
-            cv2.distanceTransform(mask_np, cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
+            cv2.distanceTransform(mask_np, cv2.DIST_L2, cv2.DIST_MASK_PRECISE),
         )[
             None,
         ]
@@ -378,7 +378,7 @@ class OD3D_FrameSizeMixin(OD3D_Object):
             if (self._size < 1).any():
                 self._size = torch.Tensor([1, 1])
                 logger.warning(
-                    f"OD3D Frame {self.name_unique} has a size smaller than 1 setting to 1 1"
+                    f"OD3D Frame {self.name_unique} has a size smaller than 1 setting to 1 1",
                 )
         return self._size
 
@@ -407,7 +407,7 @@ class OD3D_FrameSizesMixin(OD3D_Object):
             if (self._sizes < 1).any():
                 self._sizes = torch.Tensor([1, 1])
                 logger.warning(
-                    f"OD3D Frame {self.name_unique} has a size smaller than 1 setting to 1 1"
+                    f"OD3D Frame {self.name_unique} has a size smaller than 1 setting to 1 1",
                 )
         return self._sizes
 
@@ -998,7 +998,8 @@ class OD3D_FrameObjTform4x4ObjsMixin(OD3D_Object):
 
 @dataclass
 class OD3D_FrameCamTform4x4ObjsMixin(
-    OD3D_FrameObjTform4x4ObjsMixin, OD3D_FrameCamTform4x4ObjMixin
+    OD3D_FrameObjTform4x4ObjsMixin,
+    OD3D_FrameCamTform4x4ObjMixin,
 ):
     cam_tform4x4_objs = None
     # obj_tform_objs = None
@@ -1009,7 +1010,8 @@ class OD3D_FrameCamTform4x4ObjsMixin(
 
         if cam_tform4x4_obj_type == OD3D_CAM_TFORM_OBJ_TYPES.META:
             cam_tform4x4_objs = tform4x4(
-                self.read_cam_tform4x4_obj()[:, None], self.read_obj_tform4x4_objs()
+                self.read_cam_tform4x4_obj()[:, None],
+                self.read_obj_tform4x4_objs(),
             )  # self.meta.cam_tform4x4_objs
         else:
             raise ValueError(
@@ -1026,7 +1028,8 @@ class OD3D_FrameCamTform4x4ObjsMixin(
             or self.cam_tform4x4_obj_type == cam_tform4x4_obj_type
         ):
             cam_tform4x4_objs = tform4x4(
-                self.get_cam_tform4x4_obj()[:, None], self.get_obj_tform4x4_objs()
+                self.get_cam_tform4x4_obj()[:, None],
+                self.get_obj_tform4x4_objs(),
             )  # self.cam_tform4x4_objs
         else:
             cam_tform4x4_objs = self.read_cam_tform4x4_objs(
@@ -1037,7 +1040,8 @@ class OD3D_FrameCamTform4x4ObjsMixin(
 
 @dataclass
 class OD3D_CamProj4x4ObjsMixin(
-    OD3D_FrameCamTform4x4ObjsMixin, OD3D_FrameCamIntr4x4Mixin
+    OD3D_FrameCamTform4x4ObjsMixin,
+    OD3D_FrameCamIntr4x4Mixin,
 ):
     @property
     def cam_proj4x4_obj(self):
@@ -1099,7 +1103,8 @@ class OD3D_FrameTformObjsMixin(
 
 @dataclass
 class OD3D_CamProj4x4ObjsMixin(
-    OD3D_FrameCamTform4x4ObjsMixin, OD3D_FrameCamIntr4x4sMixin
+    OD3D_FrameCamTform4x4ObjsMixin,
+    OD3D_FrameCamIntr4x4sMixin,
 ):
     @property
     def cam_proj4x4_objs(self):

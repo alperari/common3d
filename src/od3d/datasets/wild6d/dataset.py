@@ -134,7 +134,7 @@ class WILD6D(OD3D_SequenceDataset):
     @staticmethod
     def setup(config: DictConfig):
         logger.info(
-            "Download WILD6D from Google Drive and put it in your datasets directory under WILD6D "
+            "Download WILD6D from Google Drive and put it in your datasets directory under WILD6D ",
         )
 
     @staticmethod
@@ -194,7 +194,7 @@ class WILD6D(OD3D_SequenceDataset):
                 sequences_names = [
                     p.stem[len(category) + 1 :]
                     for p in list(
-                        path.joinpath(f"test_set/pkl_annotations/{category}").iterdir()
+                        path.joinpath(f"test_set/pkl_annotations/{category}").iterdir(),
                     )
                 ]
 
@@ -221,7 +221,7 @@ class WILD6D(OD3D_SequenceDataset):
                     path.joinpath(
                         f"test_set/pkl_annotations/{category}",
                         f"{category}-{sequence_name}.pkl",
-                    )
+                    ),
                 )
                 seq_count_per_class += 1
                 import pickle as pkl
@@ -255,7 +255,7 @@ class WILD6D(OD3D_SequenceDataset):
 
                 for frame_annotation in sequence_ann["annotations"]:
                     cls_n, seq_idx, obj_idx, frame_idx = frame_annotation["name"].split(
-                        "/"
+                        "/",
                     )
                     frame_name = str(frame_idx)
 

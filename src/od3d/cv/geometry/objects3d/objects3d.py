@@ -182,18 +182,21 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             )
 
             instance_deform_net_nearest_pt3d = self.instance_deform_net.config.get(
-                "nearest_pt3d", "cat"
+                "nearest_pt3d",
+                "cat",
             )
             if instance_deform_net_nearest_pt3d == "cat":
                 imgs_feats.featmaps[-1] = torch.cat(
-                    (imgs_feats.featmaps[-1], nearest_pt3d), dim=1
+                    (imgs_feats.featmaps[-1], nearest_pt3d),
+                    dim=1,
                 )
             elif instance_deform_net_nearest_pt3d == "cat_harmonics":
                 from od3d.models.heads.coordmlp.head import HarmonicEmbedding
 
                 harmonic_embedding = HarmonicEmbedding(dim=1)
                 imgs_feats.featmaps[-1] = torch.cat(
-                    (imgs_feats.featmaps[-1], harmonic_embedding(nearest_pt3d)), dim=1
+                    (imgs_feats.featmaps[-1], harmonic_embedding(nearest_pt3d)),
+                    dim=1,
                 )
             elif instance_deform_net_nearest_pt3d == "sole":
                 imgs_feats.featmaps[-1] = nearest_pt3d
@@ -209,7 +212,8 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             net_out = self.instance_deform_net(imgs_feats)
             if affine:
                 meshes_deform = self.instance_deform_class.from_net_output(
-                    net_out, affine=affine
+                    net_out,
+                    affine=affine,
                 )
                 meshes_deform.verts_deform[..., :3] = (
                     meshes_deform.verts_deform[..., :3] + 1.0
@@ -229,7 +233,8 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                 )
             else:
                 meshes_deform = self.instance_deform_class.from_net_output(
-                    net_out, affine=affine
+                    net_out,
+                    affine=affine,
                 )
 
             return meshes_deform
@@ -276,7 +281,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
 
         if instance_deform_net_config is not None:
             self.instance_deform_net = self.instance_deform_class.get_model(
-                instance_deform_net_config
+                instance_deform_net_config,
             )
             self.verts_deform_requires_grad = (
                 True  # self.instance_deform_net.requires_grad_()
@@ -297,11 +302,11 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             else:
                 if not affine:
                     instance_deform_net_config.head.update(
-                        {"out_dim": 3 * self.verts_counts_max}
+                        {"out_dim": 3 * self.verts_counts_max},
                     )
                 else:
                     instance_deform_net_config.head.update(
-                        {"out_dim": 6 * self.verts_counts_max}
+                        {"out_dim": 6 * self.verts_counts_max},
                     )
 
     def reset_parameters(self, feat_clutter: Union[bool, torch.Tensor] = False) -> None:
@@ -326,7 +331,8 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
     @feat_clutter.setter
     def feat_clutter(self, value):
         if self._feat_clutter is None or not isinstance(
-            self._feat_clutter, torch.nn.Parameter
+            self._feat_clutter,
+            torch.nn.Parameter,
         ):
             self._feat_clutter = value
         else:
@@ -538,7 +544,8 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         self,
         batch,
         modalities: Union[
-            PROJECT_MODALITIES, List[PROJECT_MODALITIES]
+            PROJECT_MODALITIES,
+            List[PROJECT_MODALITIES],
         ] = PROJECT_MODALITIES.FEATS,
         down_sample_rate=1.0,
         instance_deform=None,
@@ -552,7 +559,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             objects_ids = batch.objects_ids
         else:
             objects_ids = torch.LongTensor(list(range(len(self)))).to(
-                device=batch.cam_tform4x4_obj.device
+                device=batch.cam_tform4x4_obj.device,
             )
             objects_ids = objects_ids[:, None]
 
@@ -638,7 +645,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             objects_ids = torch.LongTensor(list(range(len(self)))).to(device=device)
             if obj_tform4x4_objs is not None and obj_tform4x4_objs.dim() > 3:
                 objects_ids = objects_ids.reshape(
-                    *(((1,) * (obj_tform4x4_objs.dim() - 3)) + objects_ids.shape)
+                    *(((1,) * (obj_tform4x4_objs.dim() - 3)) + objects_ids.shape),
                 )
                 objects_ids = objects_ids.expand(*obj_tform4x4_objs.shape[:-2])
                 # *(objs_lengths_acc_from_0.shape + ((1,) * (objs_mod.dim() - objs_lengths.dim())
@@ -1763,7 +1770,8 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                 use_neg_mse=use_neg_mse,
             )
             sim_feats2d = torch.exp(sim_feats2d) / torch.exp(sim_surface2d).sum(
-                dim=1, keepdim=True
+                dim=1,
+                keepdim=True,
             )
 
         sim = sim_feats2d.flatten(2).mean(dim=-1)

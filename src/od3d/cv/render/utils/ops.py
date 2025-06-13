@@ -37,7 +37,7 @@ def _get_plugin():
                 paths = sorted(
                     glob.glob(
                         r"C:\Program Files (x86)\Microsoft Visual Studio\*\%s\VC\Tools\MSVC\*\bin\Hostx64\x64"
-                        % edition
+                        % edition,
                     ),
                     reverse=True,
                 )
@@ -49,7 +49,7 @@ def _get_plugin():
             cl_path = find_cl_path()
             if cl_path is None:
                 raise RuntimeError(
-                    "Could not locate a supported Microsoft Visual C++ installation"
+                    "Could not locate a supported Microsoft Visual C++ installation",
                 )
             os.environ["PATH"] += ";" + cl_path
 
@@ -131,7 +131,7 @@ def _fresnel_shlick(f0, f90, cosTheta, use_python=False):
 
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of _fresnel_shlick contains inf or NaN"
     return out
 
@@ -181,7 +181,7 @@ def _lambda_ggx(alphaSqr, cosTheta, use_python=False):
 
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of _lambda_ggx contains inf or NaN"
     return out
 
@@ -209,7 +209,7 @@ def _masking_smith(alphaSqr, cosThetaI, cosThetaO, use_python=False):
 
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of _masking_smith contains inf or NaN"
     return out
 
@@ -244,7 +244,12 @@ class _prepare_shading_normal_func(torch.autograd.Function):
             False,
         )
         ctx.save_for_backward(
-            pos, view_pos, perturbed_nrm, smooth_nrm, smooth_tng, geom_nrm
+            pos,
+            view_pos,
+            perturbed_nrm,
+            smooth_nrm,
+            smooth_tng,
+            geom_nrm,
         )
         return out
 
@@ -306,7 +311,10 @@ def prepare_shading_normal(
 
     if perturbed_nrm is None:
         perturbed_nrm = torch.tensor(
-            [0, 0, 1], dtype=torch.float32, device="cuda", requires_grad=False
+            [0, 0, 1],
+            dtype=torch.float32,
+            device="cuda",
+            requires_grad=False,
         )[None, None, None, ...]
 
     if use_python:
@@ -334,7 +342,7 @@ def prepare_shading_normal(
 
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of prepare_shading_normal contains inf or NaN"
     return out
 
@@ -423,7 +431,13 @@ class _pbr_specular_func(torch.autograd.Function):
         ctx.save_for_backward(col, nrm, wo, wi, alpha)
         ctx.min_roughness = min_roughness
         out = _get_plugin().pbr_specular_fwd(
-            col, nrm, wo, wi, alpha, min_roughness, False
+            col,
+            nrm,
+            wo,
+            wi,
+            alpha,
+            min_roughness,
+            False,
         )
         return out
 
@@ -431,7 +445,13 @@ class _pbr_specular_func(torch.autograd.Function):
     def backward(ctx, dout):
         col, nrm, wo, wi, alpha = ctx.saved_variables
         return _get_plugin().pbr_specular_bwd(
-            col, nrm, wo, wi, alpha, ctx.min_roughness, dout
+            col,
+            nrm,
+            wo,
+            wi,
+            alpha,
+            ctx.min_roughness,
+            dout,
         ) + (None, None)
 
 
@@ -459,7 +479,7 @@ def pbr_specular(col, nrm, wo, wi, alpha, min_roughness=0.08, use_python=False):
 
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of pbr_specular contains inf or NaN"
     return out
 
@@ -471,7 +491,15 @@ class _pbr_bsdf_func(torch.autograd.Function):
         ctx.min_roughness = min_roughness
         ctx.BSDF = BSDF
         out = _get_plugin().pbr_bsdf_fwd(
-            kd, arm, pos, nrm, view_pos, light_pos, min_roughness, BSDF, False
+            kd,
+            arm,
+            pos,
+            nrm,
+            view_pos,
+            light_pos,
+            min_roughness,
+            BSDF,
+            False,
         )
         return out
 
@@ -479,7 +507,15 @@ class _pbr_bsdf_func(torch.autograd.Function):
     def backward(ctx, dout):
         kd, arm, pos, nrm, view_pos, light_pos = ctx.saved_variables
         return _get_plugin().pbr_bsdf_bwd(
-            kd, arm, pos, nrm, view_pos, light_pos, ctx.min_roughness, ctx.BSDF, dout
+            kd,
+            arm,
+            pos,
+            nrm,
+            view_pos,
+            light_pos,
+            ctx.min_roughness,
+            ctx.BSDF,
+            dout,
         ) + (None, None, None)
 
 
@@ -521,7 +557,14 @@ def pbr_bsdf(
         out = bsdf_pbr(kd, arm, pos, nrm, view_pos, light_pos, min_roughness, BSDF)
     else:
         out = _pbr_bsdf_func.apply(
-            kd, arm, pos, nrm, view_pos, light_pos, min_roughness, BSDF
+            kd,
+            arm,
+            pos,
+            nrm,
+            view_pos,
+            light_pos,
+            min_roughness,
+            BSDF,
         )
 
     if torch.is_anomaly_enabled():
@@ -554,7 +597,7 @@ def diffuse_cubemap(cubemap, use_python=False):
         out = _diffuse_cubemap_func.apply(cubemap)
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of diffuse_cubemap contains inf or NaN"
     return out
 
@@ -563,7 +606,10 @@ class _specular_cubemap(torch.autograd.Function):
     @staticmethod
     def forward(ctx, cubemap, roughness, costheta_cutoff, bounds):
         out = _get_plugin().specular_cubemap_fwd(
-            cubemap, bounds, roughness, costheta_cutoff
+            cubemap,
+            bounds,
+            roughness,
+            costheta_cutoff,
         )
         ctx.save_for_backward(cubemap, bounds)
         ctx.roughness, ctx.theta_cutoff = roughness, costheta_cutoff
@@ -573,7 +619,11 @@ class _specular_cubemap(torch.autograd.Function):
     def backward(ctx, dout):
         cubemap, bounds = ctx.saved_variables
         cubemap_grad = _get_plugin().specular_cubemap_bwd(
-            cubemap, bounds, dout, ctx.roughness, ctx.theta_cutoff
+            cubemap,
+            bounds,
+            dout,
+            ctx.roughness,
+            ctx.theta_cutoff,
         )
         return cubemap_grad, None, None, None
 
@@ -614,7 +664,7 @@ def specular_cubemap(cubemap, roughness, cutoff=0.99, use_python=False):
         out = _specular_cubemap.apply(cubemap, roughness, *__ndfBoundsDict[key])
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of specular_cubemap contains inf or NaN"
     return out[..., 0:3] / out[..., 3:]
 
@@ -635,7 +685,11 @@ class _image_loss_func(torch.autograd.Function):
     def backward(ctx, dout):
         img, target = ctx.saved_variables
         return _get_plugin().image_loss_bwd(
-            img, target, dout, ctx.loss, ctx.tonemapper
+            img,
+            target,
+            dout,
+            ctx.loss,
+            ctx.tonemapper,
         ) + (None, None, None)
 
 
@@ -661,7 +715,7 @@ def image_loss(img, target, loss="l1", tonemapper="none", use_python=False):
 
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of image_loss contains inf or NaN"
     return out
 
@@ -706,7 +760,7 @@ def xfm_points(points, matrix, use_python=False):
 
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of xfm_points contains inf or NaN"
     return out
 
@@ -732,6 +786,6 @@ def xfm_vectors(vectors, matrix, use_python=False):
 
     if torch.is_anomaly_enabled():
         assert torch.all(
-            torch.isfinite(out)
+            torch.isfinite(out),
         ), "Output of xfm_vectors contains inf or NaN"
     return out

@@ -173,7 +173,7 @@ class Objaverse(OD3D_Dataset):
         canon_airplane = {el[0]: el[1] for el in canon[category]}
 
         logger.info(
-            f"found {len(canon_airplane)}:{len(lvis_uids)} labels for category {category}"
+            f"found {len(canon_airplane)}:{len(lvis_uids)} labels for category {category}",
         )
         from od3d.cv.visual.show import render_trimesh_to_tensor
         import trimesh
@@ -189,7 +189,7 @@ class Objaverse(OD3D_Dataset):
                 _mesh.show()
 
         a = Meshes.read_from_ply_file(
-            fpath=Path(list(objects.values())[0], device=device)
+            fpath=Path(list(objects.values())[0], device=device),
         )
 
         H = 512
@@ -203,7 +203,8 @@ class Objaverse(OD3D_Dataset):
         )
         img_size = torch.Tensor([H, W]).to(dtype=dtype, device=device)
         cam_tform4x4_obj = get_cam_tform4x4_obj_for_viewpoints_count(
-            viewpoints_count=3, dist=120
+            viewpoints_count=3,
+            dist=120,
         ).to(dtype=dtype, device=device)
         imgs = a.render(
             cams_intr4x4=cam_intr4x4,

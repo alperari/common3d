@@ -153,12 +153,16 @@ class DMTet_Core(nn.Module):
             mask_edges = occ_n[unique_edges.reshape(-1)].reshape(-1, 2).sum(-1) == 1
             mapping = (
                 torch.ones(
-                    (unique_edges.shape[0]), dtype=torch.long, device=self.device
+                    (unique_edges.shape[0]),
+                    dtype=torch.long,
+                    device=self.device,
                 )
                 * -1
             )
             mapping[mask_edges] = torch.arange(
-                mask_edges.sum(), dtype=torch.long, device=self.device
+                mask_edges.sum(),
+                dtype=torch.long,
+                device=self.device,
             )
             idx_map = mapping[idx_map]  # map edges to verts
 

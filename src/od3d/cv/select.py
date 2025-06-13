@@ -202,7 +202,7 @@ def batched_argminMD_select(inputMD, dims):
     inputMD_sub = inputMD.clone()
     dims_sorted_inds = []
     dims_sorted_decending, dims_sorted_decending_id = torch.LongTensor(dims).sort(
-        descending=True
+        descending=True,
     )
     _, dims_sorted_decending_id = dims_sorted_decending_id.sort()
     for dim in dims_sorted_decending:
@@ -230,7 +230,7 @@ def batched_index_in_bounds(indexMD, bounds):
         bounds = bounds[(None,) * (indexMD.dim() - 1)].expand_as(indexMD).clone()
         if (indexMD > bounds).any():
             logger.info(
-                f"indices greater than bounds for {indexMD[indexMD > bounds].unique()} > {bounds[indexMD > bounds].unique()}"
+                f"indices greater than bounds for {indexMD[indexMD > bounds].unique()} > {bounds[indexMD > bounds].unique()}",
             )
         indexMD[indexMD > bounds] = bounds[indexMD > bounds]
 

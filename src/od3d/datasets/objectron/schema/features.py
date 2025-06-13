@@ -59,45 +59,67 @@ FEATURE_NAMES = frozendict.frozendict(
         "PLANE_CENTER": "plane/center",
         # The normal vector for the ground plane objects are sitting on.
         "PLANE_NORMAL": "plane/normal",
-    }
+    },
 )
 
 FEATURE_MAP = {
     FEATURE_NAMES["IMAGE_ENCODED"]: tf.io.FixedLenFeature(
-        shape=[], dtype=tf.string, default_value=""
+        shape=[],
+        dtype=tf.string,
+        default_value="",
     ),
     FEATURE_NAMES["IMAGE_FORMAT"]: tf.io.FixedLenFeature(
-        shape=[], dtype=tf.string, default_value="png"
+        shape=[],
+        dtype=tf.string,
+        default_value="png",
     ),
     FEATURE_NAMES["IMAGE_FILENAME"]: tf.io.FixedLenFeature(
-        shape=[], dtype=tf.string, default_value=""
+        shape=[],
+        dtype=tf.string,
+        default_value="",
     ),
     FEATURE_NAMES["IMAGE_WIDTH"]: tf.io.FixedLenFeature(
-        shape=[1], dtype=tf.int64, default_value=0
+        shape=[1],
+        dtype=tf.int64,
+        default_value=0,
     ),
     FEATURE_NAMES["IMAGE_HEIGHT"]: tf.io.FixedLenFeature(
-        shape=[1], dtype=tf.int64, default_value=0
+        shape=[1],
+        dtype=tf.int64,
+        default_value=0,
     ),
     FEATURE_NAMES["IMAGE_ALPHA"]: tf.io.FixedLenFeature(
-        shape=[], dtype=tf.string, default_value=""
+        shape=[],
+        dtype=tf.string,
+        default_value="",
     ),
     FEATURE_NAMES["COLOR_SPACE"]: tf.io.FixedLenFeature(
-        shape=[], dtype=tf.string, default_value="RGB"
+        shape=[],
+        dtype=tf.string,
+        default_value="RGB",
     ),
     FEATURE_NAMES["NUM_CHANNELS"]: tf.io.FixedLenFeature(
-        shape=[1], dtype=tf.int64, default_value=3
+        shape=[1],
+        dtype=tf.int64,
+        default_value=3,
     ),
     FEATURE_NAMES["TIMESTAMP_MCSEC"]: tf.io.FixedLenFeature(
-        shape=[], dtype=tf.int64, default_value=0
+        shape=[],
+        dtype=tf.int64,
+        default_value=0,
     ),
     FEATURE_NAMES["IMAGE_ID"]: tf.io.FixedLenFeature(
-        shape=[1], dtype=tf.int64, default_value=-1
+        shape=[1],
+        dtype=tf.int64,
+        default_value=-1,
     ),
     FEATURE_NAMES["POINT_2D"]: tf.io.VarLenFeature(dtype=tf.float32),
     FEATURE_NAMES["POINT_3D"]: tf.io.VarLenFeature(dtype=tf.float32),
     FEATURE_NAMES["POINT_NUM"]: tf.io.VarLenFeature(dtype=tf.int64),
     FEATURE_NAMES["INSTANCE_NUM"]: tf.io.FixedLenFeature(
-        shape=[1], dtype=tf.int64, default_value=0
+        shape=[1],
+        dtype=tf.int64,
+        default_value=0,
     ),
     FEATURE_NAMES["PROJECTION_MATRIX"]: tf.io.VarLenFeature(dtype=tf.float32),
     FEATURE_NAMES["VIEW_MATRIX"]: tf.io.VarLenFeature(dtype=tf.float32),
@@ -118,35 +140,44 @@ FEATURE_MAP = {
 # VarLenFeature remains the same.
 SEQUENCE_FEATURE_MAP = {
     FEATURE_NAMES["IMAGE_ENCODED"]: tf.io.FixedLenSequenceFeature(
-        shape=[], dtype=tf.string
+        shape=[],
+        dtype=tf.string,
     ),
     FEATURE_NAMES["IMAGE_FORMAT"]: tf.io.FixedLenSequenceFeature(
-        shape=[], dtype=tf.string
+        shape=[],
+        dtype=tf.string,
     ),
     FEATURE_NAMES["IMAGE_FILENAME"]: tf.io.FixedLenSequenceFeature(
-        shape=[], dtype=tf.string
+        shape=[],
+        dtype=tf.string,
     ),
     FEATURE_NAMES["IMAGE_WIDTH"]: tf.io.FixedLenSequenceFeature(
-        shape=[1], dtype=tf.int64
+        shape=[1],
+        dtype=tf.int64,
     ),
     FEATURE_NAMES["IMAGE_HEIGHT"]: tf.io.FixedLenSequenceFeature(
-        shape=[1], dtype=tf.int64
+        shape=[1],
+        dtype=tf.int64,
     ),
     FEATURE_NAMES["COLOR_SPACE"]: tf.io.FixedLenSequenceFeature(
-        shape=[], dtype=tf.string
+        shape=[],
+        dtype=tf.string,
     ),
     FEATURE_NAMES["NUM_CHANNELS"]: tf.io.FixedLenSequenceFeature(
-        shape=[1], dtype=tf.int64
+        shape=[1],
+        dtype=tf.int64,
     ),
     FEATURE_NAMES["TIMESTAMP_MCSEC"]: tf.io.FixedLenSequenceFeature(
-        shape=[], dtype=tf.int64
+        shape=[],
+        dtype=tf.int64,
     ),
     FEATURE_NAMES["IMAGE_ID"]: tf.io.FixedLenSequenceFeature(shape=[1], dtype=tf.int64),
     FEATURE_NAMES["POINT_2D"]: tf.io.VarLenFeature(dtype=tf.float32),
     FEATURE_NAMES["POINT_3D"]: tf.io.VarLenFeature(dtype=tf.float32),
     FEATURE_NAMES["POINT_NUM"]: tf.io.VarLenFeature(dtype=tf.int64),
     FEATURE_NAMES["INSTANCE_NUM"]: tf.io.FixedLenSequenceFeature(
-        shape=[1], dtype=tf.int64
+        shape=[1],
+        dtype=tf.int64,
     ),
     FEATURE_NAMES["PROJECTION_MATRIX"]: tf.io.VarLenFeature(dtype=tf.float32),
     FEATURE_NAMES["VIEW_MATRIX"]: tf.io.VarLenFeature(dtype=tf.float32),

@@ -62,7 +62,7 @@ def visualize_selfsup(
 
     if model_use_feat_up:
         model = torch.hub.load("mhamilton723/FeatUp", "dinov2", use_norm=True).to(
-            device
+            device,
         )
         model_out_dim = model.dim
         res_high = res_low
@@ -120,7 +120,7 @@ def visualize_selfsup(
         featmap = model_out.featmap
         all_feats.append(featmap)
         logger.info(
-            f"{batch.name_unique}  mean: {featmap.norm(dim=1).mean()} median: {featmap.norm(dim=1).median()}"
+            f"{batch.name_unique}  mean: {featmap.norm(dim=1).mean()} median: {featmap.norm(dim=1).median()}",
         )
         _pca_feats = (
             featmap.clone()
@@ -151,15 +151,19 @@ def visualize_selfsup(
         show_imgs(
             resize(
                 featmap_pca[0, : pca_dim // 3 * 3].reshape(
-                    pca_dim // 3, 3, featmap_pca.shape[-2], featmap_pca.shape[-1]
+                    pca_dim // 3,
+                    3,
+                    featmap_pca.shape[-2],
+                    featmap_pca.shape[-1],
                 ),
                 scale_factor=4.0,
-            )
+            ),
         )
 
     all_feats = torch.stack(all_feats, dim=0)
     pca_feats = torch.cat(
-        [pca_feats[pca_frame_id] for pca_frame_id in pca_frames_ids], dim=0
+        [pca_feats[pca_frame_id] for pca_frame_id in pca_frames_ids],
+        dim=0,
     )
 
     # _, _, pca_V = torch.pca_lowrank(all_feats.flatten(2).permute(0, 2, 1).reshape(-1, model_out_dim), center=True, q=10)
@@ -219,7 +223,10 @@ def visualize_selfsup(
             2 * (torch.rand((3, res_low, res_low), device=device) - 0.5)
         ) * unmasked_noise
         img_unmasked_noise = resize(
-            img_unmasked_noise, H_out=res_high, W_out=res_high, mode="nearest_v2"
+            img_unmasked_noise,
+            H_out=res_high,
+            W_out=res_high,
+            mode="nearest_v2",
         )
         show_img(feats_rgb + img_unmasked_noise, fpath=f"{batch.name_unique[0]}.png")
 

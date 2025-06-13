@@ -93,7 +93,8 @@ class DINOv2(OD3D_Backbone):
             pca_dim = config.pca.get("out_dim", 64)
             self.pca_layer = nn.Linear(self.out_dims[-1], pca_dim, bias=False)
             self.mean_features = nn.Parameter(
-                torch.zeros(1, self.out_dims[-1]), requires_grad=False
+                torch.zeros(1, self.out_dims[-1]),
+                requires_grad=False,
             )
             for param in self.pca_layer.parameters():
                 param.requires_grad = False
@@ -152,7 +153,7 @@ class DINOv2(OD3D_Backbone):
                     > 0.5
                 )
                 net_feats_all.append(
-                    feats2d_net.permute(0, 2, 3, 1)[feats2d_net_mask[:, 0]]
+                    feats2d_net.permute(0, 2, 3, 1)[feats2d_net_mask[:, 0]],
                 )
 
                 net_feats_all_count += net_feats_all[-1].shape[0]
@@ -212,7 +213,8 @@ class DINOv2(OD3D_Backbone):
 
             # note: without layer normalization
             x_feat_map = x_dict["x_prenorm"][
-                :, 1:
+                :,
+                1:,
             ]  # 'x_norm_patchtokens', 'x_prenorm'[:, 1:]
             x_feat_cls = x_dict["x_prenorm"][:, 0]
 

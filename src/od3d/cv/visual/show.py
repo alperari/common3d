@@ -96,7 +96,12 @@ DEFAULT_TFORM_OPEN3D_DEFAULT = torch.Tensor(
 
 
 def get_default_camera_intrinsics_from_img_size(
-    W, H, fov_x=25, fov_y=None, dtype=None, device=None
+    W,
+    H,
+    fov_x=25,
+    fov_y=None,
+    dtype=None,
+    device=None,
 ):
     import math
 
@@ -371,7 +376,8 @@ def render_trimesh_to_tensor(
 
     # Create scene and add mesh
     scene = pyrender.Scene(
-        ambient_light=np.array([1.0, 1.0, 1.0, 1.0]), bg_color=rgb_bg
+        ambient_light=np.array([1.0, 1.0, 1.0, 1.0]),
+        bg_color=rgb_bg,
     )
     scene.add(pyrender_mesh)
 
@@ -381,7 +387,12 @@ def render_trimesh_to_tensor(
     height = H
     width = W
     camera = pyrender.IntrinsicsCamera(
-        float(fx), float(fy), float(cx), float(cy), znear=znear, zfar=zfar
+        float(fx),
+        float(fy),
+        float(cx),
+        float(cy),
+        znear=znear,
+        zfar=zfar,
     )
 
     # FOLLOWING OPENGL convention
@@ -818,7 +829,7 @@ def show_scene(
 
                 # advantage: normals shown
                 open3d.visualization.draw_geometries(
-                    [geometry["geometry"] for geometry in geometries]
+                    [geometry["geometry"] for geometry in geometries],
                 )
 
             elif renderer == OD3D_RENDERER.PYRENDER:
@@ -837,7 +848,8 @@ def show_scene(
                         scene.add(geometry["geometry"])
                     elif isinstance(geometry["geometry"], pyrender.camera.Camera):
                         scene.add(
-                            geometry["geometry"], pose=geometry["obj_tform4x4_cam"]
+                            geometry["geometry"],
+                            pose=geometry["obj_tform4x4_cam"],
                         )
                     elif isinstance(geometry["geometry"], pyrender.mesh.Primitive):
                         scene.add(pyrender.Mesh([geometry["geometry"]]))
@@ -1375,7 +1387,7 @@ def get_engine_geometries_for_cams(
                             [width * w_resize - 1, 0],
                             [width * w_resize - 1, height * h_resize - 1],
                             [0, height * h_resize - 1],
-                        ]
+                        ],
                     )
 
                     # Backproject to 3D at depth z_far
@@ -1434,7 +1446,7 @@ def get_engine_geometries_for_cams(
                             # [1, -1, 0],  # Bottom-right
                             # [1, 1, 0],  # Top-right
                             # [-1, 1, 0],  # Top-left
-                        ]
+                        ],
                     )
 
                     # Define two triangular faces (using the 4 vertices)
@@ -1444,7 +1456,7 @@ def get_engine_geometries_for_cams(
                             [0, 2, 3],
                             [2, 1, 0],  # Back face 1 (reversed)
                             [3, 2, 0],  # Back face 2 (reversed)
-                        ]
+                        ],
                     )
 
                     # Define UV coordinates (match image corners)
@@ -1454,7 +1466,7 @@ def get_engine_geometries_for_cams(
                             [1.0, 0.0],  # Bottom-right
                             [1.0, 1.0],  # Top-right
                             [0.0, 1.0],  # Top-left
-                        ]
+                        ],
                     )
 
                     # Create the texture visual
@@ -1469,11 +1481,15 @@ def get_engine_geometries_for_cams(
                     uv = np.concatenate([uv, frustum_mesh.vertices.copy()[:, :2] * 0.0])
                     material = trimesh.visual.texture.SimpleMaterial(image=texture)
                     visual = trimesh.visual.texture.TextureVisuals(
-                        uv=uv, image=texture, material=material
+                        uv=uv,
+                        image=texture,
+                        material=material,
                     )
 
                     frustum_mesh = trimesh.Trimesh(
-                        vertices=vertices, faces=faces, visual=visual
+                        vertices=vertices,
+                        faces=faces,
+                        visual=visual,
                     )
                     # frustum_mesh.show()
 
@@ -1606,7 +1622,7 @@ def get_engine_geometries_for_cams(
                         cam_wireframe_engine_colors[3, 1] = 1.0
                         cam_wireframe_engine_colors[3, 2] = 0.0
                         cam_wireframe_engine.colors = o3d.utility.Vector3dVector(
-                            cam_wireframe_engine_colors
+                            cam_wireframe_engine_colors,
                         )  # shape: (num_lines, 3)
                 elif renderer == OD3D_RENDERER.PYTORCH3D:
                     if cams_show_wireframe:
@@ -1818,7 +1834,11 @@ def fpaths_to_rgb(fpaths: List[Path], H: int, W: int, pad=1):
 
 
 def img_to_mesh(
-    img, cam_tform4x4_obj=None, cam_intr4x4=None, cams_imgs_resize=True, depth=1.0
+    img,
+    cam_tform4x4_obj=None,
+    cam_intr4x4=None,
+    cams_imgs_resize=True,
+    depth=1.0,
 ):
     import pyrender
 
@@ -1887,7 +1907,7 @@ def img_to_mesh(
                 [width - 1, 0],
                 [width - 1, height - 1],
                 [0, height - 1],
-            ]
+            ],
         )
 
         # Backproject to 3D at depth z_far
@@ -1908,7 +1928,7 @@ def img_to_mesh(
                 # [1, -1, 0],  # Bottom-right
                 # [1, 1, 0],  # Top-right
                 # [-1, 1, 0],  # Top-left
-            ]
+            ],
         )
     else:
         height_half = height // 2
@@ -1919,7 +1939,7 @@ def img_to_mesh(
                 [width_half, -height_half, 0],  # Bottom-right
                 [width_half, height_half, 0],  # Top-right
                 [-width_half, height_half, 0],  # Top-left
-            ]
+            ],
         )
 
     # Define two triangular faces (using the 4 vertices)
@@ -1929,7 +1949,7 @@ def img_to_mesh(
             [0, 2, 3],
             [2, 1, 0],  # Back face 1 (reversed)
             [3, 2, 0],  # Back face 2 (reversed)
-        ]
+        ],
     )
 
     # Define UV coordinates (match image corners)
@@ -1939,7 +1959,7 @@ def img_to_mesh(
             [1.0, 0.0],  # Bottom-right
             [1.0, 1.0],  # Top-right
             [0.0, 1.0],  # Top-left
-        ]
+        ],
     )
 
     import trimesh
@@ -1955,7 +1975,8 @@ def img_to_mesh(
 
     # material = trimesh.visual.texture.SimpleMaterial(image=texture)
     visual = trimesh.visual.texture.TextureVisuals(
-        uv=uv, image=texture
+        uv=uv,
+        image=texture,
     )  # , material=material)
 
     frustum_mesh = trimesh.Trimesh(vertices=vertices, faces=faces, visual=visual)

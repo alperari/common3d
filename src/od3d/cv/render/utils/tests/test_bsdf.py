@@ -26,27 +26,63 @@ def relative_loss(name, ref, cuda):
 
 def test_normal():
     pos_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     pos_ref = pos_cuda.clone().detach().requires_grad_(True)
     view_pos_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     view_pos_ref = view_pos_cuda.clone().detach().requires_grad_(True)
     perturbed_nrm_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     perturbed_nrm_ref = perturbed_nrm_cuda.clone().detach().requires_grad_(True)
     smooth_nrm_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     smooth_nrm_ref = smooth_nrm_cuda.clone().detach().requires_grad_(True)
     smooth_tng_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     smooth_tng_ref = smooth_tng_cuda.clone().detach().requires_grad_(True)
     geom_nrm_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     geom_nrm_ref = geom_nrm_cuda.clone().detach().requires_grad_(True)
     target = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda")
@@ -92,7 +128,13 @@ def test_schlick():
     f0_cuda = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True)
     f0_ref = f0_cuda.clone().detach().requires_grad_(True)
     f90_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     f90_ref = f90_cuda.clone().detach().requires_grad_(True)
     cosT_cuda = (
@@ -121,7 +163,13 @@ def test_schlick():
 
 def test_ndf_ggx():
     alphaSqr_cuda = torch.rand(
-        1, RES, RES, 1, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        1,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     alphaSqr_cuda = alphaSqr_cuda.clone().detach().requires_grad_(True)
     alphaSqr_ref = alphaSqr_cuda.clone().detach().requires_grad_(True)
@@ -151,7 +199,13 @@ def test_ndf_ggx():
 
 def test_lambda_ggx():
     alphaSqr_cuda = torch.rand(
-        1, RES, RES, 1, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        1,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     alphaSqr_ref = alphaSqr_cuda.clone().detach().requires_grad_(True)
     cosT_cuda = (
@@ -180,15 +234,33 @@ def test_lambda_ggx():
 
 def test_masking_smith():
     alphaSqr_cuda = torch.rand(
-        1, RES, RES, 1, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        1,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     alphaSqr_ref = alphaSqr_cuda.clone().detach().requires_grad_(True)
     cosThetaI_cuda = torch.rand(
-        1, RES, RES, 1, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        1,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     cosThetaI_ref = cosThetaI_cuda.clone().detach().requires_grad_(True)
     cosThetaO_cuda = torch.rand(
-        1, RES, RES, 1, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        1,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     cosThetaO_ref = cosThetaO_cuda.clone().detach().requires_grad_(True)
     target = torch.rand(1, RES, RES, 1, dtype=DTYPE, device="cuda")
@@ -212,7 +284,13 @@ def test_masking_smith():
 
 def test_lambert():
     normals_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     normals_ref = normals_cuda.clone().detach().requires_grad_(True)
     wi_cuda = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True)
@@ -237,7 +315,13 @@ def test_lambert():
 
 def test_frostbite():
     normals_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     normals_ref = normals_cuda.clone().detach().requires_grad_(True)
     wi_cuda = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True)
@@ -245,7 +329,13 @@ def test_frostbite():
     wo_cuda = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True)
     wo_ref = wo_cuda.clone().detach().requires_grad_(True)
     rough_cuda = torch.rand(
-        1, RES, RES, 1, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        1,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     rough_ref = rough_cuda.clone().detach().requires_grad_(True)
     target = torch.rand(1, RES, RES, 1, dtype=DTYPE, device="cuda")
@@ -270,11 +360,23 @@ def test_frostbite():
 
 def test_pbr_specular():
     col_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     col_ref = col_cuda.clone().detach().requires_grad_(True)
     nrm_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     nrm_ref = nrm_cuda.clone().detach().requires_grad_(True)
     wi_cuda = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True)
@@ -282,7 +384,13 @@ def test_pbr_specular():
     wo_cuda = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True)
     wo_ref = wo_cuda.clone().detach().requires_grad_(True)
     alpha_cuda = torch.rand(
-        1, RES, RES, 1, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        1,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     alpha_ref = alpha_cuda.clone().detach().requires_grad_(True)
     target = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda")
@@ -316,23 +424,53 @@ def test_pbr_bsdf(bsdf):
     kd_cuda = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True)
     kd_ref = kd_cuda.clone().detach().requires_grad_(True)
     arm_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     arm_ref = arm_cuda.clone().detach().requires_grad_(True)
     pos_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     pos_ref = pos_cuda.clone().detach().requires_grad_(True)
     nrm_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     nrm_ref = nrm_cuda.clone().detach().requires_grad_(True)
     view_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     view_ref = view_cuda.clone().detach().requires_grad_(True)
     light_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     light_ref = light_cuda.clone().detach().requires_grad_(True)
     target = torch.rand(1, RES, RES, 3, dtype=DTYPE, device="cuda")
@@ -351,7 +489,13 @@ def test_pbr_bsdf(bsdf):
     ref_loss.backward()
 
     cuda = ru.pbr_bsdf(
-        kd_cuda, arm_cuda, pos_cuda, nrm_cuda, view_cuda, light_cuda, bsdf=bsdf
+        kd_cuda,
+        arm_cuda,
+        pos_cuda,
+        nrm_cuda,
+        view_cuda,
+        light_cuda,
+        bsdf=bsdf,
     )
     cuda_loss = torch.nn.MSELoss()(cuda, target)
     cuda_loss.backward()

@@ -224,7 +224,7 @@ class OD3D_Dataset(Dataset):
                 ]
                 dict_nested_frames_unrolled_filtered[key] = frames_filtered
             dict_nested_frames = rollup_flattened_dict(
-                dict_nested_frames_unrolled_filtered
+                dict_nested_frames_unrolled_filtered,
             )
         # else:
         #    logger.info("cannot filter sequences with categories due to not in name unique...")
@@ -510,7 +510,8 @@ class OD3D_Dataset(Dataset):
                     ]
                     cam_tform4x4_objs = torch.stack(cam_tform4x4_objs)
                     cam_tform4x4_objs = cam_tform4x4_objs.to(
-                        device=batch.cam_intr4x4.device, dtype=batch.cam_intr4x4.dtype
+                        device=batch.cam_intr4x4.device,
+                        dtype=batch.cam_intr4x4.dtype,
                     )
                     from od3d.cv.geometry.transform import tform4x4
 
@@ -527,7 +528,8 @@ class OD3D_Dataset(Dataset):
                     kpts2d_annot_max = 1
                     for b in range(B):
                         kpts2d_annot_max = max(
-                            batch.kpts2d_annot_vsbl[b].sum().item(), kpts2d_annot_max
+                            batch.kpts2d_annot_vsbl[b].sum().item(),
+                            kpts2d_annot_max,
                         )
                     center_pxl2d = -torch.ones((B, kpts2d_annot_max, 2), device=device)
                     for b in range(B):
@@ -536,7 +538,8 @@ class OD3D_Dataset(Dataset):
                                 batch.kpts2d_annot_vsbl[b]
                             ][0, None]
                             center_pxl2d[
-                                b, : batch.kpts2d_annot_vsbl[b].sum().item()
+                                b,
+                                : batch.kpts2d_annot_vsbl[b].sum().item(),
                             ] = batch.kpts2d_annot[b][batch.kpts2d_annot_vsbl[b]]
                         else:
                             center_pxl2d[b, :] = batch.size[None, [1, 0]] / 2
@@ -793,7 +796,7 @@ class OD3D_SequenceDataset(OD3D_Dataset):
                 )
                 dict_nested_frames_unroll_filtered[key] = frames_names_filtered
             dict_nested_frames = rollup_flattened_dict(
-                dict_nested_frames_unroll_filtered
+                dict_nested_frames_unroll_filtered,
             )
 
         super().__init__(
@@ -927,7 +930,9 @@ class OD3D_SequenceDataset(OD3D_Dataset):
         return dict_nested_frames
 
     def get_dict_nested_frames_from_sequences(
-        self, dict_nested_sequences: Dict, dict_nested_frames_orig=None
+        self,
+        dict_nested_sequences: Dict,
+        dict_nested_frames_orig=None,
     ):
         dict_nested_sequences_unrolled = unroll_nested_dict(dict_nested_sequences)
         dict_nested_frames_unroll = {}
@@ -977,14 +982,16 @@ class OD3D_SequenceDataset(OD3D_Dataset):
         ]
         dict_nested_sequences_unrolled = {}
         for key, val in zip(
-            dict_nested_sequences_unrolled_keys, dict_nested_sequences_unrolled_vals
+            dict_nested_sequences_unrolled_keys,
+            dict_nested_sequences_unrolled_vals,
         ):
             if key not in dict_nested_sequences_unrolled.keys():
                 dict_nested_sequences_unrolled[key] = val
             elif dict_nested_sequences_unrolled[key] is None or val is None:
                 dict_nested_sequences_unrolled[key] = None
             elif isinstance(dict_nested_sequences_unrolled[key], list) and isinstance(
-                val, list
+                val,
+                list,
             ):
                 dict_nested_sequences_unrolled[key] += val
             else:
@@ -999,10 +1006,10 @@ class OD3D_SequenceDataset(OD3D_Dataset):
         count_max_per_category=None,
     ):
         dict_nested_sequences = self.get_dict_nested_sequences_from_frames(
-            dict_nested_frames
+            dict_nested_frames,
         )
         dict_nested_sequences_ban = self.get_dict_nested_sequences_from_frames(
-            dict_nested_frames_ban
+            dict_nested_frames_ban,
         )
 
         # get sequences
@@ -1027,13 +1034,13 @@ class OD3D_SequenceDataset(OD3D_Dataset):
                     else:
                         dict_nested_sequences_unrolled_filtered[key] = val
             dict_nested_sequences = rollup_flattened_dict(
-                dict_nested_sequences_unrolled_filtered
+                dict_nested_sequences_unrolled_filtered,
             )
         else:
             if self.dict_nested_sequences_filter_cat_w_name:
                 logger.info("filter categorical w name")
                 dict_nested_sequences_unrolled = unroll_nested_dict(
-                    dict_nested_sequences
+                    dict_nested_sequences,
                 )
                 dict_nested_sequences_unrolled_filtered = {}
                 for key, seqs in dict_nested_sequences_unrolled.items():
@@ -1052,16 +1059,16 @@ class OD3D_SequenceDataset(OD3D_Dataset):
                             seq
                             for seq in seqs
                             if any(
-                                [seq.startswith(f"{cat}_") for cat in self.categories]
+                                [seq.startswith(f"{cat}_") for cat in self.categories],
                             )
                         ]
                     dict_nested_sequences_unrolled_filtered[key] = seqs_filtered
                 dict_nested_sequences = rollup_flattened_dict(
-                    dict_nested_sequences_unrolled_filtered
+                    dict_nested_sequences_unrolled_filtered,
                 )
             else:
                 logger.info(
-                    "cannot filter sequences with categories due to not in name unique..."
+                    "cannot filter sequences with categories due to not in name unique...",
                 )
         return dict_nested_sequences
 
@@ -1598,7 +1605,7 @@ class OD3D_SequenceDataset(OD3D_Dataset):
 
                     if modality == "ncds":
                         mod, mod_lens = src_sequence_mesh.get_vert_mod_from_objs(
-                            mod="pt3d_ncds"
+                            mod="pt3d_ncds",
                         )
                         src_sequence_mesh.set_rgb(mod)
                     elif (

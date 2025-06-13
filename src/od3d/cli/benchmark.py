@@ -1045,7 +1045,9 @@ def run(
     platform: str = typer.Option("local", "-p", "--platform"),
     age_in_hours_lt: int = typer.Option(24, "-l", "--age-in-hours-lt"),
     max_count_running_and_pending_runs: int = typer.Option(
-        70, "-r", "--max-count-runs"
+        70,
+        "-r",
+        "--max-count-runs",
     ),
     force: str = typer.Option(False, "-f", "--force"),
     max_count_sleep_time_in_mins: int = typer.Option(10, "-s", "--max-count-sleep"),
@@ -1162,7 +1164,7 @@ def run(
 
     while len(methods_cfgs) > 0:
         hours_passed_since_start = math.ceil(
-            (datetime.datetime.now() - datetime_start).seconds / 3600
+            (datetime.datetime.now() - datetime_start).seconds / 3600,
         )
         # running_runs_names_without_ts_and_platform = [
         #     get_run_name_without_ts_and_platform(run.name) for run in get_runs_multiple(
@@ -1219,7 +1221,8 @@ def run(
                 dict_slurm_failed_hosts["time"] = dt_to_str(datetime.datetime.now())
                 dict_slurm_failed_hosts["hosts"] = slurm_failed_hosts
                 write_dict_as_yaml(
-                    fpath=slurm_failed_hosts_fpath, _dict=dict_slurm_failed_hosts
+                    fpath=slurm_failed_hosts_fpath,
+                    _dict=dict_slurm_failed_hosts,
                 )
 
             if len(slurm_failed_hosts) > 0:
@@ -1254,7 +1257,7 @@ def run(
 
         logger.info(f"time: {datetime.datetime.now()}")
         logger.info(
-            f"runs finished: {len(finished_runs_names_without_ts_and_platform)}"
+            f"runs finished: {len(finished_runs_names_without_ts_and_platform)}",
         )
         logger.info(f"runs running: {len(running_runs_names_without_ts_and_platform)}")
         logger.info(f"runs pending: {len(pending_runs_names_without_ts_and_platform)}")

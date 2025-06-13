@@ -36,7 +36,11 @@ def get_block(
                 stride=stride,
                 downsample=nn.Sequential(
                     nn.Conv2d(
-                        in_dim, out_dim, kernel_size=1, stride=stride, bias=False
+                        in_dim,
+                        out_dim,
+                        kernel_size=1,
+                        stride=stride,
+                        bias=False,
                     ),
                     nn.BatchNorm2d(out_dim),
                 ),
@@ -51,7 +55,11 @@ def get_block(
                 stride=stride,
                 downsample=nn.Sequential(
                     nn.Conv2d(
-                        in_dim, out_dim, kernel_size=1, stride=stride, bias=False
+                        in_dim,
+                        out_dim,
+                        kernel_size=1,
+                        stride=stride,
+                        bias=False,
                     ),
                     nn.BatchNorm2d(out_dim),
                 ),
@@ -296,6 +304,9 @@ class ResNet(OD3D_Head):
                 x_feat = torch.nn.functional.normalize(x_feat, p=2, dim=1)
 
         x_out = OD3D_ModelData(
-            featmap=x_featmap, feat=x_feat, feat_mu=x_feat_mu, feat_logvar=x_feat_logvar
+            featmap=x_featmap,
+            feat=x_feat,
+            feat_mu=x_feat_mu,
+            feat_logvar=x_feat_logvar,
         )
         return x_out

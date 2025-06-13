@@ -169,7 +169,8 @@ class Evaluator:
                     # scale = self.compute_scale(box_point_3d, plane)
                     # box_point_3d = box_point_3d * scale
                     azimuth_error, polar_error, iou, add, adds = self.evaluate_3d(
-                        box_point_3d, instances_3d[index]
+                        box_point_3d,
+                        instances_3d[index],
                     )
                 else:
                     pixel_error = _MAX_PIXEL_ERROR

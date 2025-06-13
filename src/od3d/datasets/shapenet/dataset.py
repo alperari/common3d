@@ -345,7 +345,8 @@ class ShapeNet(OD3D_SequenceDataset):
         import math
 
         sequences_count_max_per_category = config.get(
-            "sequences_count_max_per_category", None
+            "sequences_count_max_per_category",
+            None,
         )
         if sequences_count_max_per_category is None:
             sequences_count_max_per_category = math.inf
@@ -437,23 +438,23 @@ class ShapeNet(OD3D_SequenceDataset):
                         sequences_ids = [
                             path.name
                             for path in list(
-                                path_raw.joinpath(f"{category_id}").iterdir()
+                                path_raw.joinpath(f"{category_id}").iterdir(),
                             )
                         ]
 
                     for sequence_id in sequences_ids:
                         if sequences_count == sequences_count_max_per_category:
                             logger.info(
-                                f"reached maximum count of sequences {sequences_count_max_per_category}"
+                                f"reached maximum count of sequences {sequences_count_max_per_category}",
                             )
                             break
 
                         logger.info(f"extract meta sequence {sequence_id}")
                         frame_fpath_pcl = path_raw.joinpath(
-                            f"pcl/{subset}/{category}/{sequence_id}.ply"
+                            f"pcl/{subset}/{category}/{sequence_id}.ply",
                         )
                         frame_fpath_mesh_orig = path_raw.joinpath(
-                            f"{category_id}/{sequence_id}/models/model_normalized.obj"
+                            f"{category_id}/{sequence_id}/models/model_normalized.obj",
                         )
                         frame_fpath_mesh = frame_fpath_mesh_orig
                         # frame_fpath_mesh = path_raw.joinpath(f"{category_id}/{sequence_id}/models/model_single.glb")
@@ -461,7 +462,7 @@ class ShapeNet(OD3D_SequenceDataset):
 
                         if not frame_fpath_mesh_orig.exists():
                             logger.info(
-                                f"skip sequence {sequence_id} in {category} because does not exist in v2."
+                                f"skip sequence {sequence_id} in {category} because does not exist in v2.",
                             )
                             continue
 
@@ -475,7 +476,7 @@ class ShapeNet(OD3D_SequenceDataset):
 
                         if sequence_meta.get_fpath(path_meta=path_meta).exists():
                             logger.info(
-                                f"already extracted sequence {sequence_id} in {category}"
+                                f"already extracted sequence {sequence_id} in {category}",
                             )
                             sequences_count = sequences_count + 1
                             continue
@@ -484,7 +485,8 @@ class ShapeNet(OD3D_SequenceDataset):
                         import trimesh
 
                         _mesh_trimesh = trimesh.load(
-                            frame_fpath_mesh_orig, force="mesh"
+                            frame_fpath_mesh_orig,
+                            force="mesh",
                         )
 
                         if subset_type == "r2n2notxt":
@@ -494,11 +496,12 @@ class ShapeNet(OD3D_SequenceDataset):
                             grey_color = np.array([64, 64, 64, 255], dtype=np.uint8)
                             # Apply the color to all faces/vertices
                             _mesh_trimesh.visual = trimesh.visual.color.ColorVisuals(
-                                _mesh_trimesh, vertex_colors=grey_color
+                                _mesh_trimesh,
+                                vertex_colors=grey_color,
                             )
 
                         logger.info(
-                            f"sequence {sequence_id} in {category}, {len(_mesh_trimesh.vertices)} vertices"
+                            f"sequence {sequence_id} in {category}, {len(_mesh_trimesh.vertices)} vertices",
                         )
                         # _mesh_trimesh.show()
 
@@ -507,7 +510,7 @@ class ShapeNet(OD3D_SequenceDataset):
                             # _ = _mesh_trimesh.export(file_obj=frame_fpath_mesh)
                         else:
                             logger.info(
-                                f"skip sequence {sequence_id} in {category} because could not convert to single mesh."
+                                f"skip sequence {sequence_id} in {category} because could not convert to single mesh.",
                             )
 
                         from od3d.cv.geometry.transform import (
@@ -544,7 +547,7 @@ class ShapeNet(OD3D_SequenceDataset):
                         imgs_sizes = torch.LongTensor([W, H])
 
                         if viewpoints_type.startswith(
-                            "icotraj"
+                            "icotraj",
                         ) or viewpoints_type.startswith("icorealtraj"):
                             if viewpoints_type.startswith("icotraj"):
                                 prefix = "icotraj"
@@ -585,21 +588,25 @@ class ShapeNet(OD3D_SequenceDataset):
                         # cams_tform4x4_obj = get_cam_tform4x4_obj_for_viewpoints_count(viewpoints_count=3, dist=2.).to(device)
 
                         cams_tform4x4_obj = tform4x4_broadcast(
-                            cams_tform4x4_obj, OBJ_TFORM_OBJ_SHAPENET.to(device)
+                            cams_tform4x4_obj,
+                            OBJ_TFORM_OBJ_SHAPENET.to(device),
                         )
                         cam_intr4x4 = get_default_camera_intrinsics_from_img_size(
-                            W=W, H=H
+                            W=W,
+                            H=H,
                         ).to(device)
                         try:
                             mesh = Meshes.read_from_ply_file(
-                                fpath=frame_fpath_mesh, device=device, load_texts=True
+                                fpath=frame_fpath_mesh,
+                                device=device,
+                                load_texts=True,
                             )
                         except Exception:
                             logger.warning(f"could not load texture {frame_fpath_mesh}")
                             continue
 
                         logger.info(
-                            f"sequence {sequence_id} in {category}, {len(mesh.verts)} vertices"
+                            f"sequence {sequence_id} in {category}, {len(mesh.verts)} vertices",
                         )
                         logger.info(f"{frame_fpath_mesh}")
 
@@ -621,16 +628,16 @@ class ShapeNet(OD3D_SequenceDataset):
                         for i, cam_tform4x4_obj in enumerate(cams_tform4x4_obj):
                             frame_name = f"{int(i):03}"
                             frame_fpath_rgb = path_raw.joinpath(
-                                f"rgb/{subset}/{category}/{sequence_id}/{frame_name}.png"
+                                f"rgb/{subset}/{category}/{sequence_id}/{frame_name}.png",
                             )
                             frame_fpath_mask = path_raw.joinpath(
-                                f"mask/{subset}/{category}/{sequence_id}/{frame_name}.png"
+                                f"mask/{subset}/{category}/{sequence_id}/{frame_name}.png",
                             )
                             frame_fpath_depth = path_raw.joinpath(
-                                f"depth/{subset}/{category}/{sequence_id}/{frame_name}.png"
+                                f"depth/{subset}/{category}/{sequence_id}/{frame_name}.png",
                             )
                             frame_fpath_depth_mask = path_raw.joinpath(
-                                f"depth_mask/{subset}/{category}/{sequence_id}/{frame_name}.png"
+                                f"depth_mask/{subset}/{category}/{sequence_id}/{frame_name}.png",
                             )
 
                             rgb, depth = render_trimesh_to_tensor(
@@ -644,20 +651,24 @@ class ShapeNet(OD3D_SequenceDataset):
                             depth_mask = depth > 0.0
 
                             _pts3d = depth2pts3d_grid(
-                                depth=depth.to(device), cam_intr4x4=cam_intr4x4
+                                depth=depth.to(device),
+                                cam_intr4x4=cam_intr4x4,
                             ).permute(1, 2, 0)[depth_mask[0]]
                             _pts3d = random_sampling(
-                                pts3d_cls=_pts3d, pts3d_max_count=1024
+                                pts3d_cls=_pts3d,
+                                pts3d_max_count=1024,
                             )
                             _pts3d = transf3d_broadcast(
-                                pts3d=_pts3d, transf4x4=inv_tform4x4(cam_tform4x4_obj)
+                                pts3d=_pts3d,
+                                transf4x4=inv_tform4x4(cam_tform4x4_obj),
                             )
                             pts3d.append(_pts3d)
                             write_image(img=rgb, path=frame_fpath_rgb)
                             write_image(img=masks[i], path=frame_fpath_mask)
                             write_depth_image(img=depth, path=frame_fpath_depth)
                             write_mask_image(
-                                img=depth_mask, path=frame_fpath_depth_mask
+                                img=depth_mask,
+                                path=frame_fpath_depth_mask,
                             )
 
                             frame_meta = ShapeNet_FrameMeta(
@@ -667,7 +678,7 @@ class ShapeNet(OD3D_SequenceDataset):
                                 rfpath_mask=frame_fpath_mask.relative_to(path_raw),
                                 rfpath_depth=frame_fpath_depth.relative_to(path_raw),
                                 rfpath_depth_mask=frame_fpath_depth_mask.relative_to(
-                                    path_raw
+                                    path_raw,
                                 ),
                                 # rfpath_mesh=frame_fpath_mesh.relative_to(path_raw),
                                 category=category,
@@ -697,7 +708,7 @@ class ShapeNet(OD3D_SequenceDataset):
             # R2N2
             path_r2n2 = path_raw.joinpath("ShapeNetRendering")
             categories_r2n2_id = list(
-                MAP_CATEGORIES_SHAPENET_R2N2_ID_TO_CATEGORY.keys()
+                MAP_CATEGORIES_SHAPENET_R2N2_ID_TO_CATEGORY.keys(),
             )
 
             for category_id in categories_r2n2_id:
@@ -710,29 +721,29 @@ class ShapeNet(OD3D_SequenceDataset):
                 for sequence_id in sequences_ids:
                     logger.info(f"extract meta sequence {sequence_id}")
                     path_r2n2_sequence = path_r2n2_category.joinpath(
-                        f"{sequence_id}/rendering"
+                        f"{sequence_id}/rendering",
                     )
                     path_renderings_txt = path_r2n2_sequence.joinpath("renderings.txt")
                     path_renderings_meta_txt = path_r2n2_sequence.joinpath(
-                        "rendering_metadata.txt"
+                        "rendering_metadata.txt",
                     )
                     from od3d.io import read_str_from_file
 
                     frames_fnames = read_str_from_file(fpath=path_renderings_txt).split(
-                        "\n"
+                        "\n",
                     )
                     frames_names = [Path(fname).stem for fname in frames_fnames]
                     import torch
                     from od3d.cv.geometry.objects3d.meshes import Meshes
 
                     frames_metas_strs = read_str_from_file(
-                        fpath=path_renderings_meta_txt
+                        fpath=path_renderings_meta_txt,
                     ).split("\n")
                     frames_metas_cams = torch.Tensor(
                         [
                             [float(number) for number in frame_meta_str.split(" ")]
                             for frame_meta_str in frames_metas_strs
-                        ]
+                        ],
                     )
                     # N x 5 {yaw, pitch, 0, radius, fov}
                     # N x 5 {azimuth, elevation, 0, depth_ratio, 25}
@@ -740,7 +751,7 @@ class ShapeNet(OD3D_SequenceDataset):
                     device = "cuda"
 
                     frame_fpath_mesh = path_raw.joinpath(
-                        f"ShapeNetCore.v1/{category_id}/{sequence_id}/model.obj"
+                        f"ShapeNetCore.v1/{category_id}/{sequence_id}/model.obj",
                     )
 
                     # mesh = Meshes.read_from_ply_file(fpath=frame_fpath_mesh, device=device, load_texts=False)
@@ -769,7 +780,7 @@ class ShapeNet(OD3D_SequenceDataset):
 
                         # v1
                         azimuth = torch.Tensor(
-                            [-frame_meta_cam[0] / 180 * math.pi - math.pi / 2]
+                            [-frame_meta_cam[0] / 180 * math.pi - math.pi / 2],
                         )
                         # fov = frame_meta_cam[4]
                         fov = 2 * math.atan(35 / (2 * 38)) * 180 / math.pi
@@ -894,7 +905,7 @@ class ShapeNet(OD3D_SequenceDataset):
         )
 
         splits = read_json(
-            path_raw.joinpath("ShapeNetRendering/pix2mesh_splits_val05.json")
+            path_raw.joinpath("ShapeNetRendering/pix2mesh_splits_val05.json"),
         )
         for split in splits.keys():
             logger.info(f"creating split yaml file {split}")
@@ -949,7 +960,7 @@ class ShapeNet(OD3D_SequenceDataset):
                 # bicycle
                 # table, 04379243
                 logger.info(
-                    f"get category: {MAP_CATEGORIES_SHAPENET_V2_ID_TO_CATEGORY[category_id]}, {category_id}"
+                    f"get category: {MAP_CATEGORIES_SHAPENET_V2_ID_TO_CATEGORY[category_id]}, {category_id}",
                 )
                 # $HF_TOKEN
                 hf_token = "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"

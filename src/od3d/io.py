@@ -136,7 +136,7 @@ def load_single_hierarchical_config(
 
         with open_dict(cfg):
             cfg.ablation_name = "_".join(
-                [Path(ablation).stem for ablation in ablations]
+                [Path(ablation).stem for ablation in ablations],
             )
 
         logger.info(cfg.ablation_name)

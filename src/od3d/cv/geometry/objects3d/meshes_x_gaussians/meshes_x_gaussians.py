@@ -188,7 +188,8 @@ class Meshes_x_Gaussians(Meshes):
 
         pts3d = (
             self.get_stacked_with_mesh_ids(
-                tensor_packed=self.verts, mesh_ids=objects_ids
+                tensor_packed=self.verts,
+                mesh_ids=objects_ids,
             )
             .clone()
             .to(device=device)
@@ -299,7 +300,7 @@ class Meshes_x_Gaussians(Meshes):
                         one_hot=True,
                         device=device,
                     ).to(
-                        dtype
+                        dtype,
                     )[
                         0
                     ]
@@ -307,12 +308,17 @@ class Meshes_x_Gaussians(Meshes):
                     feat_bg = None
 
                 mod2d_rendered = select_and_blend_gaussians(
-                    gs_id, px_to_gs_opacity, verts_one_hot_from_faces, feat_bg=feat_bg
+                    gs_id,
+                    px_to_gs_opacity,
+                    verts_one_hot_from_faces,
+                    feat_bg=feat_bg,
                 )
 
             elif modality == PROJECT_MODALITIES.DEPTH:
                 mod2d_rendered = select_and_blend_gaussians(
-                    gs_id, px_to_gs_opacity, gs_depth
+                    gs_id,
+                    px_to_gs_opacity,
+                    gs_depth,
                 )
 
             elif modality == PROJECT_MODALITIES.MASK_VERTS_VSBL:
@@ -326,7 +332,8 @@ class Meshes_x_Gaussians(Meshes):
                     verts_vsbl_mask[
                         b,
                         gs_id[
-                            b, px_to_gs_opacity[b].mean(dim=0).mean(dim=1)[b] > 0
+                            b,
+                            px_to_gs_opacity[b].mean(dim=0).mean(dim=1)[b] > 0,
                         ].unique(),
                     ] = 1
                 mod2d_rendered = verts_vsbl_mask
@@ -356,7 +363,7 @@ class Meshes_x_Gaussians(Meshes):
 
             elif modality == PROJECT_MODALITIES.FEATS:
                 gs_feats = self.get_feats_stacked_with_mesh_ids(
-                    mesh_ids=objects_ids
+                    mesh_ids=objects_ids,
                 ).to(device)
 
                 if add_clutter:
@@ -373,11 +380,13 @@ class Meshes_x_Gaussians(Meshes):
 
             elif modality == PROJECT_MODALITIES.PT3D_NCDS:
                 gs_feats = self.get_verts_ncds_stacked_with_mesh_ids(
-                    mesh_ids=objects_ids
+                    mesh_ids=objects_ids,
                 ).to(device)
 
                 mod2d_rendered = select_and_blend_gaussians(
-                    gs_id, px_to_gs_opacity, gs_feats
+                    gs_id,
+                    px_to_gs_opacity,
+                    gs_feats,
                 )
 
             else:

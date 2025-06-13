@@ -19,27 +19,63 @@ DTYPE = torch.float32
 
 def test_bsdf(BATCH, RES, ITR):
     kd_cuda = torch.rand(
-        BATCH, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        BATCH,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     kd_ref = kd_cuda.clone().detach().requires_grad_(True)
     arm_cuda = torch.rand(
-        BATCH, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        BATCH,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     arm_ref = arm_cuda.clone().detach().requires_grad_(True)
     pos_cuda = torch.rand(
-        BATCH, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        BATCH,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     pos_ref = pos_cuda.clone().detach().requires_grad_(True)
     nrm_cuda = torch.rand(
-        BATCH, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        BATCH,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     nrm_ref = nrm_cuda.clone().detach().requires_grad_(True)
     view_cuda = torch.rand(
-        BATCH, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        BATCH,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     view_ref = view_cuda.clone().detach().requires_grad_(True)
     light_cuda = torch.rand(
-        BATCH, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        BATCH,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     light_ref = light_cuda.clone().detach().requires_grad_(True)
     target = torch.rand(BATCH, RES, RES, 3, device="cuda")
@@ -54,7 +90,13 @@ def test_bsdf(BATCH, RES, ITR):
     start.record()
     for i in range(ITR):
         ref = ru.pbr_bsdf(
-            kd_ref, arm_ref, pos_ref, nrm_ref, view_ref, light_ref, use_python=True
+            kd_ref,
+            arm_ref,
+            pos_ref,
+            nrm_ref,
+            view_ref,
+            light_ref,
+            use_python=True,
         )
     end.record()
     torch.cuda.synchronize()

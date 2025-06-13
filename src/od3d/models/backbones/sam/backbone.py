@@ -83,12 +83,12 @@ class SAM(OD3D_Backbone):
                         [input_box[0], input_box[3]],
                         [input_box[2], input_box[1]],
                         [input_box[2], input_box[3]],
-                    ]
+                    ],
                 )
 
                 input_point = _points_xy.detach().cpu().numpy()
                 input_label = np.array(
-                    len(_points_xy) * [0]
+                    len(_points_xy) * [0],
                 )  # 1: foreground, 0: background
 
             if points_xy is not None:
@@ -105,7 +105,8 @@ class SAM(OD3D_Backbone):
                             x.shape[2] / 2.5
                         )  # total 2/3 image height
                         input_box_size_half = min(
-                            input_box_width_half, input_box_height_half
+                            input_box_width_half,
+                            input_box_height_half,
                         )
                         input_box_width_half = input_box_size_half
                         input_box_height_half = input_box_size_half
@@ -114,13 +115,13 @@ class SAM(OD3D_Backbone):
                         y1 = max(cy - input_box_height_half, 0)
                         y2 = min(cy + input_box_height_half, x.shape[2] - 1)
                         input_box = np.array(
-                            [x1, y1, x2, y2]
+                            [x1, y1, x2, y2],
                         )  # np.array [x1, y1, x2, y2]
 
                 else:  # points_xy.dim() == 3
                     input_point = points_xy[b].detach().cpu().numpy()
                     input_label = np.array(
-                        len(points_xy[b]) * [1]
+                        len(points_xy[b]) * [1],
                     )  # 1: foreground, 0: background
 
                     if bbox_from_points:
@@ -129,7 +130,7 @@ class SAM(OD3D_Backbone):
                         x2 = points_xy[b : b + 1].detach().cpu().numpy()[:, 0].max()
                         y2 = points_xy[b : b + 1].detach().cpu().numpy()[:, 1].max()
                         input_box = np.array(
-                            [x1, y1, x2, y2]
+                            [x1, y1, x2, y2],
                         )  # np.array [x1, y1, x2, y2]
 
             masks_b, scores_b, logits_b = self.predictor.predict(

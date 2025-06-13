@@ -133,7 +133,8 @@ class OD3D_Tasks(OD3D_Task):
         for task in self.tasks:
             if task is not None:
                 frames_pred = task.visualize(
-                    frames_pred=frames_pred, frames_gt=frames_gt
+                    frames_pred=frames_pred,
+                    frames_gt=frames_gt,
                 )
             else:
                 logger.warning(f"Task is None. {self.tasks}")
@@ -145,7 +146,7 @@ class OD3D_Tasks(OD3D_Task):
         for config_task in config.tasks:
             tasks.append(
                 OD3D_Task.subclasses[config_task.class_name].create_from_config(
-                    config=config_task
+                    config=config_task,
                 ),
             )
         return OD3D_Tasks(tasks)

@@ -53,7 +53,7 @@ class Objectron_FrameMeta(
     ):
         if len(annotation.objects) != 1:
             logger.warning(
-                f"sequence {sequence_name} contains annotation of not exactly one object ({len(annotation.objects)})"
+                f"sequence {sequence_name} contains annotation of not exactly one object ({len(annotation.objects)})",
             )
 
         if len(annotation.objects) < 1:
@@ -84,7 +84,7 @@ class Objectron_FrameMeta(
 
         # cam_tform4x4_obj = torch.from_numpy(np.array(annotation_frame.camera.transform).reshape(4, 4))
         cam_tform4x4_world = torch.from_numpy(
-            np.array(annotation_frame.camera.view_matrix).reshape(4, 4)
+            np.array(annotation_frame.camera.view_matrix).reshape(4, 4),
         )
 
         from od3d.cv.geometry.transform import (
@@ -96,12 +96,13 @@ class Objectron_FrameMeta(
         )
 
         rot3x3_obj = torch.from_numpy(
-            np.array(annotation.objects[0].rotation).reshape(3, 3)
+            np.array(annotation.objects[0].rotation).reshape(3, 3),
         )
         transl3_obj = torch.from_numpy(np.array(annotation.objects[0].translation))
 
         world_tform4x4_obj = transf4x4_from_rot3x3_and_transl3(
-            rot3x3=rot3x3_obj, transl3=transl3_obj
+            rot3x3=rot3x3_obj,
+            transl3=transl3_obj,
         )  # without scale
         cam_tform4x4_obj = tform4x4(cam_tform4x4_world, world_tform4x4_obj)
 
@@ -126,7 +127,8 @@ class Objectron_FrameMeta(
 
         # swap y and z
         obj_tform_obj_objectron = torch.eye(4).to(
-            cam_tform4x4_obj.device, cam_tform4x4_obj.dtype
+            cam_tform4x4_obj.device,
+            cam_tform4x4_obj.dtype,
         )
         obj_tform_obj_objectron[1, 1] = 0.0
         obj_tform_obj_objectron[2, 2] = 0.0
@@ -147,17 +149,18 @@ class Objectron_FrameMeta(
                                 annotation.objects[0].keypoints[i].x,
                                 annotation.objects[0].keypoints[i].y,
                                 annotation.objects[0].keypoints[i].z,
-                            ]
+                            ],
                         )
                         for i in range(1, 9)
-                    ]
+                    ],
                 ),
             )
             * scale_obj_pts3d[None,]
         )
 
         obj_bbox3d = transf3d_broadcast(
-            pts3d=obj_bbox3d, transf4x4=inv_tform4x4(obj_tform_obj_objectron)
+            pts3d=obj_bbox3d,
+            transf4x4=inv_tform4x4(obj_tform_obj_objectron),
         )
         # # 8x3
         # cam_bbox3d = torch.from_numpy(np.stack([
@@ -176,7 +179,8 @@ class Objectron_FrameMeta(
         # cam_bbox3d_pts3d = transf3d_broadcast(pts3d=obj_bbox3d, transf4x4=cam_tform4x4_obj)
 
         cam_bbox2d = proj3d2d_broadcast(
-            pts3d=obj_bbox3d.clone(), proj4x4=cam_proj4x4_obj
+            pts3d=obj_bbox3d.clone(),
+            proj4x4=cam_proj4x4_obj,
         )
 
         # cam_bbox2d = torch.from_numpy(np.stack([

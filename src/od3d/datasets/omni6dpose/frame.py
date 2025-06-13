@@ -120,13 +120,13 @@ class Omni6DPose_Frame(
     @property
     def fpath_bboxs(self):
         return Path(
-            self.path_preprocess.joinpath("bboxs", self.name_unique, "bboxs.pt")
+            self.path_preprocess.joinpath("bboxs", self.name_unique, "bboxs.pt"),
         )
 
     @property
     def fpath_bboxs_vsbl(self):
         return Path(
-            self.path_preprocess.joinpath("bboxs", self.name_unique, "bboxs_vsbl.pt")
+            self.path_preprocess.joinpath("bboxs", self.name_unique, "bboxs_vsbl.pt"),
         )
 
     def write_bboxs(self, bboxs: torch.LongTensor):
@@ -251,7 +251,8 @@ class Omni6DPose_Frame(
 
             os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
             img = cv2.imread(
-                str(self.fpath_pxl_cat_id), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
+                str(self.fpath_pxl_cat_id),
+                cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH,
             )
             if len(img.shape) == 3:
                 img = img[:, :, 2]
@@ -282,7 +283,8 @@ class Omni6DPose_Frame(
 
             os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
             depth = cv2.imread(
-                str(self.fpath_depth), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
+                str(self.fpath_depth),
+                cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH,
             )
             if len(depth.shape) == 3:
                 depth = depth[:, :, 0]
@@ -314,7 +316,9 @@ class Omni6DPose_Frame(
             # logger.info([ rfpath.with_suffix('.ply') for rfpath in self.meta.rfpaths_meshs])
             fpaths_meshs = [
                 self.path_preprocess.joinpath(
-                    "mesh", str(mesh_type), rfpath.with_suffix(".ply")
+                    "mesh",
+                    str(mesh_type),
+                    rfpath.with_suffix(".ply"),
                 )
                 for rfpath in self.meta.rfpaths_meshs
             ]
@@ -322,7 +326,8 @@ class Omni6DPose_Frame(
 
     def read_obj_tform4x4_objs(self):
         obj_tform4x4_objs = super(
-            OD3D_FrameCamTform4x4ObjsMixin, self
+            OD3D_FrameCamTform4x4ObjsMixin,
+            self,
         ).read_obj_tform4x4_objs()
         fpaths_meshes = self.get_fpaths_meshs(mesh_type=self.mesh_type)
         mesh = Meshes.read_from_ply_files(fpaths_meshes=fpaths_meshes)

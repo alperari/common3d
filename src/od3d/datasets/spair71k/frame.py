@@ -168,7 +168,7 @@ class SPair71KFrameMeta(
         name = pair_annotation["filename"].split(":", 1)[0]
 
         sizes = torch.Tensor(
-            [pair_annotation["src_imsize"][:2], pair_annotation["trg_imsize"][:2]]
+            [pair_annotation["src_imsize"][:2], pair_annotation["trg_imsize"][:2]],
         )
         sizes = torch.flip(sizes, [1])
 
@@ -216,10 +216,10 @@ class SPair71KFrameMeta(
         src_name = pair_name.split("-", 3)[1]
         trg_name = pair_name.split("-", 3)[2]
         rfpath_src_annotation = path_raw_pascal3d.joinpath(
-            f"Annotations/{category}_pascal/{src_name}.mat"
+            f"Annotations/{category}_pascal/{src_name}.mat",
         )
         rfpath_trg_annotation = path_raw_pascal3d.joinpath(
-            f"Annotations/{category}_pascal/{trg_name}.mat"
+            f"Annotations/{category}_pascal/{trg_name}.mat",
         )
         source_annotation = scipy.io.loadmat(rfpath_src_annotation)
         target_annotation = scipy.io.loadmat(rfpath_trg_annotation)

@@ -42,16 +42,32 @@ def relative_loss(name, ref, cuda):
 
 def test_loss(loss, tonemapper):
     img_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     img_ref = img_cuda.clone().detach().requires_grad_(True)
     target_cuda = torch.rand(
-        1, RES, RES, 3, dtype=DTYPE, device="cuda", requires_grad=True
+        1,
+        RES,
+        RES,
+        3,
+        dtype=DTYPE,
+        device="cuda",
+        requires_grad=True,
     )
     target_ref = target_cuda.clone().detach().requires_grad_(True)
 
     ref_loss = ru.image_loss(
-        img_ref, target_ref, loss=loss, tonemapper=tonemapper, use_python=True
+        img_ref,
+        target_ref,
+        loss=loss,
+        tonemapper=tonemapper,
+        use_python=True,
     )
     ref_loss.backward()
 
@@ -59,7 +75,7 @@ def test_loss(loss, tonemapper):
     cuda_loss.backward()
 
     print("-------------------------------------------------------------")
-    print("    Loss: {}, {}".format(loss, tonemapper))
+    print(f"    Loss: {loss}, {tonemapper}")
     print("-------------------------------------------------------------")
 
     relative_loss("res:", ref_loss, cuda_loss)

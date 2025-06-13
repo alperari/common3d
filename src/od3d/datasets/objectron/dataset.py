@@ -152,10 +152,13 @@ class Objectron(OD3D_SequenceDataset):
 
                     annotation = requests.get(annotation_filename)
                     path_objectron_raw.joinpath(category_str, seq_name).mkdir(
-                        exist_ok=True, parents=True
+                        exist_ok=True,
+                        parents=True,
                     )
                     annotation_fpath = path_objectron_raw.joinpath(
-                        category_str, seq_name, "annotation.pbdata"
+                        category_str,
+                        seq_name,
+                        "annotation.pbdata",
                     )
                     file = open(annotation_fpath, "wb")
                     file.write(annotation.content)
@@ -163,7 +166,9 @@ class Objectron(OD3D_SequenceDataset):
 
                     metadata = requests.get(metadata_filename)
                     metadata_fpath = path_objectron_raw.joinpath(
-                        category_str, seq_name, "meta.pbdata"
+                        category_str,
+                        seq_name,
+                        "meta.pbdata",
                     )
                     file = open(metadata_fpath, "wb")
                     file.write(metadata.content)
@@ -172,7 +177,9 @@ class Objectron(OD3D_SequenceDataset):
                     # video.content contains the video file.
                     video = requests.get(video_filename)
                     video_fpath = path_objectron_raw.joinpath(
-                        category_str, seq_name, "video.MOV"
+                        category_str,
+                        seq_name,
+                        "video.MOV",
                     )
                     file = open(video_fpath, "wb")
                     file.write(video.content)
@@ -185,7 +192,8 @@ class Objectron(OD3D_SequenceDataset):
 
         config.setup.remove_previous = True
         if path_meta.exists() and config.get("extract_meta", False).get(
-            "remove_previous", False
+            "remove_previous",
+            False,
         ):
             logger.info(f"Removing previous Objectron meta")
             shutil.rmtree(path_meta)
@@ -323,7 +331,7 @@ class Objectron(OD3D_SequenceDataset):
                             break
 
                         l_size = torch.LongTensor(
-                            [frame.shape[0], frame.shape[1]]
+                            [frame.shape[0], frame.shape[1]],
                         ).tolist()
                         frame_meta = Objectron_FrameMeta.load_from_raw(
                             name=fpath_frame.stem,

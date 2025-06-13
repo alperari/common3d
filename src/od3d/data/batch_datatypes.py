@@ -20,7 +20,8 @@ class OD3D_ModelData:
     featmap_mu: torch.Tensor = None  # BxCxHxW
     featmap_logvar: torch.Tensor = None  # BxCxHxW
     featmaps: Union[
-        List[torch.Tensor], torch.Tensor
+        List[torch.Tensor],
+        torch.Tensor,
     ] = None  # List(BxCxHixWi) or BxNxCxHxW
     mask: torch.Tensor = None  # Bx1xHxW
     masks: Union[List[torch.Tensor], torch.Tensor] = None  # List(Bx1xHixWi) or BxNxHxW

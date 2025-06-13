@@ -12,7 +12,12 @@ class cubemap_mip(torch.autograd.Function):
     def backward(ctx, dout):
         res = dout.shape[1] * 2
         out = torch.zeros(
-            6, res, res, dout.shape[-1], dtype=torch.float32, device="cuda"
+            6,
+            res,
+            res,
+            dout.shape[-1],
+            dtype=torch.float32,
+            device="cuda",
         )
         for s in range(6):
             gy, gx = torch.meshgrid(

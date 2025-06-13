@@ -159,7 +159,8 @@ def se3_exp_map(se3_log: torch.Tensor):
 
     so3_3x3 = so3_exp_map(se3_log.reshape(-1, 6)[:, 3:6])
     se3_4x4 = transf4x4_from_rot3x3_and_transl3(
-        rot3x3=so3_3x3, transl3=se3_log.reshape(-1, 6)[:, :3]
+        rot3x3=so3_3x3,
+        transl3=se3_log.reshape(-1, 6)[:, :3],
     )
 
     # se3_4x4 = Se3(rotation=Quaternion.from_axis_angle(axis_angle=se3_log.reshape(-1, 6)[:, 3:6]),
@@ -234,11 +235,13 @@ def get_scale3d_tform4x4(a_tform4x4_b, keepdim=True):
 def get_scale1d_tform4x4(a_tform4x4_b, keepdim=True):
     if keepdim:
         scale1d = get_scale3d_tform4x4(a_tform4x4_b, keepdim=keepdim).mean(
-            dim=-2, keepdim=keepdim
+            dim=-2,
+            keepdim=keepdim,
         )
     else:
         scale1d = get_scale3d_tform4x4(a_tform4x4_b, keepdim=keepdim).mean(
-            dim=-1, keepdim=keepdim
+            dim=-1,
+            keepdim=keepdim,
         )
 
     return scale1d
@@ -475,7 +478,8 @@ def look_at_rotation(
     )
     if is_close.any():
         replacement = torch.nn.functional.normalize(
-            torch.cross(y_axis, z_axis, dim=1), eps=1e-5
+            torch.cross(y_axis, z_axis, dim=1),
+            eps=1e-5,
         )
         x_axis = torch.where(is_close, replacement, x_axis)
     R = torch.cat((x_axis[:, None, :], y_axis[:, None, :], z_axis[:, None, :]), dim=1)
@@ -721,7 +725,7 @@ def rot3x3_from_yaw_pitch(yaw, pitch, roll):
                 math.cos(pitch) * math.sin(roll),
                 math.cos(pitch) * math.cos(roll),
             ],
-        ]
+        ],
     )
 
     # convention B
@@ -746,7 +750,7 @@ def rot3x3_from_yaw_pitch(yaw, pitch, roll):
                 - math.sin(roll) * math.cos(yaw),
                 math.cos(roll) * math.cos(pitch),
             ],
-        ]
+        ],
     )
     return rotation_matrix
 
@@ -790,7 +794,7 @@ def get_ico_traj_cam_tform4x4_obj_for_viewpoints_count(
             np.sin(phi1) * np.cos(theta1),
             np.sin(phi1) * np.sin(theta1),
             np.cos(phi1),
-        ]
+        ],
     )
 
     if real:
@@ -813,7 +817,9 @@ def get_ico_traj_cam_tform4x4_obj_for_viewpoints_count(
     xyz = torch.from_numpy(points).to(dtype=torch.float)
 
     theta_offset = torch.linspace(
-        0, 2 * torch.pi - (2 * torch.pi) / theta_count, theta_count
+        0,
+        2 * torch.pi - (2 * torch.pi) / theta_count,
+        theta_count,
     )
     if real:
         theta_start = torch.rand(1) * 0.0
@@ -831,7 +837,8 @@ def get_ico_traj_cam_tform4x4_obj_for_viewpoints_count(
     theta += theta_offset
 
     cam_tform4x4_obj = transf4x4_from_pos_and_theta(
-        pos=xyz, theta=theta
+        pos=xyz,
+        theta=theta,
     )  # torch.zeros_like(xyz[:, 0]))
 
     return cam_tform4x4_obj
@@ -890,7 +897,7 @@ def get_ico_cam_tform4x4_obj_for_viewpoints_count(
                     0,
                     2 * torch.pi - (2 * torch.pi) / N_e_single.int(),
                     N_e_single.int(),
-                )
+                ),
             )
             r_e = torch.cos(e[e_id].abs()).abs()
             x = torch.sin(a_per_e[-1]) * r_e
@@ -908,7 +915,9 @@ def get_ico_cam_tform4x4_obj_for_viewpoints_count(
 
     if theta_uniform:
         theta = torch.linspace(
-            0, 2 * torch.pi - (2 * torch.pi) / theta_count, theta_count
+            0,
+            2 * torch.pi - (2 * torch.pi) / theta_count,
+            theta_count,
         )
     else:
         theta = torch.rand(theta_count) * 2 * torch.pi
@@ -918,7 +927,8 @@ def get_ico_cam_tform4x4_obj_for_viewpoints_count(
     theta = theta.repeat(viewpoints_count)
 
     cam_tform4x4_obj = transf4x4_from_pos_and_theta(
-        pos=xyz, theta=theta
+        pos=xyz,
+        theta=theta,
     )  # torch.zeros_like(xyz[:, 0]))
 
     return cam_tform4x4_obj
@@ -997,7 +1007,10 @@ def transf4x4_from_rot4_and_transl3(rot4, transl3):
     import torch
 
     cam_rotQ_world = Quaternion.from_coeffs(
-        w=float(rot4[0]), x=float(rot4[1]), y=float(rot4[2]), z=float(rot4[3])
+        w=float(rot4[0]),
+        x=float(rot4[1]),
+        y=float(rot4[2]),
+        z=float(rot4[3]),
     )
     if isinstance(transl3, list):
         transl3 = torch.FloatTensor(transl3)

@@ -454,7 +454,7 @@ class NeMo_Rec(OD3D_Method):
         task_metrics = self.task.eval(frames_gt=batch, frames_pred=frames_pred)
 
         loss_geo_sdf_reg = self.meshes.get_geo_sdf_reg_loss(
-            objects_ids=batch.category_id
+            objects_ids=batch.category_id,
         )
 
         losses_names = ["rec_rgb_mse", "rec_mask_mse", "rec_mask_dt_dot", "sdf_reg"]
@@ -475,7 +475,7 @@ class NeMo_Rec(OD3D_Method):
             for l in range(len(losses)):
                 if losses[l].isnan().any():
                     logger.warning(
-                        f"Loss {losses_names[l]} contains NaNs. Setting it to zero."
+                        f"Loss {losses_names[l]} contains NaNs. Setting it to zero.",
                     )
                     losses[l][:] = 0.0
                 results_batch[losses_names[l]] = losses[l].detach()
@@ -922,7 +922,8 @@ class NeMo_Rec(OD3D_Method):
                 H, W = feats2d_net.shape[-2:]
                 # sim_feats[sim_feats == 0.] = -torch.inf
                 sim_feats_top_vals, sim_feats_top_ids = sim_feats[:, :].sort(
-                    dim=1, descending=True
+                    dim=1,
+                    descending=True,
                 )
                 sim_feats_selected = torch.ones_like(sim_feats)
                 sim_feats_selected[:] = -torch.inf
@@ -1071,7 +1072,8 @@ class NeMo_Rec(OD3D_Method):
                     dtype = pts3d.dtype
                     pts3d_pairs = torch.zeros(B, 3, K, N).to(device=device, dtype=dtype)
                     pts3d_pairs_prob = torch.zeros(B, K, K, N).to(
-                        device=device, dtype=dtype
+                        device=device,
+                        dtype=dtype,
                     )
                     pxl2d_pairs = torch.zeros(B, 2, K, N).to(device=device, dtype=dtype)
                     pts3d2d_pairs_mask = (
@@ -1107,12 +1109,17 @@ class NeMo_Rec(OD3D_Method):
                     pxl2d_pairs = pxl2d.reshape(*pxl2d.shape[:2], H, W)
                     pts3d_pairs_prob, pts3d_pairs_ids = pts3d_prob.max(dim=1)
                     pts3d_pairs = batched_index_select(
-                        input=pts3d, index=pts3d_pairs_ids, dim=1
+                        input=pts3d,
+                        index=pts3d_pairs_ids,
+                        dim=1,
                     )
                     pts3d_pairs = pts3d_pairs.permute(0, 2, 1)
                     pts3d_pairs = pts3d_pairs.reshape(*pts3d_pairs.shape[:2], H, W)
                     pts3d_pairs_prob = pts3d_pairs_prob.reshape(
-                        *pts3d_pairs_prob.shape[:1], 1, H, W
+                        *pts3d_pairs_prob.shape[:1],
+                        1,
+                        H,
+                        W,
                     )
                     pts3d2d_pairs_mask = pts3d_pairs_prob > 0
                     if not config_sample.epnp3d2d.pt_nn_weights:
@@ -1140,7 +1147,7 @@ class NeMo_Rec(OD3D_Method):
                         b_cams_multiview_tform4x4_obj.flatten(2).isnan().any(dim=-1)
                     )
                     b_cams_multiview_tform4x4_obj[b_nans] = torch.eye(4).to(
-                        device=b_nans.device
+                        device=b_nans.device,
                     )[None]
                 if b_cams_multiview_tform4x4_obj.abs().max() > 1e5:
                     logger.info(f"Too large values in cam_tform_obj")
@@ -1148,7 +1155,7 @@ class NeMo_Rec(OD3D_Method):
                         b_cams_multiview_tform4x4_obj.flatten(2).abs() > 1e5
                     ).any(dim=-1)
                     b_cams_multiview_tform4x4_obj[b_too_largs] = torch.eye(4).to(
-                        device=b_too_largs.device
+                        device=b_too_largs.device,
                     )[None]
 
                 b_cams_multiview_intr4x4 = cam_intr4x4[:, None].repeat(1, K, 1, 1)

@@ -206,11 +206,13 @@ class Omni6DPose(OD3D_SequenceDataset):
         logger.info("preprocess")
         for key in config_preprocess.keys():
             if key == "objcentric" and config_preprocess.objcentric.get(
-                "enabled", False
+                "enabled",
+                False,
             ):
                 override = config_preprocess.objcentric.get("override", False)
                 remove_previous = config_preprocess.objcentric.get(
-                    "remove_previous", False
+                    "remove_previous",
+                    False,
                 )
                 self.preprocess_objcentric(
                     override=override,
@@ -279,7 +281,7 @@ class Omni6DPose(OD3D_SequenceDataset):
             frame = self.get_frame_by_name_unique(name_unique=batch.name_unique[0])
             fpaths_meshs_meta = frame.get_fpaths_meshs(mesh_type=OD3D_MESH_TYPES.META)
             fpaths_meshs = frame.get_fpaths_meshs(
-                mesh_type=OD3D_MESH_TYPES.ALPHA500
+                mesh_type=OD3D_MESH_TYPES.ALPHA500,
             )  # self.mesh_type
 
             for i, fpath_mesh_meta in enumerate(tqdm(fpaths_meshs_meta)):
@@ -351,33 +353,33 @@ class Omni6DPose(OD3D_SequenceDataset):
             dict_nested_frames_unrolled = unroll_nested_dict(self.dict_nested_frames)
             dict_nested_frames_unrolled_filtered = {}
             for frames_subdir, frames_names in tqdm(
-                dict_nested_frames_unrolled.items()
+                dict_nested_frames_unrolled.items(),
             ):
                 for frame_name in frames_names:
                     if (
                         not self.path_preprocess.joinpath(
-                            f"bboxs/{frames_subdir}/{frame_name}/bboxs.pt"
+                            f"bboxs/{frames_subdir}/{frame_name}/bboxs.pt",
                         ).exists()
                         or not self.path_preprocess.joinpath(
-                            f"rgb/{frames_subdir}/{frame_name}.png"
+                            f"rgb/{frames_subdir}/{frame_name}.png",
                         ).exists()
                         or not self.path_preprocess.joinpath(
-                            f"pxl_cat_id/{frames_subdir}/{frame_name}.png"
+                            f"pxl_cat_id/{frames_subdir}/{frame_name}.png",
                         ).exists()
                         or not self.path_preprocess.joinpath(
-                            f"depth/{frames_subdir}/{frame_name}.png"
+                            f"depth/{frames_subdir}/{frame_name}.png",
                         ).exists()
                     ):
                         if frames_subdir not in dict_nested_frames_unrolled_filtered:
                             dict_nested_frames_unrolled_filtered[frames_subdir] = []
                         dict_nested_frames_unrolled_filtered[frames_subdir] += [
-                            frame_name
+                            frame_name,
                         ]
             dict_nested_frames_filtered = rollup_flattened_dict(
-                dict_nested_frames_unrolled_filtered
+                dict_nested_frames_unrolled_filtered,
             )
             self = self.get_subset_with_dict_nested_frames(
-                dict_nested_frames=dict_nested_frames_filtered
+                dict_nested_frames=dict_nested_frames_filtered,
             )
 
         dataloader = torch.utils.data.DataLoader(
@@ -412,7 +414,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                 modalities=PROJECT_MODALITIES.MASK,
                 broadcast_batch_and_cams=False,
                 obj_tform4x4_objs=torch.stack(batch.obj_tform4x4_objs).to(
-                    device=device
+                    device=device,
                 ),
                 zfar=10 * obj_size,
             )
@@ -452,7 +454,7 @@ class Omni6DPose(OD3D_SequenceDataset):
 
                 if frame.fpath_pxl_cat_id.exists() and not override:
                     logger.info(
-                        f"pxl_cat_id exists at {frame.fpath_pxl_cat_id}, skipping..."
+                        f"pxl_cat_id exists at {frame.fpath_pxl_cat_id}, skipping...",
                     )
                 else:
                     from od3d.datasets.omni6dpose.enum import (
@@ -588,12 +590,14 @@ class Omni6DPose(OD3D_SequenceDataset):
                         for bbox_subset in bboxs_subsets:
                             logger.info(f"remove {subdir}/{subset}_{bbox_subset}...")
                             if self.path_preprocess.joinpath(
-                                subdir, f"{subset}_{bbox_subset}"
+                                subdir,
+                                f"{subset}_{bbox_subset}",
                             ).exists():
                                 shutil.rmtree(
                                     self.path_preprocess.joinpath(
-                                        subdir, f"{subset}_{bbox_subset}"
-                                    )
+                                        subdir,
+                                        f"{subset}_{bbox_subset}",
+                                    ),
                                 )
 
         if not override:
@@ -601,7 +605,7 @@ class Omni6DPose(OD3D_SequenceDataset):
             dict_nested_frames_unrolled = unroll_nested_dict(self.dict_nested_frames)
             dict_nested_frames_unrolled_filtered = {}
             for frames_subdir, frames_names in tqdm(
-                dict_nested_frames_unrolled.items()
+                dict_nested_frames_unrolled.items(),
             ):
                 if (
                     "bbox" in frames_subdir
@@ -613,23 +617,23 @@ class Omni6DPose(OD3D_SequenceDataset):
 
                     if (
                         not self.path_preprocess.joinpath(
-                            f"meta/sequences/{frames_subset}_bbox_mask_amodal/{frames_seq}_{frame_name}.yaml"
+                            f"meta/sequences/{frames_subset}_bbox_mask_amodal/{frames_seq}_{frame_name}.yaml",
                         ).exists()
                     ) or (
                         not self.path_preprocess.joinpath(
-                            f"meta/sequences/{frames_subset}_bbox_mask_modal/{frames_seq}_{frame_name}.yaml"
+                            f"meta/sequences/{frames_subset}_bbox_mask_modal/{frames_seq}_{frame_name}.yaml",
                         ).exists()
                     ):
                         if frames_subdir not in dict_nested_frames_unrolled_filtered:
                             dict_nested_frames_unrolled_filtered[frames_subdir] = []
                         dict_nested_frames_unrolled_filtered[frames_subdir] += [
-                            frame_name
+                            frame_name,
                         ]
             dict_nested_frames_filtered = rollup_flattened_dict(
-                dict_nested_frames_unrolled_filtered
+                dict_nested_frames_unrolled_filtered,
             )
             self = self.get_subset_with_dict_nested_frames(
-                dict_nested_frames=dict_nested_frames_filtered
+                dict_nested_frames=dict_nested_frames_filtered,
             )
 
         from copy import copy
@@ -703,7 +707,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                 modalities=PROJECT_MODALITIES.OBJ_IN_SCENE_ONEHOT,
                 broadcast_batch_and_cams=False,
                 obj_tform4x4_objs=torch.stack(batch.obj_tform4x4_objs).to(
-                    device=device
+                    device=device,
                 ),
             )
 
@@ -825,14 +829,14 @@ class Omni6DPose(OD3D_SequenceDataset):
 
                     if frame_fpath_mask_amodal.exists() and not override:
                         logger.info(
-                            f"mask amodal exists at {frame_fpath_mask_amodal}, skipping..."
+                            f"mask amodal exists at {frame_fpath_mask_amodal}, skipping...",
                         )
                     else:
                         write_image(img=bbox_mask_amodal, path=frame_fpath_mask_amodal)
 
                     if frame_fpath_pxl_cat_id.exists() and not override:
                         logger.info(
-                            f"pxl_cat_id exists at {frame_fpath_pxl_cat_id}, skipping..."
+                            f"pxl_cat_id exists at {frame_fpath_pxl_cat_id}, skipping...",
                         )
                     else:
                         from od3d.datasets.omni6dpose.enum import (
@@ -846,7 +850,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                         ]
                         write_image(
                             img=(dataset_specific_id * (bbox_mask > 0)).to(
-                                dtype=torch.uint8
+                                dtype=torch.uint8,
                             ),
                             path=frame_fpath_pxl_cat_id,
                         )
@@ -858,16 +862,16 @@ class Omni6DPose(OD3D_SequenceDataset):
                         sequence_name=sequence_name,
                         subset=subset,
                         rfpath_rgb=frame_fpath_rgb.relative_to(
-                            self.path_preprocess
+                            self.path_preprocess,
                         ),  # frame.meta.rfpath_rgb,
                         rfpath_pxl_cat_id=frame_fpath_pxl_cat_id.relative_to(
-                            self.path_preprocess
+                            self.path_preprocess,
                         ),
                         rfpath_depth=frame_fpath_depth.relative_to(
-                            self.path_preprocess
+                            self.path_preprocess,
                         ),
                         rfpath_depth_mask=frame_fpath_depth_mask.relative_to(
-                            self.path_preprocess
+                            self.path_preprocess,
                         ),
                         rfpaths_meshs=[
                             fpath.relative_to(self.path_raw) for fpath in fpaths_meshs
@@ -888,21 +892,22 @@ class Omni6DPose(OD3D_SequenceDataset):
                         and not override
                     ):
                         logger.info(
-                            f"already extracted frame {frame_name} in scene {sequence_name} in subset {subset}"
+                            f"already extracted frame {frame_name} in scene {sequence_name} in subset {subset}",
                         )
                     else:
                         frame_meta.save(path_meta=self.path_meta)
 
                     if bbox_id == len(bboxs) - 1:
                         seq_meta = Omni6DPose_SequenceMeta(
-                            name=sequence_name, subset=subset
+                            name=sequence_name,
+                            subset=subset,
                         )
                         if (
                             seq_meta.get_fpath(path_meta=self.path_meta).exists()
                             and not override
                         ):
                             logger.info(
-                                f"already extracted sequence {sequence_name} in subset {subset}"
+                                f"already extracted sequence {sequence_name} in subset {subset}",
                             )
                         else:
                             seq_meta.save(path_meta=self.path_meta)
@@ -963,7 +968,9 @@ class Omni6DPose(OD3D_SequenceDataset):
                 scenes_names[subset] = []
                 for patch_id in sope_patch_ids:
                     path_patch_subset = path_raw.joinpath(
-                        "SOPE", patch_id, subset_rpath
+                        "SOPE",
+                        patch_id,
+                        subset_rpath,
                     )
                     if path_patch_subset.exists():
                         scenes_paths[subset] += list(path_patch_subset.iterdir())
@@ -976,19 +983,21 @@ class Omni6DPose(OD3D_SequenceDataset):
                 frames_ids = [
                     fpath.stem.split("_")[0]
                     for fpath in filter(
-                        lambda p: Path(p).stem.endswith("_color"), scene_path.iterdir()
+                        lambda p: Path(p).stem.endswith("_color"),
+                        scene_path.iterdir(),
                     )
                 ]
 
                 seq_meta = Omni6DPose_SequenceMeta(
-                    name=scenes_names[subset][s], subset=subset
+                    name=scenes_names[subset][s],
+                    subset=subset,
                 )
                 if (
                     seq_meta.get_fpath(path_meta=path_meta).exists()
                     and not config.extract_meta.override
                 ):
                     logger.info(
-                        f"already extracted sequence {scenes_names[subset][s]} in subset {subset}"
+                        f"already extracted sequence {scenes_names[subset][s]} in subset {subset}",
                     )
                 else:
                     seq_meta.save(path_meta=path_meta)
@@ -1143,7 +1152,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                     ]
 
                     objs_scale = torch.FloatTensor(
-                        [obj["meta"]["scale"] for obj in meta["objects"].values()]
+                        [obj["meta"]["scale"] for obj in meta["objects"].values()],
                     )
 
                     if subset == OMNI6DPOSE_SUBSETS.TEST_REAL:
@@ -1159,7 +1168,8 @@ class Omni6DPose(OD3D_SequenceDataset):
                         objs_scale[:] = 1.0
                     cam_tform4x4_objs[..., :3, :3] *= objs_scale[:, :, None]
                     world_tform4x4_objs = tform4x4_broadcast(
-                        world_tform4x4_cam[None,], cam_tform4x4_objs
+                        world_tform4x4_cam[None,],
+                        cam_tform4x4_objs,
                     )
                     # cam_tform4x4_objs = tform4x4_broadcast(cam_tform4x4_world[None,], world_tform4x4_objs)
                     # cam_tform4x4_objs = torch.stack([transf4x4_from_rot4_and_transl3(rot4=obj['quaternion_wxyz'],
@@ -1186,7 +1196,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                         obj["meta"]["oid"] for obj in meta["objects"].values()
                     ]
                     l_objs_valid = torch.BoolTensor(
-                        [obj["is_valid"] for obj in meta["objects"].values()]
+                        [obj["is_valid"] for obj in meta["objects"].values()],
                     ).tolist()
 
                     from od3d.cv.visual.show import (
@@ -1258,7 +1268,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                         and not config.extract_meta.override
                     ):
                         logger.info(
-                            f"already extracted frame {frame_id} in scene {scenes_names[subset][s]} in subset {subset}"
+                            f"already extracted frame {frame_id} in scene {scenes_names[subset][s]} in subset {subset}",
                         )
                     else:
                         frame_meta.save(path_meta=path_meta)
@@ -1282,7 +1292,7 @@ class Omni6DPose(OD3D_SequenceDataset):
 
                 # what about category
                 categories = Omni6DPose.get_class_specific_categories(
-                    config.get("categories", None)
+                    config.get("categories", None),
                 )
                 import re
 
@@ -1322,7 +1332,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                         raise Exception(msg)
                     # ['class_list']['instance_dict']
                     assets_meta = read_json(
-                        path_raw.joinpath("Meta/real_obj_meta.json")
+                        path_raw.joinpath("Meta/real_obj_meta.json"),
                     )["instance_dict"]
                 else:
                     # ['class_list']['instance_dict']
@@ -1358,7 +1368,8 @@ class Omni6DPose(OD3D_SequenceDataset):
                     }
 
                     sequences_count_max_per_category = config.get(
-                        "sequences_count_max_per_category", None
+                        "sequences_count_max_per_category",
+                        None,
                     )
                     if sequences_count_max_per_category is not None:
                         assets_meta_cat = {
@@ -1386,7 +1397,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                             "PAM/object_meshes/"
                             + asset_data["object_id"]
                             + "/"
-                            + Path(asset_data["obj_path"]).name
+                            + Path(asset_data["obj_path"]).name,
                         )
                         frame_fpath_mesh_orig = fpath_mesh
                         frame_fpath_mesh = fpath_mesh
@@ -1396,12 +1407,13 @@ class Omni6DPose(OD3D_SequenceDataset):
                             import trimesh
 
                             _mesh_trimesh = trimesh.load(
-                                frame_fpath_mesh_orig, force="mesh"
+                                frame_fpath_mesh_orig,
+                                force="mesh",
                             )
                             _mesh_trimesh_verts = torch.Tensor(_mesh_trimesh.vertices)
                             obj_scale = max(
                                 _mesh_trimesh_verts.max(dim=0)[0]
-                                - _mesh_trimesh_verts.min(dim=0)[0]
+                                - _mesh_trimesh_verts.min(dim=0)[0],
                             )
                         else:
                             obj_scale = max(asset_data["dimensions"])
@@ -1461,7 +1473,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                         imgs_sizes = torch.LongTensor([W, H])
 
                         if viewpoints_type.startswith(
-                            "icotraj"
+                            "icotraj",
                         ) or viewpoints_type.startswith("icorealtraj"):
                             if viewpoints_type.startswith("icotraj"):
                                 prefix = "icotraj"
@@ -1503,14 +1515,18 @@ class Omni6DPose(OD3D_SequenceDataset):
                         # cams_tform4x4_obj = get_cam_tform4x4_obj_for_viewpoints_count(viewpoints_count=3, dist=2.).to(device)
 
                         cams_tform4x4_obj = tform4x4_broadcast(
-                            cams_tform4x4_obj, OBJ_TFORM_OBJ_SHAPENET.to(device)
+                            cams_tform4x4_obj,
+                            OBJ_TFORM_OBJ_SHAPENET.to(device),
                         )
                         cam_intr4x4 = get_default_camera_intrinsics_from_img_size(
-                            W=W, H=H
+                            W=W,
+                            H=H,
                         ).to(device)
                         try:
                             mesh = Meshes.read_from_ply_file(
-                                fpath=frame_fpath_mesh, device=device, load_texts=True
+                                fpath=frame_fpath_mesh,
+                                device=device,
+                                load_texts=True,
                             )
                         except Exception:
                             # print(frame_fpath_mesh)
@@ -1518,7 +1534,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                             continue
 
                         logger.info(
-                            f"sequence {sequence_name}, {len(mesh.verts)} vertices"
+                            f"sequence {sequence_name}, {len(mesh.verts)} vertices",
                         )
                         logger.info(f"{frame_fpath_mesh}")
 
@@ -1583,7 +1599,7 @@ class Omni6DPose(OD3D_SequenceDataset):
                                 subset=subset,
                                 rfpath_rgb=frame_fpath_rgb.relative_to(path_raw),
                                 rfpath_pxl_cat_id=frame_fpath_pxl_cat_id.relative_to(
-                                    path_raw
+                                    path_raw,
                                 ),
                                 rfpath_depth=frame_fpath_depth.relative_to(path_raw),
                                 rfpath_depth_mask=frame_fpath_depth_mask.relative_to(

@@ -222,11 +222,14 @@ class OD3D_Frames:
                 pxl_cat_id_long = self.pxl_cat_id.long()
                 device = pxl_cat_id_long.device
                 pxl_cat_onehot = torch.nn.functional.one_hot(
-                    pxl_cat_id_long, num_classes=cat_count
+                    pxl_cat_id_long,
+                    num_classes=cat_count,
                 ).to(device)
                 cat_colors = get_colors(cat_count, device=device, first_white=True)
                 pxl_cat_onehot_rgb = torch.einsum(
-                    "bchwo,or->brhw", pxl_cat_onehot * 1.0, cat_colors
+                    "bchwo,or->brhw",
+                    pxl_cat_onehot * 1.0,
+                    cat_colors,
                 )
                 from od3d.cv.visual.draw import draw_text_in_rgb
 
@@ -308,7 +311,7 @@ class OD3D_Frames:
 
             if self.obj_tform4x4_objs is not None:
                 logger.info(
-                    f"mesh count {len(self.mesh_id_in_batch)}, tforms count {len(torch.cat(self.obj_tform4x4_objs, dim=0))}"
+                    f"mesh count {len(self.mesh_id_in_batch)}, tforms count {len(torch.cat(self.obj_tform4x4_objs, dim=0))}",
                 )
 
             img = blend_rgb(

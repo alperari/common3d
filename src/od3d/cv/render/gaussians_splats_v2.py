@@ -194,24 +194,24 @@ def rasterize_gaussians(
 
         if grid_pxl2d_cov_dist.isnan().any():
             logger.info(
-                f"grid_pxl2d_cov_dist contains NaN: {grid_pxl2d_cov_dist.isnan().any()}"
+                f"grid_pxl2d_cov_dist contains NaN: {grid_pxl2d_cov_dist.isnan().any()}",
             )
 
         grid_pxl2d_cov_opacity = pts3d_opacity_b[None, None] * torch.exp(
-            -0.5 * grid_pxl2d_cov_dist
+            -0.5 * grid_pxl2d_cov_dist,
         )
 
         # grid_pxl2d_cov_opacity[grid_pxl2d_cov_opacity < 0.5] = 0. # note: neglect smoothing
 
         if grid_pxl2d_cov_opacity.isnan().any():
             logger.info(
-                f"(1) grid_pxl2d_cov_opacity contains NaN: {grid_pxl2d_cov_opacity.isnan().any()}"
+                f"(1) grid_pxl2d_cov_opacity contains NaN: {grid_pxl2d_cov_opacity.isnan().any()}",
             )
 
         grid_pxl2d_cov_opacity *= gaussians_z_fov
         if grid_pxl2d_cov_opacity.isnan().any():
             logger.info(
-                f"(2) grid_pxl2d_cov_opacity contains NaN: {grid_pxl2d_cov_opacity.isnan().any()}"
+                f"(2) grid_pxl2d_cov_opacity contains NaN: {grid_pxl2d_cov_opacity.isnan().any()}",
             )
 
         pts3d_sorted_id = pts3d_b_cam[:, 2].argsort(descending=False)
@@ -233,28 +233,33 @@ def rasterize_gaussians(
 
         if grid_pxl2d_opacity.isnan().any():
             logger.info(
-                f"(1) grid_pxl2d_opacity contains NaN: {grid_pxl2d_opacity.isnan().any()}"
+                f"(1) grid_pxl2d_opacity contains NaN: {grid_pxl2d_opacity.isnan().any()}",
             )
 
         if topK is not None:
             px_to_gs_id_b_sorted = grid_pxl2d_opacity.argsort(descending=True, dim=-1)[
-                ..., :topK
+                ...,
+                :topK,
             ]
             px_to_gs_id_b = gs_ids_b_sorted[px_to_gs_id_b_sorted]
             grid_pxl2d_opacity_total = grid_pxl2d_opacity.detach().sum(
-                dim=-1, keepdim=True
+                dim=-1,
+                keepdim=True,
             )
             grid_pxl2d_opacity = torch.gather(
-                input=grid_pxl2d_opacity, dim=-1, index=px_to_gs_id_b_sorted
+                input=grid_pxl2d_opacity,
+                dim=-1,
+                index=px_to_gs_id_b_sorted,
             )
 
             if grid_pxl2d_opacity.isnan().any():
                 logger.info(
-                    f"topK(1) grid_pxl2d_opacity contains NaN: {grid_pxl2d_opacity.isnan().any()}"
+                    f"topK(1) grid_pxl2d_opacity contains NaN: {grid_pxl2d_opacity.isnan().any()}",
                 )
 
             grid_pxl2d_opacity_partial = grid_pxl2d_opacity.detach().sum(
-                dim=-1, keepdim=True
+                dim=-1,
+                keepdim=True,
             )
             grid_pxl2d_opacity *= (
                 grid_pxl2d_opacity_total / (grid_pxl2d_opacity_partial + 1e-10)
@@ -262,7 +267,7 @@ def rasterize_gaussians(
 
             if grid_pxl2d_opacity.isnan().any():
                 logger.info(
-                    f"topK(2) grid_pxl2d_opacity contains NaN: {grid_pxl2d_opacity.isnan().any()}"
+                    f"topK(2) grid_pxl2d_opacity contains NaN: {grid_pxl2d_opacity.isnan().any()}",
                 )
 
             # original
@@ -281,7 +286,7 @@ def rasterize_gaussians(
 
         if grid_pxl2d_opacity.isnan().any():
             logger.info(
-                f"(2) grid_pxl2d_opacity contains NaN: {grid_pxl2d_opacity.isnan().any()}"
+                f"(2) grid_pxl2d_opacity contains NaN: {grid_pxl2d_opacity.isnan().any()}",
             )
 
         gs_depth.append(pts3d_b_cam[:, 2])  # N (not sorted)
@@ -325,15 +330,21 @@ def blend_gaussians(
     if feat_bg is not None:
         if feats.dim() == 3:
             feats = torch.cat(
-                [feats, feat_bg[None, None].expand(feats.shape[0], -1, -1)], dim=1
+                [feats, feat_bg[None, None].expand(feats.shape[0], -1, -1)],
+                dim=1,
             )
         else:
             feat_bg_ext = feat_bg.clone()[None, None, None, None].expand(
-                feats.shape[0], -1, feats.shape[2], feats.shape[3], -1
+                feats.shape[0],
+                -1,
+                feats.shape[2],
+                feats.shape[3],
+                -1,
             )
             feats = torch.cat([feats, feat_bg_ext], dim=1)
         px_to_gs_opacity = torch.cat(
-            [px_to_gs_opacity, 1.0 - px_to_gs_opacity.sum(dim=-1, keepdim=True)], dim=-1
+            [px_to_gs_opacity, 1.0 - px_to_gs_opacity.sum(dim=-1, keepdim=True)],
+            dim=-1,
         )
 
     if feats.dim() == 3:
@@ -390,7 +401,10 @@ def render_gaussians(
     )
 
     return select_and_blend_gaussians(
-        px_to_gs_ids, px_to_gs_opacity, feats, feat_bg=feat_bg
+        px_to_gs_ids,
+        px_to_gs_opacity,
+        feats,
+        feat_bg=feat_bg,
     )
 
 
@@ -415,18 +429,30 @@ def select_and_blend_gaussians(
 
     if gs_ids.dim() == 2:
         feats_selected = torch.gather(
-            feats, 1, gs_ids[:, :, None].expand(-1, -1, feats.shape[-1])
+            feats,
+            1,
+            gs_ids[:, :, None].expand(-1, -1, feats.shape[-1]),
         )
     else:
         feats_selected = torch.gather(
             feats[:, :, None, None].expand(
-                -1, -1, gs_ids.shape[1], gs_ids.shape[2], -1
+                -1,
+                -1,
+                gs_ids.shape[1],
+                gs_ids.shape[2],
+                -1,
             ),
             1,
             gs_ids.permute(0, 3, 1, 2)[..., None].expand(
-                -1, -1, -1, -1, feats.shape[-1]
+                -1,
+                -1,
+                -1,
+                -1,
+                feats.shape[-1],
             ),
         )
     return blend_gaussians(
-        px_to_gs_opacity=px_to_gs_opacity, feats=feats_selected, feat_bg=feat_bg
+        px_to_gs_opacity=px_to_gs_opacity,
+        feats=feats_selected,
+        feat_bg=feat_bg,
     )

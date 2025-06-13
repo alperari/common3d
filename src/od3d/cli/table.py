@@ -291,7 +291,7 @@ def names(
         for key in abl_col_unique.keys():
             df_partial = df_partial[df_partial[key].isin([abl_col_unique[key]])]
         df_partial = df_partial.sort_values([abl_col_ref, abl_col_cat]).reset_index(
-            drop=True
+            drop=True,
         )
 
         unique_cats = df_partial[abl_col_cat].unique()

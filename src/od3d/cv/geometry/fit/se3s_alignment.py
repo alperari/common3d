@@ -148,7 +148,8 @@ def get_se3s_alignment(a_tform4x4_src, a_tform4x4_ref):
 
     # inv_tform4x4
     rot_cov = rot3x3(
-        a_tform4x4_src.transpose(-2, -1)[..., :3, :3], a_tform4x4_ref[..., :3, :3]
+        a_tform4x4_src.transpose(-2, -1)[..., :3, :3],
+        a_tform4x4_ref[..., :3, :3],
     ).mean(dim=-3)
     U, _, V = torch.svd(rot_cov)
     align_rot = (V @ U.t()).transpose(-2, -1)
@@ -168,7 +169,7 @@ def get_se3s_alignment(a_tform4x4_src, a_tform4x4_ref):
     pts_src_rot_src_rel = pts_src_rot_src - pts_src_rot_src_mean[..., None, :]
     pts_ref_rot_src_rel = pts_ref_rot_src - pts_ref_rot_src_mean[..., None, :]
     align_scale = (pts_src_rot_src_rel * pts_ref_rot_src_rel).flatten(-2).mean(
-        dim=-1
+        dim=-1,
     ) / (pts_src_rot_src_rel**2).flatten(-2).mean(dim=-1).clamp(1e-10)
     # align_scale = ((pts_src_rot_src_rel * pts_ref_rot_src_rel) / (pts_src_rot_src_rel ** 2).clamp(1e-10)).flatten(-2).mean(dim=-1)
 
@@ -182,7 +183,8 @@ def get_se3s_alignment(a_tform4x4_src, a_tform4x4_ref):
 
     # from od3d.cv.visual.show import show_scene
     a_tform4x4_src_transf = tform4x4_broadcast(
-        a_tform4x4_src, src_tform4x4_ref_mean[..., None, :, :]
+        a_tform4x4_src,
+        src_tform4x4_ref_mean[..., None, :, :],
     )
     # a_tform4x4_src_transf = a_tform4x4_src
     # cams_tform = torch.cat([a_tform4x4_src_transf, a_tform4x4_ref])

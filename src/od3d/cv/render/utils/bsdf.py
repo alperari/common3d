@@ -183,6 +183,11 @@ def bsdf_pbr(kd, arm, pos, nrm, view_pos, light_pos, min_roughness, BSDF):
     else:
         diffuse = kd * bsdf_frostbite(nrm, wi, wo, roughness)
     specular = bsdf_pbr_specular(
-        ks, nrm, wo, wi, roughness * roughness, min_roughness=min_roughness
+        ks,
+        nrm,
+        wo,
+        wi,
+        roughness * roughness,
+        min_roughness=min_roughness,
     )
     return diffuse + specular

@@ -103,17 +103,19 @@ class Reconstruction(OD3D_Task):
                         pred_rgb = pred_rgb * mask_resized
                 else:
                     logger.warning(
-                        "cannot apply mask for reconstruction loss as mask is not available in gt batch"
+                        "cannot apply mask for reconstruction loss as mask is not available in gt batch",
                     )
 
             if OD3D_Metrics.REC_RGB_MSE in self.metrics:
                 frames_pred.rec_rgb_mse = self.calc_rgb_mse(
-                    pred_rgb=pred_rgb, gt_rgb=gt_rgb
+                    pred_rgb=pred_rgb,
+                    gt_rgb=gt_rgb,
                 )
 
             if OD3D_Metrics.REC_RGB_PSNR in self.metrics:
                 frames_pred.rec_rgb_psnr = self.calc_rgb_psnr(
-                    pred_rgb=pred_rgb, gt_rgb=gt_rgb
+                    pred_rgb=pred_rgb,
+                    gt_rgb=gt_rgb,
                 )
 
         if (
@@ -139,15 +141,18 @@ class Reconstruction(OD3D_Task):
 
             if OD3D_Metrics.REC_MASK_MSE in self.metrics:
                 frames_pred.rec_mask_mse = self.calc_mask_mse(
-                    pred_mask=pred_mask, gt_mask=gt_mask
+                    pred_mask=pred_mask,
+                    gt_mask=gt_mask,
                 )
             if OD3D_Metrics.REC_MASK_IOU in self.metrics:
                 frames_pred.rec_mask_iou = self.calc_mask_iou(
-                    pred_mask=pred_mask, gt_mask=gt_mask
+                    pred_mask=pred_mask,
+                    gt_mask=gt_mask,
                 )
             if OD3D_Metrics.REC_MASK_DOT in self.metrics:
                 frames_pred.rec_mask_dot = self.calc_mask_dot(
-                    pred_mask=pred_mask, gt_mask=gt_mask
+                    pred_mask=pred_mask,
+                    gt_mask=gt_mask,
                 )
 
             if OD3D_Metrics.REC_MASK_DT_DOT in self.metrics:
@@ -155,21 +160,28 @@ class Reconstruction(OD3D_Task):
                 if rgb_mask_resized is not None:
                     gt_masks_dt = gt_masks_dt * rgb_mask_resized
                 frames_pred.rec_mask_dt_dot = self.calc_mask_dot(
-                    pred_mask=pred_mask, gt_mask=gt_masks_dt
+                    pred_mask=pred_mask,
+                    gt_mask=gt_masks_dt,
                 )
 
             if OD3D_Metrics.REC_MASK_INV_DT_DOT in self.metrics:
                 gt_masks_inv_dt = resize(
-                    frames_gt.mask_inv_dt, H_out=H_out, W_out=W_out
+                    frames_gt.mask_inv_dt,
+                    H_out=H_out,
+                    W_out=W_out,
                 )
                 if rgb_mask_resized is not None:
                     rgb_mask_resized = resize(
-                        frames_gt.rgb_mask, H_out=H_out, W_out=W_out, mode="nearest_v2"
+                        frames_gt.rgb_mask,
+                        H_out=H_out,
+                        W_out=W_out,
+                        mode="nearest_v2",
                     )
                     gt_masks_inv_dt = gt_masks_inv_dt * rgb_mask_resized
                 pred_masks_inv = 1.0 - pred_mask.clone()
                 frames_pred.rec_mask_inv_dt_dot = self.calc_mask_dot(
-                    pred_mask=pred_masks_inv, gt_mask=gt_masks_inv_dt
+                    pred_mask=pred_masks_inv,
+                    gt_mask=gt_masks_inv_dt,
                 )
 
         if (
@@ -202,7 +214,7 @@ class Reconstruction(OD3D_Task):
 
             device = frames_pred.mesh.device
             gt_meshes_verts = frames_gt.mesh.get_verts_stacked_with_mesh_ids().to(
-                device=device
+                device=device,
             )
             gt_meshes_verts_mask = (
                 frames_gt.mesh.get_verts_stacked_mask_with_mesh_ids().to(device=device)
@@ -210,11 +222,11 @@ class Reconstruction(OD3D_Task):
 
             # BxVx3
             pred_meshes_verts = frames_pred.mesh.get_verts_stacked_with_mesh_ids().to(
-                device=device
+                device=device,
             )
             pred_meshes_verts_mask = (
                 frames_pred.mesh.get_verts_stacked_mask_with_mesh_ids().to(
-                    device=device
+                    device=device,
                 )
             )
 
@@ -228,7 +240,7 @@ class Reconstruction(OD3D_Task):
                 )
                 pred_meshes_faces_mask = (
                     frames_pred.mesh.get_faces_stacked_mask_with_mesh_ids().to(
-                        device=device
+                        device=device,
                     )
                 )
 
@@ -287,31 +299,44 @@ class Reconstruction(OD3D_Task):
     ):
         if OD3D_Visuals.PRED_VS_GT_RGB in self.visuals:
             pred_rgb = resize(
-                frames_pred.rgb, H_out=self.visuals_res, W_out=self.visuals_res
+                frames_pred.rgb,
+                H_out=self.visuals_res,
+                W_out=self.visuals_res,
             ).to(device=frames_gt.rgb.device)
             gt_rgb = resize(
-                frames_gt.rgb, H_out=self.visuals_res, W_out=self.visuals_res
+                frames_gt.rgb,
+                H_out=self.visuals_res,
+                W_out=self.visuals_res,
             )
             frames_pred.pred_vs_gt_rgb = torch.cat([pred_rgb, gt_rgb], dim=-1)
 
         if OD3D_Visuals.PRED_VS_GT_MASK in self.visuals:
             pred_mask = resize(
-                frames_pred.mask, H_out=self.visuals_res, W_out=self.visuals_res
+                frames_pred.mask,
+                H_out=self.visuals_res,
+                W_out=self.visuals_res,
             ).to(device=frames_gt.mask.device)
             gt_mask = resize(
-                frames_gt.mask, H_out=self.visuals_res, W_out=self.visuals_res
+                frames_gt.mask,
+                H_out=self.visuals_res,
+                W_out=self.visuals_res,
             )
             frames_pred.pred_vs_gt_mask = torch.cat([pred_mask, gt_mask], dim=-1)
 
         if OD3D_Visuals.PRED_VS_GT_MASK_AMODAL in self.visuals:
             pred_mask_amodal = resize(
-                frames_pred.mask_amodal, H_out=self.visuals_res, W_out=self.visuals_res
+                frames_pred.mask_amodal,
+                H_out=self.visuals_res,
+                W_out=self.visuals_res,
             ).to(device=frames_gt.mask_amodal.device)
             gt_mask_amodal = resize(
-                frames_gt.mask_amodal, H_out=self.visuals_res, W_out=self.visuals_res
+                frames_gt.mask_amodal,
+                H_out=self.visuals_res,
+                W_out=self.visuals_res,
             )
             frames_pred.pred_vs_gt_mask_amodal = torch.cat(
-                [pred_mask_amodal, gt_mask_amodal], dim=-1
+                [pred_mask_amodal, gt_mask_amodal],
+                dim=-1,
             )
 
         if OD3D_Visuals.PRED_VS_GT_MESH in self.visuals:

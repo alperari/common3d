@@ -74,7 +74,13 @@ def crop_white_border_from_img(
 
 
 def crop_with_bbox(
-    img, bbox, H_out=None, W_out=None, ctx=None, mode="bilinear", align_corners=False
+    img,
+    bbox,
+    H_out=None,
+    W_out=None,
+    ctx=None,
+    mode="bilinear",
+    align_corners=False,
 ):
     # bbox: x0, y0, x1, y1
     # center: x, y
@@ -82,12 +88,12 @@ def crop_with_bbox(
     bbox_H = bbox[3] - bbox[1]
     bbox_W = bbox[2] - bbox[0]
     bbox_center = torch.Tensor([(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2]).to(
-        img.device
+        img.device,
     )
 
     if H_out is not None and W_out is not None:
         scale = torch.FloatTensor([W_out / bbox_W, H_out / bbox_H]).to(
-            device=img.device
+            device=img.device,
         )
     else:
         H_out = bbox_H

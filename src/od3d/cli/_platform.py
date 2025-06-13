@@ -181,7 +181,7 @@ def stop(
         if "-" in job:
             job_lower, job_upper = job.split("-")
             job = ",".join(
-                [str(i) for i in list(range(int(job_lower), int(job_upper) + 1))]
+                [str(i) for i in list(range(int(job_lower), int(job_upper) + 1))],
             )
 
         jobs = job.split(",")
@@ -201,7 +201,7 @@ def stop(
         if "-" in job:
             job_lower, job_upper = job.split("-")
             job = ",".join(
-                [str(i) for i in list(range(int(job_lower), int(job_upper) + 1))]
+                [str(i) for i in list(range(int(job_lower), int(job_upper) + 1))],
             )
 
         jobs = job.split(",")
@@ -438,7 +438,9 @@ def get_jobs_names(platform=None, state=None):
                 logger.info(f"time: {datetime.datetime.now()}")
 
                 res = subprocess.run(
-                    f"loginctl list-sessions", capture_output=True, shell=True
+                    f"loginctl list-sessions",
+                    capture_output=True,
+                    shell=True,
                 )
                 logger.info(res)
 

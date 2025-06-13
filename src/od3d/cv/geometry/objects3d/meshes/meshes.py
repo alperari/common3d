@@ -311,11 +311,11 @@ class Meshes(OD3D_Objects3D):
             else:
                 if not affine:
                     instance_deform_net_config.head.update(
-                        {"out_dim": 3 * self.verts_counts_max}
+                        {"out_dim": 3 * self.verts_counts_max},
                     )
                 else:
                     instance_deform_net_config.head.update(
-                        {"out_dim": 6 * self.verts_counts_max}
+                        {"out_dim": 6 * self.verts_counts_max},
                     )
 
         super().__init__(
@@ -343,13 +343,14 @@ class Meshes(OD3D_Objects3D):
         if self.verts_requires_param:
             self._verts = torch.nn.Parameter(
                 torch.cat(
-                    [_verts / float(scale_3D_params) for _verts in verts], dim=0
+                    [_verts / float(scale_3D_params) for _verts in verts],
+                    dim=0,
                 ).to(**factory_kwargs),
                 requires_grad=self.verts_requires_grad,
             )
         else:
             self._verts = torch.cat([_verts for _verts in verts], dim=0).to(
-                **factory_kwargs
+                **factory_kwargs,
             )
 
         self.faces = torch.cat([_faces for _faces in faces], dim=0).to(**factory_kwargs)
@@ -454,7 +455,8 @@ class Meshes(OD3D_Objects3D):
         else:
             if isinstance(feats_objects, torch.Tensor) or feats_objects:
                 self._feats_objects = torch.cat(
-                    [_feats_objects for _feats_objects in feats_objects], dim=0
+                    [_feats_objects for _feats_objects in feats_objects],
+                    dim=0,
                 ).to(**factory_kwargs)
             else:
                 self._feats_objects = None
@@ -524,7 +526,10 @@ class Meshes(OD3D_Objects3D):
             ] = value.to(device=self._verts.device)
 
     def get_geo_smooth_loss(
-        self, objects_ids, instance_deform=None, detach_objects_verts=False
+        self,
+        objects_ids,
+        instance_deform=None,
+        detach_objects_verts=False,
     ):
         from pytorch3d.loss import mesh_laplacian_smoothing
 
@@ -546,22 +551,26 @@ class Meshes(OD3D_Objects3D):
 
     def get_geo_deform_smooth_loss(self, objects_ids, instance_deform):
         edges_packed = self.get_edges_cat_with_mesh_ids(
-            mesh_ids=objects_ids, use_verts_offset=True, use_global_verts_ids=False
+            mesh_ids=objects_ids,
+            use_verts_offset=True,
+            use_global_verts_ids=False,
         )
 
         # edges_packed = self.get_pt3dmeshes_with_deform(objects_ids=objects_ids,
         #                                               instance_deform=instance_deform).edges_packed()
 
         verts_canonical = self.get_verts_cat_with_mesh_ids(
-            mesh_ids=objects_ids, detach_objects_verts=True
+            mesh_ids=objects_ids,
+            detach_objects_verts=True,
         )
         verts_deform = self.get_verts_deform_cat_with_mesh_ids(
-            mesh_ids=objects_ids, instance_deform=instance_deform
+            mesh_ids=objects_ids,
+            instance_deform=instance_deform,
         )
 
         loss = (
             (verts_deform[edges_packed[:, 0]] - verts_deform[edges_packed[:, 1]]).norm(
-                dim=-1
+                dim=-1,
             )
             / (
                 (
@@ -586,7 +595,10 @@ class Meshes(OD3D_Objects3D):
             verts_uvs = self.get_verts_uvs_with_mesh_id(mesh_id=b, clone=True)
             faces = self.get_faces_with_mesh_id(mesh_id=b, clone=True)
             texture_map[b] = draw_pixels(
-                texture_map[b], pxls=verts_uvs * (size - 1), radius_in=0, radius_out=1
+                texture_map[b],
+                pxls=verts_uvs * (size - 1),
+                radius_in=0,
+                radius_out=1,
             )  # colors=(255, 255, 255)
             lines1 = torch.cat(
                 [verts_uvs[faces[:, 0][:, None]], verts_uvs[faces[:, 1][:, None]]],
@@ -602,7 +614,9 @@ class Meshes(OD3D_Objects3D):
             )
             lines = torch.cat([lines1, lines2, lines3], dim=0)
             texture_map[b] = draw_lines(
-                texture_map[b], lines=lines * (size - 1), thickness=1
+                texture_map[b],
+                lines=lines * (size - 1),
+                thickness=1,
             )  # , colors=(255, 255, 255)
 
         show_imgs(texture_map)
@@ -669,7 +683,9 @@ class Meshes(OD3D_Objects3D):
             else:
                 mesh_verts_list[0] *= radius
             meshes = Meshes(
-                verts=mesh_verts_list, faces=mesh.faces_list(), device=device
+                verts=mesh_verts_list,
+                faces=mesh.faces_list(),
+                device=device,
             )
             return meshes
 
@@ -691,10 +707,12 @@ class Meshes(OD3D_Objects3D):
         rgbs_uvs = []
         rgbs = []
         vertices.append(
-            torch.from_numpy(mesh_trimesh.vertices).to(dtype=torch.float, device=device)
+            torch.from_numpy(mesh_trimesh.vertices).to(
+                dtype=torch.float, device=device
+            ),
         )
         faces.append(
-            torch.from_numpy(mesh_trimesh.faces).to(dtype=torch.long, device=device)
+            torch.from_numpy(mesh_trimesh.faces).to(dtype=torch.long, device=device),
         )
 
         if load_texts:
@@ -703,11 +721,12 @@ class Meshes(OD3D_Objects3D):
             #                     torch.from_numpy(mesh_trimesh.visual.vertex_colors[:, :3] / 255.).to(torch.float))
             # trimesh.visual.material.SimpleMaterial  visual.material.main_color
             if hasattr(mesh_trimesh, "visual") and hasattr(
-                mesh_trimesh.visual, "vertex_colors"
+                mesh_trimesh.visual,
+                "vertex_colors",
             ):
                 rgbs.append(
                     torch.from_numpy(
-                        mesh_trimesh.visual.vertex_colors[:, :3] / 255.0
+                        mesh_trimesh.visual.vertex_colors[:, :3] / 255.0,
                     ).to(dtype=torch.float, device=device),
                 )
             elif hasattr(mesh_trimesh, "visual") and hasattr(mesh_trimesh.visual, "uv"):
@@ -716,7 +735,7 @@ class Meshes(OD3D_Objects3D):
                 # logger.info(len(mesh_trimesh.visual.uv), len(vertices[-1]))
                 if mesh_trimesh.visual.uv is not None:
                     verts_uvs.append(
-                        torch.from_numpy(mesh_trimesh.visual.uv).to(torch.float)
+                        torch.from_numpy(mesh_trimesh.visual.uv).to(torch.float),
                     )
                     verts_uvs[-1][:, 1] = 1.0 - verts_uvs[-1][:, 1]
                     faces_uvs.append(faces[-1])
@@ -736,7 +755,7 @@ class Meshes(OD3D_Objects3D):
                         and mesh_trimesh.visual.material.baseColorTexture is not None
                     ):
                         tensor_image = transform(
-                            mesh_trimesh.visual.material.baseColorTexture
+                            mesh_trimesh.visual.material.baseColorTexture,
                         )
                         rgbs_uvs.append(tensor_image.to(device=device))
                     elif (
@@ -744,7 +763,7 @@ class Meshes(OD3D_Objects3D):
                         and mesh_trimesh.visual.material.main_color is not None
                     ):
                         main_color = torch.from_numpy(
-                            mesh_trimesh.visual.material.main_color[:3] / 255.0
+                            mesh_trimesh.visual.material.main_color[:3] / 255.0,
                         ).to(
                             dtype=torch.float,
                         )
@@ -752,15 +771,15 @@ class Meshes(OD3D_Objects3D):
                             (
                                 main_color[:, None, None]
                                 * torch.ones(size=(3, 500, 500))
-                            ).to(device=device)
+                            ).to(device=device),
                         )
                     else:
                         logger.info(
-                            "could not load texture due to missing visual material in trimesh"
+                            "could not load texture due to missing visual material in trimesh",
                         )
                 else:
                     logger.info(
-                        "could not load texture due to missing visual material in trimesh"
+                        "could not load texture due to missing visual material in trimesh",
                     )
                     logger.info("creating uv map")
                     # import xatlas
@@ -773,7 +792,8 @@ class Meshes(OD3D_Objects3D):
 
                     uv_idx = faces[-1]
                     uvs = 0.5 * torch.ones((int(uv_idx.max()), 2)).to(
-                        dtype=torch.float, device=device
+                        dtype=torch.float,
+                        device=device,
                     )
 
                     verts_uvs.append(uvs)
@@ -781,12 +801,12 @@ class Meshes(OD3D_Objects3D):
                     faces_uvs.append(uv_idx)
 
                     main_color = torch.from_numpy(
-                        mesh_trimesh.visual.material.main_color[:3] / 255.0
+                        mesh_trimesh.visual.material.main_color[:3] / 255.0,
                     ).to(dtype=torch.float)
                     rgbs_uvs.append(
                         (main_color[:, None, None] * torch.ones(size=(3, 500, 500))).to(
-                            device=device
-                        )
+                            device=device,
+                        ),
                     )
 
                 # tensor_image = transform(mesh_trimesh.visual.material.image)
@@ -858,7 +878,8 @@ class Meshes(OD3D_Objects3D):
         # original_indices = atlas.meshes[0].original_indices
 
         vmapping, uv_idx, uvs = xatlas.parametrize(
-            self.verts.detach().cpu().numpy(), self.faces.detach().cpu().numpy()
+            self.verts.detach().cpu().numpy(),
+            self.faces.detach().cpu().numpy(),
         )
         uvs = torch.from_numpy(uvs).to(dtype=torch.float, device=self.device)
         uv_idx = torch.from_numpy(uv_idx).to(dtype=torch.long, device=self.device)
@@ -869,14 +890,21 @@ class Meshes(OD3D_Objects3D):
         texture_sampled_rgb = self.rgb[vmapping].clone()
         texture_sampled_uv = uvs.clone() * 500
         _rgbs_uvs = gaussian_scatter_image(
-            uv=texture_sampled_uv, rgb=texture_sampled_rgb, H=500, W=500, sigma=10
+            uv=texture_sampled_uv,
+            rgb=texture_sampled_rgb,
+            H=500,
+            W=500,
+            sigma=10,
         )
         _rgbs_uvs = _rgbs_uvs.to(self.device)
 
         faces = uv_idx  # self.faces.clone()
         verts = self.verts[vmapping].clone()  #  self.verts.clone()
         mesh = Meshes(
-            verts_uvs=[uvs], rgbs_uvs=[_rgbs_uvs], verts=verts, faces=faces
+            verts_uvs=[uvs],
+            rgbs_uvs=[_rgbs_uvs],
+            verts=verts,
+            faces=faces,
         )  #  faces_uvs=[uv_idx],
 
         return mesh
@@ -896,7 +924,8 @@ class Meshes(OD3D_Objects3D):
         vertices = self.verts.detach().cpu().clone().numpy()
         faces = (
             self.get_faces_cat_with_mesh_ids(
-                mesh_ids=meshes_ids, use_global_verts_ids=True
+                mesh_ids=meshes_ids,
+                use_global_verts_ids=True,
             )
             .detach()
             .cpu()
@@ -939,7 +968,7 @@ class Meshes(OD3D_Objects3D):
             # image = to_pil_image(rgbs_uvs.clone())
 
             texture = to_pil_image(
-                rgbs_uvs.clone().flip(dims=(1,)).clone().contiguous()
+                rgbs_uvs.clone().flip(dims=(1,)).clone().contiguous(),
             )
 
             texture = trimesh.visual.texture.TextureVisuals(
@@ -952,7 +981,10 @@ class Meshes(OD3D_Objects3D):
 
             # Create the mesh with the texture
             trimesh_mesh = trimesh.Trimesh(
-                vertices=vertices, faces=faces, visual=texture, process=False
+                vertices=vertices,
+                faces=faces,
+                visual=texture,
+                process=False,
             )
             # trimesh_mesh.show()
             # a = self.from_trimesh(trimesh_mesh)
@@ -962,7 +994,9 @@ class Meshes(OD3D_Objects3D):
             if rgb.dtype == torch.float:
                 rgb = (rgb.clone() * 255).to(dtype=torch.uint8)
             trimesh_mesh = trimesh.Trimesh(
-                vertices=vertices, faces=faces, vertex_colors=rgb.numpy()
+                vertices=vertices,
+                faces=faces,
+                vertex_colors=rgb.numpy(),
             )
         else:
             trimesh_mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
@@ -1009,8 +1043,8 @@ class Meshes(OD3D_Objects3D):
                     try:
                         text_id = torch.where(
                             torch.Tensor(
-                                [not text.is_empty() for text in _mesh_o3d.textures]
-                            )
+                                [not text.is_empty() for text in _mesh_o3d.textures],
+                            ),
                         )
                         text_id = text_id[0].item()
 
@@ -1018,7 +1052,7 @@ class Meshes(OD3D_Objects3D):
                             torch.from_numpy(np.asarray(_mesh_o3d.textures[text_id]))
                             .to(dtype=torch.float, device=device)
                             .permute(2, 0, 1)
-                            / 255.0
+                            / 255.0,
                         )
                     except Exception as e:
                         logger.info(e)
@@ -1029,12 +1063,13 @@ class Meshes(OD3D_Objects3D):
 
                 if len(_mesh_o3d.triangle_uvs) > 0:
                     triangle_uvs_single = torch.from_numpy(
-                        np.asarray(_mesh_o3d.triangle_uvs)
+                        np.asarray(_mesh_o3d.triangle_uvs),
                     ).to(
                         dtype=torch.float,
                     )  # F*3x2
                     uvs, uvs_idx = triangle_uvs_single.unique(
-                        dim=0, return_inverse=True
+                        dim=0,
+                        return_inverse=True,
                     )
                     uvs_idx = uvs_idx.reshape(-1, 3)
 
@@ -1074,25 +1109,27 @@ class Meshes(OD3D_Objects3D):
         vertices = open3d.utility.Vector3dVector(self.verts.detach().cpu().numpy())
         faces = open3d.utility.Vector3iVector(
             self.get_faces_cat_with_mesh_ids(
-                mesh_ids=meshes_ids, use_global_verts_ids=True
+                mesh_ids=meshes_ids,
+                use_global_verts_ids=True,
             )
             .detach()
             .cpu()
-            .numpy()
+            .numpy(),
         )
         o3d_obj_mesh = open3d.geometry.TriangleMesh(vertices=vertices, triangles=faces)
 
         if self.rgbs_uvs is not None:
             faces_uvs = (
                 self.get_faces_uvs_cat_with_mesh_ids(
-                    mesh_ids=meshes_ids, use_global_verts_ids=True
+                    mesh_ids=meshes_ids,
+                    use_global_verts_ids=True,
                 )
                 .detach()
                 .flatten()
             )
             triangle_uvs = self.verts_uvs[faces_uvs]
             o3d_obj_mesh.triangle_uvs = open3d.utility.Vector2dVector(
-                triangle_uvs.detach().cpu().numpy()
+                triangle_uvs.detach().cpu().numpy(),
             )
             if self.rgbs_uvs.dim() == 4:
                 o3d_obj_mesh.textures = [
@@ -1101,8 +1138,8 @@ class Meshes(OD3D_Objects3D):
                         .cpu()
                         .contiguous()
                         .numpy()
-                        .astype(np.uint8)
-                    )
+                        .astype(np.uint8),
+                    ),
                 ]
             elif self.rgbs_uvs.dim() == 5:
                 o3d_obj_mesh.textures = [
@@ -1120,7 +1157,7 @@ class Meshes(OD3D_Objects3D):
                     ),
                 ]
             o3d_obj_mesh.triangle_material_ids = o3d.utility.IntVector(
-                [0] * len(faces_uvs)
+                [0] * len(faces_uvs),
             )
 
             # open3d.visualization.draw_geometries([o3d_obj_mesh])
@@ -1153,7 +1190,8 @@ class Meshes(OD3D_Objects3D):
     @feats_objects.setter
     def feats_objects(self, value):
         if self._feats_objects is None or not isinstance(
-            self._feats_objects, torch.nn.Parameter
+            self._feats_objects,
+            torch.nn.Parameter,
         ):
             self._feats_objects = value
         else:
@@ -1258,7 +1296,10 @@ class Meshes(OD3D_Objects3D):
     ):
         if fpath is None:
             return Meshes.create_sphere(
-                verts_count=1000, radius=scale, device=device, ico=True
+                verts_count=1000,
+                radius=scale,
+                device=device,
+                ico=True,
             )
 
         if isinstance(fpath, str):
@@ -1274,7 +1315,10 @@ class Meshes(OD3D_Objects3D):
             mesh_trimesh = trimesh.load(fpath, force="mesh")
             # o3d_mesh = o3d.io.read_triangle_mesh(str(fpath))
             mesh = Meshes.from_trimesh(
-                mesh_trimesh, device=device, load_texts=load_texts, **kwargs
+                mesh_trimesh,
+                device=device,
+                load_texts=load_texts,
+                **kwargs,
             )
             mesh.verts = mesh.verts * scale
         except Exception as e:
@@ -1341,36 +1385,44 @@ class Meshes(OD3D_Objects3D):
             for mesh_id in meshes_ids:
                 verts.append(
                     meshes.get_vert_mod(
-                        mod=VERT_MODALITIES.PT3D, obj_id=mesh_id, clone=clone
-                    ).to(device=device)
+                        mod=VERT_MODALITIES.PT3D,
+                        obj_id=mesh_id,
+                        clone=clone,
+                    ).to(device=device),
                 )
                 faces.append(
                     meshes.get_face_mod(
-                        mod=FACE_MODALITIES.VERTS_IN_OBJ_ID, obj_id=mesh_id, clone=clone
-                    ).to(device=device)
+                        mod=FACE_MODALITIES.VERTS_IN_OBJ_ID,
+                        obj_id=mesh_id,
+                        clone=clone,
+                    ).to(device=device),
                 )
                 if meshes.rgb is not None:
                     rgb.append(
                         meshes.get_vert_mod(
-                            mod=VERT_MODALITIES.RGB, obj_id=mesh_id, clone=clone
-                        ).to(device=device)
+                            mod=VERT_MODALITIES.RGB,
+                            obj_id=mesh_id,
+                            clone=clone,
+                        ).to(device=device),
                     )
                 if meshes.verts_uvs is not None:
                     verts_uvs.append(
                         meshes.get_vert_mod(
-                            mod=VERT_MODALITIES.UV_PXL2D, obj_id=mesh_id, clone=clone
-                        ).to(device=device)
+                            mod=VERT_MODALITIES.UV_PXL2D,
+                            obj_id=mesh_id,
+                            clone=clone,
+                        ).to(device=device),
                     )
                     faces_uvs.append(
                         meshes.get_face_mod(
                             mod=FACE_MODALITIES.VERTS_UVS_IN_OBJ_ID,
                             obj_id=mesh_id,
                             clone=clone,
-                        ).to(device=device)
+                        ).to(device=device),
                     )
                     if clone:
                         rgbs_uvs.append(
-                            meshes.rgbs_uvs[mesh_id].clone().to(device=device)
+                            meshes.rgbs_uvs[mesh_id].clone().to(device=device),
                         )
                     else:
                         rgbs_uvs.append(meshes.rgbs_uvs[mesh_id].to(device=device))
@@ -1490,7 +1542,10 @@ class Meshes(OD3D_Objects3D):
         **kwargs,
     ):
         return cls.cat_single_meshes(
-            meshes=meshes, device=device, dtype=dtype, **kwargs
+            meshes=meshes,
+            device=device,
+            dtype=dtype,
+            **kwargs,
         )
 
     @classmethod
@@ -1556,7 +1611,10 @@ class Meshes(OD3D_Objects3D):
             return cuboids
         elif name == "sphere":
             return Meshes.create_sphere(
-                verts_count=1000, radius=1.0, device=device, ico=False
+                verts_count=1000,
+                radius=1.0,
+                device=device,
+                ico=False,
             )
         else:
             raise ValueError(f"Unknown mesh name: {name}")
@@ -1644,11 +1702,12 @@ class Meshes(OD3D_Objects3D):
                         alpha = alpha * 1.1
                         o3d_pcl = open3d.geometry.PointCloud()
                         o3d_pcl.points = open3d.utility.Vector3dVector(
-                            pts3d.detach().cpu().numpy()
+                            pts3d.detach().cpu().numpy(),
                         )
 
                         o3d_pcl = open3d.geometry.PointCloud.farthest_point_down_sample(
-                            o3d_pcl, pts3d_downsample_count
+                            o3d_pcl,
+                            pts3d_downsample_count,
                         )
                         logger.warning(
                             f"alpha {alpha}, pts3d_downsample_count {pts3d_downsample_count}",
@@ -1660,7 +1719,7 @@ class Meshes(OD3D_Objects3D):
                     )
             except Exception as e:
                 logger.warning(
-                    f"alpha {alpha}, pts3d_downsample_count {pts3d_downsample_count} failed with {e}"
+                    f"alpha {alpha}, pts3d_downsample_count {pts3d_downsample_count} failed with {e}",
                 )
 
             if o3d_obj_mesh is not None:
@@ -1787,10 +1846,14 @@ class Meshes(OD3D_Objects3D):
         )
 
         verts = self.unpad_mod(
-            objs_mod=verts, objs_lengths=verts_counts, return_concatenated=False
+            objs_mod=verts,
+            objs_lengths=verts_counts,
+            return_concatenated=False,
         )
         faces = self.unpad_mod(
-            objs_mod=faces, objs_lengths=faces_counts, return_concatenated=False
+            objs_mod=faces,
+            objs_lengths=faces_counts,
+            return_concatenated=False,
         )
 
         if self.rgb is not None:
@@ -1802,7 +1865,9 @@ class Meshes(OD3D_Objects3D):
                 clone=clone,
             )
             rgb = self.unpad_mod(
-                objs_mod=rgb, objs_lengths=rgbs_counts, return_concatenated=False
+                objs_mod=rgb,
+                objs_lengths=rgbs_counts,
+                return_concatenated=False,
             )
         else:
             rgb = None
@@ -1930,7 +1995,8 @@ class Meshes(OD3D_Objects3D):
 
             # gaussian
             dist_pts = torch.cdist(
-                verts, pts_vals
+                verts,
+                pts_vals,
             )  # N x K torch.ones(N, N) * torch.inf
             # dist_nearest_std = (dist_pts ** 2).min(dim=1, keepdim=True)[0].mean() ** 0.5
             # dist_nearest_std = dist_nearest_std.clamp(min=1e-10)
@@ -1964,10 +2030,11 @@ class Meshes(OD3D_Objects3D):
         self.verts = self.verts - self.verts.mean(dim=0, keepdim=True)
         self.verts = self.verts / self.verts.max()
         verts_label_coarse_colors = get_colors(
-            K=self.verts_coarse_count, device=self.verts.device
+            K=self.verts_coarse_count,
+            device=self.verts.device,
         )  # K x 3
         self.rgb = torch.nn.Parameter(
-            self.verts_label_coarse @ verts_label_coarse_colors
+            self.verts_label_coarse @ verts_label_coarse_colors,
         )
         show_scene(
             meshes=self,
@@ -2005,13 +2072,16 @@ class Meshes(OD3D_Objects3D):
             verts3d_deform.append(
                 instance_deform.verts_deform[m][
                     : len(self.get_verts_with_mesh_id(mesh_id=mesh_id))
-                ]
+                ],
             )
         verts3d_deform = torch.cat(verts3d_deform, dim=0)
         return verts3d_deform
 
     def get_verts_cat_with_mesh_ids(
-        self, mesh_ids=None, instance_deform=None, detach_objects_verts=False
+        self,
+        mesh_ids=None,
+        instance_deform=None,
+        detach_objects_verts=False,
     ):
         if mesh_ids is None:
             mesh_ids = list(range(len(self)))
@@ -2021,7 +2091,8 @@ class Meshes(OD3D_Objects3D):
 
         if instance_deform is not None:
             verts3d_deform = self.get_verts_deform_cat_with_mesh_ids(
-                mesh_ids, instance_deform
+                mesh_ids,
+                instance_deform,
             )
 
         verts3d = torch.cat(verts3d, dim=0)
@@ -2034,7 +2105,10 @@ class Meshes(OD3D_Objects3D):
         return verts3d
 
     def get_faces_uvs_cat_with_mesh_ids(
-        self, mesh_ids=None, use_global_verts_ids=False, add_verts_offset=False
+        self,
+        mesh_ids=None,
+        use_global_verts_ids=False,
+        add_verts_offset=False,
     ):
         if mesh_ids is None:
             mesh_ids = list(range(len(self)))
@@ -2046,7 +2120,7 @@ class Meshes(OD3D_Objects3D):
                     mesh_id=mesh_id,
                     use_global_verts_ids=use_global_verts_ids,
                     clone=True,
-                )
+                ),
             )
             if add_verts_offset:
                 faces_uv[-1] += verts_uv_count
@@ -2061,14 +2135,18 @@ class Meshes(OD3D_Objects3D):
         for mesh_id in mesh_ids:
             faces.append(
                 self.get_faces_with_mesh_id(
-                    mesh_id=mesh_id, use_global_verts_ids=use_global_verts_ids
-                )
+                    mesh_id=mesh_id,
+                    use_global_verts_ids=use_global_verts_ids,
+                ),
             )
         faces = torch.cat(faces, dim=0)
         return faces
 
     def get_edges_cat_with_mesh_ids(
-        self, mesh_ids=None, use_global_verts_ids=False, use_verts_offset=True
+        self,
+        mesh_ids=None,
+        use_global_verts_ids=False,
+        use_verts_offset=True,
     ):
         if mesh_ids is None:
             mesh_ids = list(range(len(self)))
@@ -2076,7 +2154,8 @@ class Meshes(OD3D_Objects3D):
         verts_offset = 0
         for mesh_id in mesh_ids:
             edges = self.get_edges_with_mesh_id(
-                mesh_id=mesh_id, use_global_verts_ids=use_global_verts_ids
+                mesh_id=mesh_id,
+                use_global_verts_ids=use_global_verts_ids,
             )
             if use_verts_offset and not use_global_verts_ids:
                 edges += verts_offset
@@ -2201,7 +2280,10 @@ class Meshes(OD3D_Objects3D):
         return faces
 
     def get_faces_uvs_with_mesh_id(
-        self, mesh_id, clone=False, use_global_verts_ids=False
+        self,
+        mesh_id,
+        clone=False,
+        use_global_verts_ids=False,
     ):
         faces = self.faces_uvs[
             self.faces_counts_acc_from_0[mesh_id] : self.faces_counts_acc_from_0[
@@ -2218,7 +2300,9 @@ class Meshes(OD3D_Objects3D):
 
     def get_edges_with_mesh_id(self, mesh_id, clone=False, use_global_verts_ids=False):
         faces = self.get_faces_with_mesh_id(
-            mesh_id, clone=clone, use_global_verts_ids=use_global_verts_ids
+            mesh_id,
+            clone=clone,
+            use_global_verts_ids=use_global_verts_ids,
         )
         F = faces.shape[0]
         v0, v1, v2 = faces.chunk(3, dim=1)
@@ -2357,13 +2441,17 @@ class Meshes(OD3D_Objects3D):
             objs_ids = torch.arange(len(self))
 
         objs_verts_padded, objs_lengths = self.get_vert_mod_from_objs(
-            mod=VERT_MODALITIES.PT3D, objs_ids=objs_ids, padded=True
+            mod=VERT_MODALITIES.PT3D,
+            objs_ids=objs_ids,
+            padded=True,
         )
         objs_verts_padded = transf3d_broadcast(
-            pts3d=objs_verts_padded, transf4x4=objs_new_tform4x4_objs[:, None]
+            pts3d=objs_verts_padded,
+            transf4x4=objs_new_tform4x4_objs[:, None],
         )
         self.verts = self.unpad_mod(
-            objs_mod=objs_verts_padded, objs_lengths=objs_lengths
+            objs_mod=objs_verts_padded,
+            objs_lengths=objs_lengths,
         )
 
     def get_objscentric_tform4x4_objs(self, tform_objs=None):
@@ -2371,7 +2459,7 @@ class Meshes(OD3D_Objects3D):
         for i in range(len(self)):
             _tform_obj = tform_objs[i] if tform_objs is not None else None
             _tform_objs.append(
-                self.get_objcentric_tform4x4_obj(obj_id=i, tform_obj=_tform_obj)
+                self.get_objcentric_tform4x4_obj(obj_id=i, tform_obj=_tform_obj),
             )
         return torch.stack(_tform_objs, dim=0)
 
@@ -2382,17 +2470,21 @@ class Meshes(OD3D_Objects3D):
             tform_obj = torch.eye(4).to(device=self.device)
 
         mesh_verts_orig = self.get_vert_mod(
-            mod=VERT_MODALITIES.PT3D, obj_id=obj_id, clone=True
+            mod=VERT_MODALITIES.PT3D,
+            obj_id=obj_id,
+            clone=True,
         )
         mesh_verts = transf3d_broadcast(
-            pts3d=mesh_verts_orig.clone(), transf4x4=tform_obj
+            pts3d=mesh_verts_orig.clone(),
+            transf4x4=tform_obj,
         )
         tform_obj_buf = tform_obj.clone()
         transl = -(mesh_verts.max(dim=0)[0] + mesh_verts.min(dim=0)[0]) / 2.0
         tform_obj_buf[:3, 3] += transl
 
         mesh_verts = transf3d_broadcast(
-            pts3d=mesh_verts_orig.clone(), transf4x4=tform_obj_buf
+            pts3d=mesh_verts_orig.clone(),
+            transf4x4=tform_obj_buf,
         )
         scale = 1.0 / mesh_verts.abs().max()
         tform_obj_buf[:3, :] *= scale
@@ -2407,7 +2499,7 @@ class Meshes(OD3D_Objects3D):
             data = obj_id * torch.ones(self.verts_counts[obj_id], dtype=torch.long)
         elif mod == VERT_MODALITIES.OBJ_ONEHOT:
             data = torch.nn.functional.one_hot(
-                obj_id * torch.ones(self.verts_counts[obj_id], dtype=torch.long)
+                obj_id * torch.ones(self.verts_counts[obj_id], dtype=torch.long),
             )
         elif (
             mod == VERT_MODALITIES.IN_OBJ_ID
@@ -2431,7 +2523,8 @@ class Meshes(OD3D_Objects3D):
             data = self.verts - self.verts.mean(dim=0, keepdim=True)
             data = data / data.abs().max()
             verts_label_coarse_colors = get_colors(
-                K=self.verts_coarse_count, device=self.device
+                K=self.verts_coarse_count,
+                device=self.device,
             )  # K x 3
 
             freq = 1.5
@@ -2441,7 +2534,9 @@ class Meshes(OD3D_Objects3D):
             )  # [0, 1] -> [0, 2*pi] ->  # N x 3
             bins = torch.linspace(1.0 / bin_count, 1.0, bin_count).to(mod.device)
             bins_indices = torch.bucketize(
-                input=mod, boundaries=bins, out_int32=True
+                input=mod,
+                boundaries=bins,
+                out_int32=True,
             )  # , right=True)
             mod = bins[bins_indices]
             rgb_min = 0.1
@@ -2501,7 +2596,9 @@ class Meshes(OD3D_Objects3D):
 
             bins = torch.linspace(1.0 / bin_count, 1.0, bin_count).to(mod.device)
             bins_indices = torch.bucketize(
-                input=mod, boundaries=bins, out_int32=True
+                input=mod,
+                boundaries=bins,
+                out_int32=True,
             )  # , right=True)
             mod = bins[bins_indices]
 
@@ -2547,7 +2644,12 @@ class Meshes(OD3D_Objects3D):
         return objs_mod
 
     def get_vert_mod_from_objs(
-        self, mod, objs_ids=None, padded=False, instance_deform=None, clone=False
+        self,
+        mod,
+        objs_ids=None,
+        padded=False,
+        instance_deform=None,
+        clone=False,
     ):
         if objs_ids is None:
             objs_ids = torch.arange(len(self))
@@ -2578,7 +2680,8 @@ class Meshes(OD3D_Objects3D):
 
             if mod == VERT_MODALITIES.OBJ_IN_SCENE_ONEHOT:
                 objs_mod = torch.nn.functional.one_hot(
-                    input=objs_mod, num_classes=objs_count_per_scene
+                    input=objs_mod,
+                    num_classes=objs_count_per_scene,
                 )
 
             if not padded:
@@ -2616,7 +2719,8 @@ class Meshes(OD3D_Objects3D):
                 else objs_mod.shape[-1]
             )
             objs_mod = torch.nn.functional.one_hot(
-                input=objs_mod, num_classes=num_classes
+                input=objs_mod,
+                num_classes=num_classes,
             )
 
             if not padded:
@@ -2702,7 +2806,10 @@ class Meshes(OD3D_Objects3D):
             objs_lengths = torch.LongTensor([obj_mod.shape[0] for obj_mod in objs_mod])
             # NxB*OxF
             objs_mod = torch.nn.utils.rnn.pad_sequence(
-                objs_mod, batch_first=False, padding_value=0, padding_side="right"
+                objs_mod,
+                batch_first=False,
+                padding_value=0,
+                padding_side="right",
             )
             objs_mod = objs_mod.swapaxes(0, 1)
             objs_mod = objs_mod.clone()
@@ -2712,7 +2819,9 @@ class Meshes(OD3D_Objects3D):
             if objs_ids.dim() == 2:
                 # return BxOxNxF
                 objs_mod = objs_mod.reshape(
-                    scene_count, objs_per_scene_count, *objs_mod.shape[1:]
+                    scene_count,
+                    objs_per_scene_count,
+                    *objs_mod.shape[1:],
                 )
                 objs_lengths = objs_lengths.reshape(scene_count, objs_per_scene_count)
             else:
@@ -2791,12 +2900,12 @@ class Meshes(OD3D_Objects3D):
                 or mod == FACE_MODALITIES.VERTS_IN_SCENES_ID
             ):
                 objs_verts_counts = torch.LongTensor(self.verts_counts).to(
-                    device=objs_ids.device
+                    device=objs_ids.device,
                 )[objs_ids]
                 objs_verts_counts[objs_ids < 0] = 0
             else:
                 objs_verts_counts = torch.LongTensor(self.verts_uvs_counts).to(
-                    device=objs_ids.device
+                    device=objs_ids.device,
                 )[objs_ids]
                 objs_verts_counts[objs_ids < 0] = 0
 
@@ -2813,10 +2922,11 @@ class Meshes(OD3D_Objects3D):
                 or mod == FACE_MODALITIES.VERTS_UVS_IN_SCENES_ID
             ):
                 objs_verts_counts_acc_from_0 = cumsum_w0(
-                    objs_verts_counts.flatten(), dim=0
+                    objs_verts_counts.flatten(),
+                    dim=0,
                 )
                 objs_verts_counts_acc_from_0 = objs_verts_counts_acc_from_0.reshape(
-                    *objs_verts_counts.shape
+                    *objs_verts_counts.shape,
                 )
             if objs_verts_counts_acc_from_0 is not None:
                 objs_mod += objs_verts_counts_acc_from_0.reshape(
@@ -2858,7 +2968,10 @@ class Meshes(OD3D_Objects3D):
             # from torch.nn.utils.rnn import pad_sequence, pad_packed_sequence
             objs_lengths = torch.LongTensor([obj_mod.shape[0] for obj_mod in objs_mod])
             objs_mod = torch.nn.utils.rnn.pad_sequence(
-                objs_mod, batch_first=False, padding_value=0, padding_side="right"
+                objs_mod,
+                batch_first=False,
+                padding_value=0,
+                padding_side="right",
             )
             objs_mod = objs_mod.swapaxes(0, 1)
             objs_mod = objs_mod.clone()
@@ -2868,7 +2981,9 @@ class Meshes(OD3D_Objects3D):
             if objs_ids.dim() == 2:
                 # return BxOxNxF
                 objs_mod = objs_mod.reshape(
-                    scene_count, objs_per_scene_count, *objs_mod.shape[1:]
+                    scene_count,
+                    objs_per_scene_count,
+                    *objs_mod.shape[1:],
                 )
                 objs_lengths = objs_lengths.reshape(scene_count, objs_per_scene_count)
             else:
@@ -2887,7 +3002,9 @@ class Meshes(OD3D_Objects3D):
     def get_verts_padded_mask_with_mesh_id(self, mesh_id, device="cpu"):
         return self.get_tensor_verts_with_pad(
             tensor=torch.ones(
-                size=(self.verts_counts[mesh_id],), dtype=torch.bool, device=device
+                size=(self.verts_counts[mesh_id],),
+                dtype=torch.bool,
+                device=device,
             ),
             mesh_id=mesh_id,
         )
@@ -2895,7 +3012,9 @@ class Meshes(OD3D_Objects3D):
     def get_faces_padded_mask_with_mesh_id(self, mesh_id, device="cpu"):
         return self.get_tensor_verts_with_pad(
             tensor=torch.ones(
-                size=(self.faces_counts[mesh_id],), dtype=torch.bool, device=device
+                size=(self.faces_counts[mesh_id],),
+                dtype=torch.bool,
+                device=device,
             ),
             mesh_id=mesh_id,
         )
@@ -3154,7 +3273,9 @@ class Meshes(OD3D_Objects3D):
         )
 
     def face_normals3d(
-        self, meshes_ids: Union[torch.LongTensor, List] = None, instance_deform=None
+        self,
+        meshes_ids: Union[torch.LongTensor, List] = None,
+        instance_deform=None,
     ):
         """
         Args:
@@ -3172,10 +3293,12 @@ class Meshes(OD3D_Objects3D):
             meshes_ids = meshes_ids.clone()
 
         _faces = self.get_faces_cat_with_mesh_ids(
-            mesh_ids=meshes_ids, use_global_verts_ids=True
+            mesh_ids=meshes_ids,
+            use_global_verts_ids=True,
         )
         _verts = self.get_verts_cat_with_mesh_ids(
-            mesh_ids=meshes_ids, instance_deform=instance_deform
+            mesh_ids=meshes_ids,
+            instance_deform=instance_deform,
         )
 
         _faces_normals = torch.cross(
@@ -3186,7 +3309,9 @@ class Meshes(OD3D_Objects3D):
         return _faces_normals
 
     def normals3d(
-        self, meshes_ids: Union[torch.LongTensor, List] = None, instance_deform=None
+        self,
+        meshes_ids: Union[torch.LongTensor, List] = None,
+        instance_deform=None,
     ):
         """
         Args:
@@ -3205,7 +3330,8 @@ class Meshes(OD3D_Objects3D):
             meshes_ids = meshes_ids.clone()
 
         pt3dmeshes = self.get_pt3dmeshes_with_deform(
-            objects_ids=meshes_ids, instance_deform=instance_deform
+            objects_ids=meshes_ids,
+            instance_deform=instance_deform,
         )
         _verts_normals_pt3d = pt3dmeshes.verts_normals_padded()
         return pt3dmeshes.verts_normals_padded()
@@ -3239,7 +3365,9 @@ class Meshes(OD3D_Objects3D):
         # return _verts_normals
 
     def get_tensor_verts_padded_from_packed(
-        self, tensor_verts_packed, meshes_ids: Union[torch.LongTensor, List] = None
+        self,
+        tensor_verts_packed,
+        meshes_ids: Union[torch.LongTensor, List] = None,
     ):
         """
         Args:
@@ -3423,7 +3551,9 @@ class Meshes(OD3D_Objects3D):
         # V = 3
 
         cam_intr4x4 = get_default_camera_intrinsics_from_img_size(
-            W=W, H=H, device=self.device
+            W=W,
+            H=H,
+            device=self.device,
         )
         cam_tform4x4_obj = get_cam_tform4x4_obj_for_viewpoints_count(
             viewpoints_count=viewpoints_count,
@@ -3445,7 +3575,8 @@ class Meshes(OD3D_Objects3D):
 
         save_video(
             imgs=mod_rendered.permute(1, 2, 3, 0, 4).reshape(
-                *mod_rendered.shape[1:-1], -1
+                *mod_rendered.shape[1:-1],
+                -1,
             ),
             fpath=fpath,
         )
@@ -3935,11 +4066,11 @@ class Meshes(OD3D_Objects3D):
                     [0.0, 2.0 / (top - bottom), 0.0, -ty],
                     [0.0, 0.0, U, V],
                     [0.0, 0.0, 0.0, -1.0],
-                ]
+                ],
             )[
                 None,
             ].to(
-                device=device
+                device=device,
             )
 
             # Squash matrices together to form complete perspective projection matrix which maps to NDC coordinates
@@ -3974,7 +4105,8 @@ class Meshes(OD3D_Objects3D):
             scenes_faces_counts_cumsum_w0 = cumsum_w0(scenes_faces_counts, dim=-1)
 
             ranges = torch.stack(
-                [scenes_faces_counts_cumsum_w0, scenes_faces_counts], dim=1
+                [scenes_faces_counts_cumsum_w0, scenes_faces_counts],
+                dim=1,
             )
 
             if objects_ids.dim() == 1:
@@ -3984,7 +4116,8 @@ class Meshes(OD3D_Objects3D):
                 else:
                     cams_proj4x4 = cams_proj4x4[:, None]
                 verts_cam = (cams_proj4x4 @ add_homog_dim(verts, dim=-1)[..., None])[
-                    ..., 0
+                    ...,
+                    0,
                 ]
             elif objects_ids.dim() == 2:
                 # 1x None for objects and 1x None for verts
@@ -3995,7 +4128,7 @@ class Meshes(OD3D_Objects3D):
                             @ obj_tform4x4_objs[None, :, None]
                         )
                         logger.info(
-                            "should not happen that obj_tform4x4_objs.dim() == 3"
+                            "should not happen that obj_tform4x4_objs.dim() == 3",
                         )
                     elif obj_tform4x4_objs.dim() == 4:
                         cams_proj4x4 = (
@@ -4007,7 +4140,8 @@ class Meshes(OD3D_Objects3D):
                 else:
                     cams_proj4x4 = cams_proj4x4[:, None, None]
                 verts_cam = (cams_proj4x4 @ add_homog_dim(verts, dim=-1)[..., None])[
-                    ..., 0
+                    ...,
+                    0,
                 ]
 
             verts_cam = self.unpad_mod(objs_mod=verts_cam, objs_lengths=verts_counts)
@@ -4051,7 +4185,7 @@ class Meshes(OD3D_Objects3D):
             # verts_cam = verts_cam.reshape(-1, 4)
 
             use_cuda = "cuda" in str(
-                device
+                device,
             )  #  dr.RasterizeGLContext() if not use_cuda else
             self.glctx = (
                 dr.RasterizeGLContext()
@@ -4090,10 +4224,16 @@ class Meshes(OD3D_Objects3D):
                     ones = torch.ones((verts_cam.shape[0], 1)).to(device=device)
                     mod2d_rendered, _ = dr.interpolate(ones, rast_out, faces)
                     mod2d_rendered = dr.antialias(
-                        mod2d_rendered, rast_out, verts_cam, faces
+                        mod2d_rendered,
+                        rast_out,
+                        verts_cam,
+                        faces,
                     )
                     mod2d_rendered = mod2d_rendered.permute(
-                        0, 3, 1, 2
+                        0,
+                        3,
+                        1,
+                        2,
                     )  # from B x H x W x F to B x F x H x W
             elif (
                 modality == PROJECT_MODALITIES.ONEHOT
@@ -4142,7 +4282,7 @@ class Meshes(OD3D_Objects3D):
                                     device=device,
                                 )[
                                     self.get_faces_with_mesh_id(object_id).to(
-                                        device=device
+                                        device=device,
                                     )
                                 ]
                                 for b, object_id in enumerate(objects_ids)
@@ -4165,7 +4305,7 @@ class Meshes(OD3D_Objects3D):
                                 labels_onehot[
                                     b,
                                     self.get_faces_with_mesh_id(object_id).to(
-                                        device=device
+                                        device=device,
                                     ),
                                 ]
                                 for b, object_id in enumerate(objects_ids)
@@ -4185,7 +4325,7 @@ class Meshes(OD3D_Objects3D):
                             one_hot=True,
                             device=device,
                         ).to(
-                            dtype
+                            dtype,
                         )[
                             0
                         ]
@@ -4240,14 +4380,22 @@ class Meshes(OD3D_Objects3D):
                             device=device,
                         ).to(dtype)[0]
                         mod2d_rendered = torch.where(
-                            rast_out[..., 3:] > 0, mod2d_rendered, feat_bg
+                            rast_out[..., 3:] > 0,
+                            mod2d_rendered,
+                            feat_bg,
                         )
 
                     mod2d_rendered = dr.antialias(
-                        mod2d_rendered, rast_out, verts_cam, faces
+                        mod2d_rendered,
+                        rast_out,
+                        verts_cam,
+                        faces,
                     )
                     mod2d_rendered = mod2d_rendered.permute(
-                        0, 3, 1, 2
+                        0,
+                        3,
+                        1,
+                        2,
                     )  # from B x H x W x F to B x F x H x W
 
             elif modality == PROJECT_MODALITIES.DEPTH:
@@ -4255,14 +4403,21 @@ class Meshes(OD3D_Objects3D):
                     mod2d_rendered = fragments.zbuf.permute(0, 3, 1, 2)
                 elif self.rasterizer == RASTERIZER.NVDIFFRAST:
                     verts_cam_z = transf3d_broadcast(
-                        pts3d=verts, transf4x4=cams_tform4x4_obj
+                        pts3d=verts,
+                        transf4x4=cams_tform4x4_obj,
                     ).reshape(-1, 3)[:, 2:]
                     mod2d_rendered, _ = dr.interpolate(verts_cam_z, rast_out, faces)
                     mod2d_rendered = dr.antialias(
-                        mod2d_rendered, rast_out, verts_cam, faces
+                        mod2d_rendered,
+                        rast_out,
+                        verts_cam,
+                        faces,
                     )
                     mod2d_rendered = mod2d_rendered.permute(
-                        0, 3, 1, 2
+                        0,
+                        3,
+                        1,
+                        2,
                     )  # from B x H x W x F to B x F x H x W
 
             elif modality == PROJECT_MODALITIES.MASK_VERTS_VSBL:
@@ -4292,7 +4447,7 @@ class Meshes(OD3D_Objects3D):
                     else:
                         # TODO: this is not verified to work for a batch size larger than 1
                         faces_ids_vsbl = (rast_out[b, None, :, :, -1] - 1).to(
-                            dtype=torch.long
+                            dtype=torch.long,
                         )  #  - verts_count_acc_from_0[b]
                     faces_ids_vsbl = faces_ids_vsbl.unique()
                     faces_ids_vsbl = faces_ids_vsbl[faces_ids_vsbl >= 0]
@@ -4345,25 +4500,30 @@ class Meshes(OD3D_Objects3D):
                     if modality == PROJECT_MODALITIES.FEATS_PBR:
                         if rgb_light_env is None:
                             logger.warning(
-                                "no rgb light environment despite using modality FEATS_PBR."
+                                "no rgb light environment despite using modality FEATS_PBR.",
                             )
 
                         if rgb_light_env is not None:
                             normals = self.normals3d(
-                                meshes_ids=objects_ids, instance_deform=instance_deform
+                                meshes_ids=objects_ids,
+                                instance_deform=instance_deform,
                             )
                             normals = normals.reshape(-1, normals.shape[-1])
                             normals_rendered, _ = dr.interpolate(
-                                normals, rast_out, faces
+                                normals,
+                                rast_out,
+                                faces,
                             )
                             # from od3d.cv.visual.show import show_imgs
                             # show_imgs(normals_rendered.permute(0, 3, 1, 2))
                             verts3d = self.get_verts_stacked_with_mesh_ids(
-                                mesh_ids=objects_ids
+                                mesh_ids=objects_ids,
                             )
                             verts3d = verts3d.reshape(-1, verts3d.shape[-1])
                             verts3d_rendered, _ = dr.interpolate(
-                                verts3d, rast_out, faces
+                                verts3d,
+                                rast_out,
+                                faces,
                             )
                             viewpoint_pos = inv_tform4x4(cams_tform4x4_obj)[..., 3, :3]
 
@@ -4407,15 +4567,16 @@ class Meshes(OD3D_Objects3D):
 
                             normals_rendered = safe_normalize(normals_rendered)
                             viewpoint_dir_rendered = safe_normalize(
-                                viewpoint_pos[:, None, None] - verts3d_rendered
+                                viewpoint_pos[:, None, None] - verts3d_rendered,
                             )
                             reflvec_rendered = safe_normalize(
-                                reflect(viewpoint_dir_rendered, normals_rendered)
+                                reflect(viewpoint_dir_rendered, normals_rendered),
                             )
 
                             # HxWx3
                             if isinstance(rgb_light_env, Path) or isinstance(
-                                rgb_light_env, str
+                                rgb_light_env,
+                                str,
                             ):
                                 latlong_img = torch.tensor(
                                     load_image(rgb_light_env),
@@ -4440,10 +4601,12 @@ class Meshes(OD3D_Objects3D):
                             ).to(device=device)
 
                             normals_rendered_gl = transf3d_broadcast(
-                                normals_rendered, transf4x4=OPENGL_OBJ_TFORM_OBJ
+                                normals_rendered,
+                                transf4x4=OPENGL_OBJ_TFORM_OBJ,
                             )
                             reflvec_rendered_gl = transf3d_broadcast(
-                                reflvec_rendered, transf4x4=OPENGL_OBJ_TFORM_OBJ
+                                reflvec_rendered,
+                                transf4x4=OPENGL_OBJ_TFORM_OBJ,
                             )
                             viewpoint_dir_rendered_gl = transf3d_broadcast(
                                 viewpoint_dir_rendered,
@@ -4453,10 +4616,10 @@ class Meshes(OD3D_Objects3D):
                             light_specular = [cubemap]
                             while light_specular[-1].shape[1] > LIGHT_MIN_RES:
                                 light_specular += [
-                                    cubemap_mip.apply(light_specular[-1])
+                                    cubemap_mip.apply(light_specular[-1]),
                                 ]
                             light_diffuse = diffuse_cubemap(
-                                light_specular[-1]
+                                light_specular[-1],
                             )  # * 0. + 1.
 
                             # normals_rendered : B x H x W x 3
@@ -4526,7 +4689,10 @@ class Meshes(OD3D_Objects3D):
                             mod2d_rendered = eye_final  # * mask
 
                             mod2d_rendered = dr.antialias(
-                                mod2d_rendered, rast_out, verts_cam, faces
+                                mod2d_rendered,
+                                rast_out,
+                                verts_cam,
+                                faces,
                             )
 
                             # For now no RGBA support
@@ -4536,18 +4702,28 @@ class Meshes(OD3D_Objects3D):
                         feat_bg = self.feat_clutter.clone()
                         if modality == PROJECT_MODALITIES.FEATS_PBR:
                             mod2d_rendered = torch.where(
-                                rast_out[..., 3:] > 0, mod2d_rendered, feat_bg[3:]
+                                rast_out[..., 3:] > 0,
+                                mod2d_rendered,
+                                feat_bg[3:],
                             )
                         else:
                             mod2d_rendered = torch.where(
-                                rast_out[..., 3:] > 0, mod2d_rendered, feat_bg
+                                rast_out[..., 3:] > 0,
+                                mod2d_rendered,
+                                feat_bg,
                             )
 
                     mod2d_rendered = dr.antialias(
-                        mod2d_rendered, rast_out, verts_cam, faces
+                        mod2d_rendered,
+                        rast_out,
+                        verts_cam,
+                        faces,
                     )
                     mod2d_rendered = mod2d_rendered.permute(
-                        0, 3, 1, 2
+                        0,
+                        3,
+                        1,
+                        2,
                     )  # from B x H x W x F to B x F x H x W
 
             elif (
@@ -4584,11 +4760,14 @@ class Meshes(OD3D_Objects3D):
                     # mesh_feats2d_prob = torch.sigmoid(-fragments.dists / blend_params.sigma) * mask
                 else:
                     feats, _ = self.get_vert_mod_from_objs(
-                        mod=modality, objs_ids=objects_ids, padded=False
+                        mod=modality,
+                        objs_ids=objects_ids,
+                        padded=False,
                     )
                     feats = feats.to(device=device, dtype=torch.float32)  # N x [C]
                     feat_bg = self.get_mod_bg(mod=modality).to(
-                        device=device, dtype=torch.float32
+                        device=device,
+                        dtype=torch.float32,
                     )
                     if feat_bg.shape[-1] != feats.shape[-1]:
                         feat_bg = feat_bg.expand(*feats.shape[1:])
@@ -4607,7 +4786,9 @@ class Meshes(OD3D_Objects3D):
                         ] = 0.0
                         rast_out_discrete[..., 1][rast_out_discrete[..., 1] > 0.5] = 1.0
                         mod2d_rendered, _ = dr.interpolate(
-                            feats, rast_out_discrete, faces
+                            feats,
+                            rast_out_discrete,
+                            faces,
                         )
                     else:
                         mod2d_rendered, _ = dr.interpolate(feats, rast_out, faces)
@@ -4626,14 +4807,22 @@ class Meshes(OD3D_Objects3D):
 
                     # add white background
                     mod2d_rendered = torch.where(
-                        rast_out[..., 3:] > 0, mod2d_rendered, feat_bg
+                        rast_out[..., 3:] > 0,
+                        mod2d_rendered,
+                        feat_bg,
                     )
 
                     mod2d_rendered = dr.antialias(
-                        mod2d_rendered, rast_out, verts_cam, faces
+                        mod2d_rendered,
+                        rast_out,
+                        verts_cam,
+                        faces,
                     )
                     mod2d_rendered = mod2d_rendered.permute(
-                        0, 3, 1, 2
+                        0,
+                        3,
+                        1,
+                        2,
                     )  # from B x H x W x F to B x F x H x W
             elif modality == PROJECT_MODALITIES.RGB:
                 if self.rasterizer == RASTERIZER.PYTORCH3D:
@@ -4672,7 +4861,8 @@ class Meshes(OD3D_Objects3D):
                         # tex: (B, H, W, 3), [r, g, b], float [0, 1]
 
                         uv, _ = self.get_vert_mod_from_objs(
-                            objs_ids=objects_ids, mod=VERT_MODALITIES.UV_PXL2D
+                            objs_ids=objects_ids,
+                            mod=VERT_MODALITIES.UV_PXL2D,
                         )
                         uv_idx, _ = self.get_face_mod_from_objs(
                             objs_ids=objects_ids,
@@ -4709,11 +4899,15 @@ class Meshes(OD3D_Objects3D):
                                 vert_obj_in_scene_onehot.to(mod2d_rendered.device) * 1.0
                             )
                             mod2d_rendered_obj_in_scene_onehot, _ = dr.interpolate(
-                                vert_obj_in_scene_onehot, rast_out, faces
+                                vert_obj_in_scene_onehot,
+                                rast_out,
+                                faces,
                             )
                             mod2d_rendered = (
                                 mod2d_rendered.reshape(
-                                    *mod2d_rendered.shape[:-1], -1, 3
+                                    *mod2d_rendered.shape[:-1],
+                                    -1,
+                                    3,
                                 )
                                 * mod2d_rendered_obj_in_scene_onehot[..., None]
                             )
@@ -4731,7 +4925,8 @@ class Meshes(OD3D_Objects3D):
 
                     if rgb_diffusion_alpha > 0.0 and rgb_light_env is None:
                         normals = self.normals3d(
-                            meshes_ids=objects_ids, instance_deform=instance_deform
+                            meshes_ids=objects_ids,
+                            instance_deform=instance_deform,
                         )
                         normals = normals.reshape(-1, normals.shape[-1])
                         normals_rendered, _ = dr.interpolate(normals, rast_out, faces)
@@ -4748,7 +4943,7 @@ class Meshes(OD3D_Objects3D):
 
                     if rgb_light_env is not None:
                         verts3d = self.get_verts_stacked_with_mesh_ids(
-                            mesh_ids=objects_ids
+                            mesh_ids=objects_ids,
                         )
                         verts3d = verts3d.reshape(-1, verts3d.shape[-1])
                         verts3d_rendered, _ = dr.interpolate(verts3d, rast_out, faces)
@@ -4796,15 +4991,16 @@ class Meshes(OD3D_Objects3D):
 
                         normals_rendered = safe_normalize(normals_rendered)
                         viewpoint_dir_rendered = safe_normalize(
-                            viewpoint_pos[:, None, None] - verts3d_rendered
+                            viewpoint_pos[:, None, None] - verts3d_rendered,
                         )
                         reflvec_rendered = safe_normalize(
-                            reflect(viewpoint_dir_rendered, normals_rendered)
+                            reflect(viewpoint_dir_rendered, normals_rendered),
                         )
 
                         # HxWx3
                         if isinstance(rgb_light_env, Path) or isinstance(
-                            rgb_light_env, str
+                            rgb_light_env,
+                            str,
                         ):
                             latlong_img = torch.tensor(
                                 load_image(rgb_light_env),
@@ -4829,20 +5025,23 @@ class Meshes(OD3D_Objects3D):
                         ).to(device=device)
 
                         normals_rendered_gl = transf3d_broadcast(
-                            normals_rendered, transf4x4=OPENGL_OBJ_TFORM_OBJ
+                            normals_rendered,
+                            transf4x4=OPENGL_OBJ_TFORM_OBJ,
                         )
                         reflvec_rendered_gl = transf3d_broadcast(
-                            reflvec_rendered, transf4x4=OPENGL_OBJ_TFORM_OBJ
+                            reflvec_rendered,
+                            transf4x4=OPENGL_OBJ_TFORM_OBJ,
                         )
                         viewpoint_dir_rendered_gl = transf3d_broadcast(
-                            viewpoint_dir_rendered, transf4x4=OPENGL_OBJ_TFORM_OBJ
+                            viewpoint_dir_rendered,
+                            transf4x4=OPENGL_OBJ_TFORM_OBJ,
                         )
 
                         light_specular = [cubemap]
                         while light_specular[-1].shape[1] > LIGHT_MIN_RES:
                             light_specular += [cubemap_mip.apply(light_specular[-1])]
                         light_diffuse = diffuse_cubemap(
-                            light_specular[-1]
+                            light_specular[-1],
                         )  #  * 0. + 1.
 
                         # normals_rendered : B x H x W x 3
@@ -4944,22 +5143,30 @@ class Meshes(OD3D_Objects3D):
                         if mod2d_rendered.shape[-1] == 4:
                             _rgb_bg = torch.ones(4).to(device=mod2d_rendered.device)
                             _rgb_bg[:3] = torch.Tensor(rgb_bg).to(
-                                device=mod2d_rendered.device
+                                device=mod2d_rendered.device,
                             )
                         else:
                             _rgb_bg = torch.Tensor(rgb_bg).to(
-                                device=mod2d_rendered.device
+                                device=mod2d_rendered.device,
                             )
 
                     # if add_clutter:
                     mod2d_rendered = torch.where(
-                        rast_out[..., 3:] > 0, mod2d_rendered, _rgb_bg
+                        rast_out[..., 3:] > 0,
+                        mod2d_rendered,
+                        _rgb_bg,
                     )
                     mod2d_rendered = dr.antialias(
-                        mod2d_rendered, rast_out, verts_cam, faces
+                        mod2d_rendered,
+                        rast_out,
+                        verts_cam,
+                        faces,
                     )
                     mod2d_rendered = mod2d_rendered.permute(
-                        0, 3, 1, 2
+                        0,
+                        3,
+                        1,
+                        2,
                     )  # from B x H x W x F to B x F x H x W
 
                     # For now no RGBA support
@@ -5014,10 +5221,10 @@ class Meshes(OD3D_Objects3D):
             z_inv = (zfar - fragments.zbuf) / (zfar - znear) * pix_mask
             z_inv_max = torch.max(z_inv, dim=-1).values[..., None].clamp(min=eps)
             pix_face_opacity = pix_face_opacity * torch.exp(
-                (z_inv - z_inv_max) / opacity_face_sdf_gamma
+                (z_inv - z_inv_max) / opacity_face_sdf_gamma,
             )
             bg_opacity = torch.exp((eps - z_inv_max) / opacity_face_sdf_gamma).clamp(
-                min=eps
+                min=eps,
             )
             # Normalize weights.
             # weights_num shape: (N, H, W, K). Sum over K and divide through by the sum.
@@ -5053,7 +5260,7 @@ class Meshes(OD3D_Objects3D):
                 pix_face_opacity * pix_face_transparity_cum_with_preprend_one
             )  # (B, H, W, F)
             pix_opacity = pix_face_opacity.sum(
-                dim=-1
+                dim=-1,
             )  #  pix_face_transparity_cum[..., -1] #  (1. - pix_face_transparity_cum_with_preprend_one)[..., -1]  # (B, H, W, )
 
         else:
@@ -5104,7 +5311,7 @@ class Meshes(OD3D_Objects3D):
         if return_pix_feats:
             if feats_from_faces is None:
                 raise ValueError(
-                    f"feats_from_faces must be provided if return_pix_feats is True"
+                    f"feats_from_faces must be provided if return_pix_feats is True",
                 )
 
             from pytorch3d.renderer.mesh.utils import interpolate_face_attributes
@@ -5116,12 +5323,17 @@ class Meshes(OD3D_Objects3D):
             )  # (B, H, W, F, D)
 
             pix_face_feats = torch.einsum(
-                "bhwf,bhwfd->bhwd", pix_face_weight, pix_face_feats
+                "bhwf,bhwfd->bhwd",
+                pix_face_weight,
+                pix_face_feats,
             )
 
             if feat_bg is not None:
                 pix_face_feats += (1.0 - pix_opacity[..., None]) * feat_bg[
-                    None, None, None, :
+                    None,
+                    None,
+                    None,
+                    :,
                 ]
 
             pix_face_feats = pix_face_feats.permute(0, 3, 1, 2)
@@ -5373,7 +5585,9 @@ class Meshes(OD3D_Objects3D):
                     from od3d.cv.select import batched_index_select
 
                     verts3d = batched_index_select(
-                        input=verts3d, index=self.verts_ids_coarse[objects_ids], dim=1
+                        input=verts3d,
+                        index=self.verts_ids_coarse[objects_ids],
+                        dim=1,
                     )
 
                     if detach_objects:
@@ -5457,7 +5671,11 @@ class Meshes(OD3D_Objects3D):
                     return self.verts_counts_max - 1
 
     def get_label_clutter(
-        self, add_other_objects=False, one_hot=False, device=None, coarse=False
+        self,
+        add_other_objects=False,
+        one_hot=False,
+        device=None,
+        coarse=False,
     ):
         clutter_label = self.get_label_max(
             add_other_objects=add_other_objects,
@@ -5742,7 +5960,8 @@ class Meshes(OD3D_Objects3D):
                     ]
             else:
                 labels_onehot[
-                    : verts_label_coarse.shape[0], : verts_label_coarse.shape[1]
+                    : verts_label_coarse.shape[0],
+                    : verts_label_coarse.shape[1],
                 ] = verts_label_coarse
 
             if sample_clutter and add_clutter:
@@ -5905,7 +6124,10 @@ class Meshes(OD3D_Objects3D):
         return labels_onehot_smooth
 
     def get_rgb_meshes_as_list_of_o3d(
-        self, category_id: torch.LongTensor = None, instance_deform=None, device=None
+        self,
+        category_id: torch.LongTensor = None,
+        instance_deform=None,
+        device=None,
     ):
         if device is None:
             device = self.device
@@ -5913,23 +6135,25 @@ class Meshes(OD3D_Objects3D):
             category_id = list(range(len(self)))
 
         meshes_verts = self.get_verts_stacked_with_mesh_ids(category_id).to(
-            device=device
+            device=device,
         )
         if instance_deform is not None:
             meshes_verts += instance_deform.verts_deform.to(device=device)
 
         meshes_verts = meshes_verts[:, :, [1, 2, 0]]  # permute for wandb visualization
         meshes_faces = self.get_faces_stacked_with_mesh_ids(category_id).to(
-            device=device
+            device=device,
         )
         meshes_rgb = self.get_verts_ncds_stacked_with_mesh_ids(category_id).to(
-            device=device
+            device=device,
         )
 
         o3d_meshes = []
         for b in range(len(category_id)):
             mesh = Meshes(
-                verts=[meshes_verts[b]], faces=[meshes_faces[b]], rgb=[meshes_rgb[b]]
+                verts=[meshes_verts[b]],
+                faces=[meshes_faces[b]],
+                rgb=[meshes_rgb[b]],
             )
             o3d_meshes.append(mesh.to_o3d())
 

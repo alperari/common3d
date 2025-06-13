@@ -46,7 +46,9 @@ class Omni6DPose_Sequence(
 
     def read_mesh(self, mesh_type=None, device="cpu", tform_obj_type=None):
         return self.first_frame.read_mesh(
-            mesh_type=mesh_type, device=device, tform_obj_type=tform_obj_type
+            mesh_type=mesh_type,
+            device=device,
+            tform_obj_type=tform_obj_type,
         )
 
     @property

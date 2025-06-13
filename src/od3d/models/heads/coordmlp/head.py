@@ -162,7 +162,8 @@ class CoordMLP(MLP):
             # pts3d[:, :, 0] = pts3d[:, :, 0].abs() # mirror -x to +x
             pts3d_x, pts3d_y, pts3d_z = pts3d.unbind(-1)
             pts3d = torch.stack(
-                [pts3d_x.abs(), pts3d_y, pts3d_z], -1
+                [pts3d_x.abs(), pts3d_y, pts3d_z],
+                -1,
             )  # mirror -x to +x
 
         if self.embedder is not None:
@@ -197,7 +198,8 @@ class CoordMLP(MLP):
                 [
                     pts3d_embed,
                     x_latent[:, None].expand(
-                        *pts3d_embed.shape[:2], x_latent.shape[-1]
+                        *pts3d_embed.shape[:2],
+                        x_latent.shape[-1],
                     ),
                 ],
                 dim=-1,

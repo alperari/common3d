@@ -28,7 +28,7 @@ FACES = np.array(
         [1, 2, 6, 5],  # -y on xz plane
         [2, 4, 8, 6],  # +z on xy plane = front
         [1, 5, 7, 3],  # -z on xy plane
-    ]
+    ],
 )
 
 UNIT_BOX = np.asarray(
@@ -42,7 +42,7 @@ UNIT_BOX = np.asarray(
         [0.5, -0.5, 0.5],
         [0.5, 0.5, -0.5],
         [0.5, 0.5, 0.5],
-    ]
+    ],
 )
 
 NUM_KEYPOINTS = 9
@@ -149,7 +149,7 @@ class Box:
                 [+w, -h, +d],
                 [+w, +h, -d],
                 [+w, +h, +d],
-            ]
+            ],
         )
         return aabb
 

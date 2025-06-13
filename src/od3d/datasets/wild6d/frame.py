@@ -78,7 +78,7 @@ def get_3d_bbox(size, shift=0):
                 [+size[0] / 2, -size[1] / 2, -size[2] / 2],
                 [-size[0] / 2, -size[1] / 2, +size[2] / 2],
                 [-size[0] / 2, -size[1] / 2, -size[2] / 2],
-            ]
+            ],
         )
         + shift
     )
@@ -98,7 +98,7 @@ def transform_coordinates_3d(coordinates, sRT):
     """
     assert coordinates.shape[0] == 3
     coordinates = np.vstack(
-        [coordinates, np.ones((1, coordinates.shape[1]), dtype=np.float32)]
+        [coordinates, np.ones((1, coordinates.shape[1]), dtype=np.float32)],
     )
     new_coordinates = sRT @ coordinates
     new_coordinates = new_coordinates[:3, :] / new_coordinates[3, :]
@@ -177,7 +177,10 @@ class WILD6D_FrameMeta(
         import json
 
         frame_annotation_intr_fpath = path_raw.joinpath(
-            f"test_set/{category}", seq_idx, obj_idx, "metadata"
+            f"test_set/{category}",
+            seq_idx,
+            obj_idx,
+            "metadata",
         )
         frame_annotation_intr = json.load(open(frame_annotation_intr_fpath, "rb"))
 
@@ -223,13 +226,22 @@ class WILD6D_FrameMeta(
         name = f"{frame_annotation.frame_number}"
 
         rfpath_rgb = Path(f"test_set/{category}").joinpath(
-            seq_idx, obj_idx, "images", f"{str(int(frame_idx))}.jpg"
+            seq_idx,
+            obj_idx,
+            "images",
+            f"{str(int(frame_idx))}.jpg",
         )
         rfpath_mask = Path(f"test_set/{category}").joinpath(
-            seq_idx, obj_idx, "images", f"{str(int(frame_idx))}-mask.png"
+            seq_idx,
+            obj_idx,
+            "images",
+            f"{str(int(frame_idx))}-mask.png",
         )
         rfpath_depth = Path(f"test_set/{category}").joinpath(
-            seq_idx, obj_idx, "images", f"{str(int(frame_idx))}-depth.png"
+            seq_idx,
+            obj_idx,
+            "images",
+            f"{str(int(frame_idx))}-depth.png",
         )
 
         depth_scale = frame_annotation.depth.scale_adjustment

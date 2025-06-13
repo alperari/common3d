@@ -44,11 +44,15 @@ pts3d = verts.clone() + verts_dev
 def get_pts_face_dist(pts3d, verts, faces):
     #
     pts3d_signed_dist_to_faces = torch.einsum(
-        "fd,fd->f", faces_normals, verts[faces[:, 0]]
+        "fd,fd->f",
+        faces_normals,
+        verts[faces[:, 0]],
     )[
         None,
     ] - torch.einsum(
-        "fd,pd->pf", faces_normals, pts3d
+        "fd,pd->pf",
+        faces_normals,
+        pts3d,
     )
 
     pts3d_on_faces = (
@@ -64,13 +68,19 @@ def get_pts_face_dist(pts3d, verts, faces):
     edge12_pts_faces = verts2_pts_faces - verts1_pts_faces
 
     pts3d_signed_dist_to_edge01 = torch.einsum(
-        "pfd,pfd->pf", edge01_pts_faces, pts3d_on_faces - verts0_pts_faces
+        "pfd,pfd->pf",
+        edge01_pts_faces,
+        pts3d_on_faces - verts0_pts_faces,
     )
     pts3d_signed_dist_to_edge02 = torch.einsum(
-        "pfd,pfd->pf", edge02_pts_faces, pts3d_on_faces - verts0_pts_faces
+        "pfd,pfd->pf",
+        edge02_pts_faces,
+        pts3d_on_faces - verts0_pts_faces,
     )
     pts3d_signed_dist_to_edge12 = torch.einsum(
-        "pfd,pfd->pf", edge12_pts_faces, pts3d_on_faces - verts1_pts_faces
+        "pfd,pfd->pf",
+        edge12_pts_faces,
+        pts3d_on_faces - verts1_pts_faces,
     )
 
     pts3d_on_edge01 = (
@@ -156,10 +166,14 @@ def get_pts_face_dist(pts3d, verts, faces):
         (pts3d[:, None] - pts3d_on_faces_closest).norm(dim=-1).min(dim=-1).indices
     )
     pts3d_on_face_closest = batched_index_select(
-        pts3d_on_faces_closest, index=pts3d_on_face_closest_ids[:, None], dim=1
+        pts3d_on_faces_closest,
+        index=pts3d_on_face_closest_ids[:, None],
+        dim=1,
     )[:, 0]
     pts3d_on_face_closest_inside = batched_index_select(
-        pts3d_on_faces_closest_inside, index=pts3d_on_face_closest_ids[:, None], dim=1
+        pts3d_on_faces_closest_inside,
+        index=pts3d_on_face_closest_ids[:, None],
+        dim=1,
     )[:, 0]
 
     # pts3d_closest_dev_dist = (pts3d_on_face_closest - pts3d).norm(dim=-1)

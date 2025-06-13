@@ -146,7 +146,7 @@ class SPair71K(OD3D_Dataset):
                     f.read().splitlines()
                 )  # duplication for large and small todo : handle with subset
             pair_names_partial = list(
-                filter(lambda x: x.split(":", 1)[1] in categories, pair_names_partial)
+                filter(lambda x: x.split(":", 1)[1] in categories, pair_names_partial),
             )
 
             pair_names += [

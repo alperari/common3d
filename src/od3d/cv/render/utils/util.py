@@ -29,7 +29,7 @@ def reflect(x: torch.Tensor, n: torch.Tensor) -> torch.Tensor:
 
 def length(x: torch.Tensor, eps: float = 1e-20) -> torch.Tensor:
     return torch.sqrt(
-        torch.clamp(dot(x, x), min=eps)
+        torch.clamp(dot(x, x), min=eps),
     )  # Clamp to avoid nan gradients because grad(sqrt(0)) = NaN
 
 
@@ -125,12 +125,17 @@ def get_miplevels(texture: np.ndarray) -> float:
 
 
 def tex_2d(
-    tex_map: torch.Tensor, coords: torch.Tensor, filter="nearest"
+    tex_map: torch.Tensor,
+    coords: torch.Tensor,
+    filter="nearest",
 ) -> torch.Tensor:
     tex_map = tex_map[None, ...]  # Add batch dimension
     tex_map = tex_map.permute(0, 3, 1, 2)  # NHWC -> NCHW
     tex = torch.nn.functional.grid_sample(
-        tex_map, coords[None, None, ...] * 2 - 1, mode=filter, align_corners=False
+        tex_map,
+        coords[None, None, ...] * 2 - 1,
+        mode=filter,
+        align_corners=False,
     )
     tex = tex.permute(0, 2, 3, 1)  # NCHW -> NHWC
     return tex[0, 0, ...]
@@ -159,15 +164,26 @@ def cube_to_dir(s, x, y):
 
 def latlong_to_cubemap(latlong_map, res):
     cubemap = torch.zeros(
-        6, res[0], res[1], latlong_map.shape[-1], dtype=torch.float32, device="cuda"
+        6,
+        res[0],
+        res[1],
+        latlong_map.shape[-1],
+        dtype=torch.float32,
+        device="cuda",
     )
     for s in range(6):
         gy, gx = torch.meshgrid(
             torch.linspace(
-                -1.0 + 1.0 / res[0], 1.0 - 1.0 / res[0], res[0], device="cuda"
+                -1.0 + 1.0 / res[0],
+                1.0 - 1.0 / res[0],
+                res[0],
+                device="cuda",
             ),
             torch.linspace(
-                -1.0 + 1.0 / res[1], 1.0 - 1.0 / res[1], res[1], device="cuda"
+                -1.0 + 1.0 / res[1],
+                1.0 - 1.0 / res[1],
+                res[1],
+                device="cuda",
             ),
             indexing="ij",
         )
@@ -178,7 +194,9 @@ def latlong_to_cubemap(latlong_map, res):
         texcoord = torch.cat((tu, tv), dim=-1)
 
         cubemap[s, ...] = dr.texture(
-            latlong_map[None, ...], texcoord[None, ...], filter_mode="linear"
+            latlong_map[None, ...],
+            texcoord[None, ...],
+            filter_mode="linear",
         )[0]
     return cubemap
 
@@ -252,10 +270,11 @@ def segment_sum(data: torch.Tensor, segment_ids: torch.Tensor) -> torch.Tensor:
     # Repeats ids until same dimension as data
     if len(segment_ids.shape) == 1:
         s = torch.prod(
-            torch.tensor(data.shape[1:], dtype=torch.int64, device="cuda")
+            torch.tensor(data.shape[1:], dtype=torch.int64, device="cuda"),
         ).long()
         segment_ids = segment_ids.repeat_interleave(s).view(
-            segment_ids.shape[0], *data.shape[1:]
+            segment_ids.shape[0],
+            *data.shape[1:],
         )
 
     assert (
@@ -298,7 +317,14 @@ def perspective(fovy=0.7854, aspect=1.0, n=0.1, f=1000.0, device=None):
 
 # Reworked so this matches gluPerspective / glm::perspective, using fovy
 def perspective_offcenter(
-    fovy, fraction, rx, ry, aspect=1.0, n=0.1, f=1000.0, device=None
+    fovy,
+    fraction,
+    rx,
+    ry,
+    aspect=1.0,
+    n=0.1,
+    f=1000.0,
+    device=None,
 ):
     y = np.tan(fovy / 2)
 
@@ -447,7 +473,8 @@ def lines_focal(o, d):
     d = safe_normalize(d)
     I = torch.eye(3, dtype=o.dtype, device=o.device)
     S = torch.sum(
-        d[..., None] @ torch.transpose(d[..., None], 1, 2) - I[None, ...], dim=0
+        d[..., None] @ torch.transpose(d[..., None], 1, 2) - I[None, ...],
+        dim=0,
     )
     C = torch.sum(
         (d[..., None] @ torch.transpose(d[..., None], 1, 2) - I[None, ...])
@@ -509,7 +536,11 @@ def bilinear_downsample(x: torch.tensor) -> torch.Tensor:
     )
     w = w.expand(x.shape[-1], 1, 4, 4)
     x = torch.nn.functional.conv2d(
-        x.permute(0, 3, 1, 2), w, padding=1, stride=2, groups=x.shape[-1]
+        x.permute(0, 3, 1, 2),
+        w,
+        padding=1,
+        stride=2,
+        groups=x.shape[-1],
     )
     return x.permute(0, 2, 3, 1)
 
@@ -554,7 +585,11 @@ def init_glfw():
         glfw.default_window_hints()
         glfw.window_hint(glfw.VISIBLE, glfw.FALSE)
         test = glfw.create_window(
-            8, 8, "Test", None, None
+            8,
+            8,
+            "Test",
+            None,
+            None,
         )  # Create a window and see if not initialized yet
     except glfw.GLFWError as e:
         if e.error_code == glfw.NOT_INITIALIZED:

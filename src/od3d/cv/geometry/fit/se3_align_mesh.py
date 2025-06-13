@@ -267,7 +267,7 @@ def calc_feats_dist_ref_src(
             ):
                 # replace nan values with inf
                 dists_verts_feats_seq1_seq2 = dists_verts_feats_seq1_seq2.nan_to_num(
-                    torch.inf
+                    torch.inf,
                 )
                 dist_verts_seq1_seq2[seq1_verts_partial] = (
                     dists_verts_feats_seq1_seq2.permute(
@@ -287,7 +287,7 @@ def calc_feats_dist_ref_src(
                 or reduce_type == OD3D_MESH_FEATS_DIST_REDUCE_TYPES.NEGDOT_AVG
             ):
                 dists_verts_feats_seq1_seq2 = dists_verts_feats_seq1_seq2.nan_to_num(
-                    0.0
+                    0.0,
                 )
                 dists_verts_feats_seq1_seq2_mask = (
                     dists_verts_feats_seq1_seq2_mask.nan_to_num(0.0)
@@ -321,7 +321,7 @@ def calc_feats_dist_ref_src(
                 or reduce_type == OD3D_MESH_FEATS_DIST_REDUCE_TYPES.NEGDOT_MIN_AVG
             ):
                 dists_verts_feats_seq1_seq2 = dists_verts_feats_seq1_seq2.nan_to_num(
-                    torch.inf
+                    torch.inf,
                 )
                 dists_verts_feats_seq1_seq2_mask = (
                     dists_verts_feats_seq1_seq2_mask.nan_to_num(0.0)

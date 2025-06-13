@@ -18,7 +18,10 @@ https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/vision
 
 
 def drop_path(
-    x, drop_prob: float = 0.0, training: bool = False, scale_by_keep: bool = True
+    x,
+    drop_prob: float = 0.0,
+    training: bool = False,
+    scale_by_keep: bool = True,
 ):
     """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
 
@@ -309,9 +312,9 @@ class ConditionalPrototypes(nn.Module):
                     drop_path,
                     act_layer,
                     norm_layer,
-                )
+                ),
             ]
-            * depth
+            * depth,
         )
         self.cond = cond_bottleneck is not None
         if self.cond:

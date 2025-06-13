@@ -134,7 +134,7 @@ class Flexicubes(Meshes):
                 "dropout": 0,
                 "activation": None,
                 "symmetrize": False,
-            }
+            },
         )
 
         # note: import on-the-fly to avoid circular import
@@ -145,21 +145,23 @@ class Flexicubes(Meshes):
             # embedder_scalar = 2 * np.pi / grid_scale * 0.9  # originally (-0.5*s, 0.5*s) rescale to (-pi, pi) * 0.9
 
             self.fc_deforms.append(
-                torch.nn.Parameter(torch.zeros_like(self.fc_x_nx3), requires_grad=True)
+                torch.nn.Parameter(torch.zeros_like(self.fc_x_nx3), requires_grad=True),
             )
 
             _sdf = self.fc_x_nx3.detach().norm(dim=-1, keepdim=False) - self.init_radius
             # _sdf = torch.rand_like(self.x_nx3[:, 0]) - 0.1  # randomly initialize SDF
             self.fc_sdfs.append(
-                torch.nn.Parameter(_sdf.clone().detach(), requires_grad=True)
+                torch.nn.Parameter(_sdf.clone().detach(), requires_grad=True),
             )
 
             # set per-cube learnable weights to zeros
             _weight = torch.zeros(
-                (self.fc_cube_fx8.shape[0], 21), dtype=dtype, device=device
+                (self.fc_cube_fx8.shape[0], 21),
+                dtype=dtype,
+                device=device,
             )
             self.fc_weights.append(
-                torch.nn.Parameter(_weight.clone().detach(), requires_grad=True)
+                torch.nn.Parameter(_weight.clone().detach(), requires_grad=True),
             )
 
             self.feat_coordmlps.append(
@@ -321,7 +323,7 @@ class Flexicubes(Meshes):
         self.meshes_count = len(verts)
         self.verts = torch.cat([_verts for _verts in verts], dim=0).to(**factory_kwargs)
         self.feats_objects = torch.cat([_feats for _feats in feats], dim=0).to(
-            **factory_kwargs
+            **factory_kwargs,
         )
 
         self.faces = torch.cat([_faces for _faces in faces], dim=0).to(device=device)
@@ -389,7 +391,7 @@ class Flexicubes(Meshes):
         from od3d.data.batch_datatypes import OD3D_ModelData
 
         sdf_delta = self.sdf_coordmlps[object_id](
-            OD3D_ModelData(pts3d=pts[None,])
+            OD3D_ModelData(pts3d=pts[None,]),
         ).feat[0]
         sdf_vals = sdf_init + sdf_delta
         return sdf_vals
@@ -444,9 +446,11 @@ class Flexicubes(Meshes):
             mask = torch.sign(sdf_f1x6x2[..., 0]) != torch.sign(sdf_f1x6x2[..., 1])
             sdf_f1x6x2 = sdf_f1x6x2[mask]
             sdf_diff_loss = torch.nn.functional.binary_cross_entropy_with_logits(
-                sdf_f1x6x2[..., 0], (sdf_f1x6x2[..., 1] > 0).float()
+                sdf_f1x6x2[..., 0],
+                (sdf_f1x6x2[..., 1] > 0).float(),
             ) + torch.nn.functional.binary_cross_entropy_with_logits(
-                sdf_f1x6x2[..., 1], (sdf_f1x6x2[..., 0] > 0).float()
+                sdf_f1x6x2[..., 1],
+                (sdf_f1x6x2[..., 0] > 0).float(),
             )
 
             reg_loss = sdf_diff_loss.mean() * sdf_reg_weight

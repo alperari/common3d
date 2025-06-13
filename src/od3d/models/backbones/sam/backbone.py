@@ -10,6 +10,7 @@ from pathlib import Path
 from od3d.io import download
 from od3d.data.batch_datatypes import OD3D_ModelData
 
+
 class SAM(OD3D_Backbone):
     def __init__(
         self,
@@ -42,7 +43,15 @@ class SAM(OD3D_Backbone):
         self.downsample_rate = 1
         self.out_dims = [1]
 
-    def forward(self, x, points_xy=None, bbox=None, oppress_single_point=False, bbox_from_single_point=False, bbox_from_points=False):
+    def forward(
+        self,
+        x,
+        points_xy=None,
+        bbox=None,
+        oppress_single_point=False,
+        bbox_from_single_point=False,
+        bbox_from_points=False,
+    ):
         batch_size = x.shape[0]
 
         masks, scores, logits = [], [], []
@@ -53,6 +62,7 @@ class SAM(OD3D_Backbone):
             )
 
             import numpy as np
+
             input_point = None
             input_label = None
             input_box = None
@@ -61,48 +71,66 @@ class SAM(OD3D_Backbone):
             W = x.shape[3]
             if bbox is not None:
                 input_box = bbox[b]
-                input_box[0] = input_box[0].clamp(0, W-1)
-                input_box[1] = input_box[1].clamp(0, H-1)
-                input_box[2] = input_box[2].clamp(0, W-1)
-                input_box[3] = input_box[3].clamp(0, H-1)
+                input_box[0] = input_box[0].clamp(0, W - 1)
+                input_box[1] = input_box[1].clamp(0, H - 1)
+                input_box[2] = input_box[2].clamp(0, W - 1)
+                input_box[3] = input_box[3].clamp(0, H - 1)
                 input_box = input_box.detach().cpu().numpy()
 
-                _points_xy = torch.Tensor([[input_box[0], input_box[1]], [input_box[0], input_box[3]],
-                                           [input_box[2], input_box[1]], [input_box[2], input_box[3]]])
+                _points_xy = torch.Tensor(
+                    [
+                        [input_box[0], input_box[1]],
+                        [input_box[0], input_box[3]],
+                        [input_box[2], input_box[1]],
+                        [input_box[2], input_box[3]],
+                    ]
+                )
 
                 input_point = _points_xy.detach().cpu().numpy()
-                input_label = np.array(len(_points_xy) * [0, ])  # 1: foreground, 0: background
+                input_label = np.array(
+                    len(_points_xy) * [0]
+                )  # 1: foreground, 0: background
 
             if points_xy is not None:
                 if points_xy.dim() == 2:
                     cx = points_xy[b : b + 1].detach().cpu().numpy()[0, 0]
                     cy = points_xy[b : b + 1].detach().cpu().numpy()[0, 1]
                     input_point = np.array([[cx, cy]])  # np.array [[cx, cy]]
-                    input_label = np.array([1]) # 1: foreground, 0: background
+                    input_label = np.array([1])  # 1: foreground, 0: background
                     if oppress_single_point:
                         input_point = None
                     if bbox_from_single_point:
                         input_box_width_half = x.shape[3] / 2.5  # total 2/3 image width
-                        input_box_height_half = x.shape[2] / 2.5  # total 2/3 image height
-                        input_box_size_half = min(input_box_width_half, input_box_height_half)
+                        input_box_height_half = (
+                            x.shape[2] / 2.5
+                        )  # total 2/3 image height
+                        input_box_size_half = min(
+                            input_box_width_half, input_box_height_half
+                        )
                         input_box_width_half = input_box_size_half
                         input_box_height_half = input_box_size_half
                         x1 = max(cx - input_box_width_half, 0)
                         x2 = min(cx + input_box_width_half, x.shape[3] - 1)
                         y1 = max(cy - input_box_height_half, 0)
                         y2 = min(cy + input_box_height_half, x.shape[2] - 1)
-                        input_box = np.array([x1, y1, x2, y2])  # np.array [x1, y1, x2, y2]
+                        input_box = np.array(
+                            [x1, y1, x2, y2]
+                        )  # np.array [x1, y1, x2, y2]
 
-                else: # points_xy.dim() == 3
+                else:  # points_xy.dim() == 3
                     input_point = points_xy[b].detach().cpu().numpy()
-                    input_label = np.array(len(points_xy[b]) * [1,]) # 1: foreground, 0: background
+                    input_label = np.array(
+                        len(points_xy[b]) * [1]
+                    )  # 1: foreground, 0: background
 
                     if bbox_from_points:
-                        x1 = points_xy[b: b + 1].detach().cpu().numpy()[:, 0].min()
-                        y1 = points_xy[b: b + 1].detach().cpu().numpy()[:, 1].min()
-                        x2 = points_xy[b: b + 1].detach().cpu().numpy()[:, 0].max()
-                        y2 = points_xy[b: b + 1].detach().cpu().numpy()[:, 1].max()
-                        input_box = np.array([x1, y1, x2, y2])  # np.array [x1, y1, x2, y2]
+                        x1 = points_xy[b : b + 1].detach().cpu().numpy()[:, 0].min()
+                        y1 = points_xy[b : b + 1].detach().cpu().numpy()[:, 1].min()
+                        x2 = points_xy[b : b + 1].detach().cpu().numpy()[:, 0].max()
+                        y2 = points_xy[b : b + 1].detach().cpu().numpy()[:, 1].max()
+                        input_box = np.array(
+                            [x1, y1, x2, y2]
+                        )  # np.array [x1, y1, x2, y2]
 
             masks_b, scores_b, logits_b = self.predictor.predict(
                 point_coords=input_point,

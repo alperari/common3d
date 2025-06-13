@@ -26,7 +26,6 @@ from od3d.datasets.frame_meta import (
     OD3D_FrameMetaMaskMixin,
     OD3D_FrameMetaCamTform4x4ObjsMixin,
     OD3D_FrameMetaCamIntr4x4sMixin,
-
 )
 
 
@@ -60,10 +59,10 @@ class SPair71KFrameMeta(
         objects = list(
             filter(
                 lambda obj: hasattr(obj, "dtype")
-                            and obj.dtype.names is not None
-                            and "viewpoint" in obj.dtype.names
-                            and hasattr(obj["viewpoint"], "dtype")
-                            and obj["viewpoint"].dtype.names is not None,
+                and obj.dtype.names is not None
+                and "viewpoint" in obj.dtype.names
+                and hasattr(obj["viewpoint"], "dtype")
+                and obj["viewpoint"].dtype.names is not None,
                 objects,
             ),
         )
@@ -115,11 +114,10 @@ class SPair71KFrameMeta(
 
     @staticmethod
     def load_bbox_kpts2d_cam_from_object_annotation_raw(
-            pair_annotation,
-            source_annotation,
-            target_annotation,
-            category=None,
-
+        pair_annotation,
+        source_annotation,
+        target_annotation,
+        category=None,
     ):
         if category is None:
             category = pair_annotation["category"]
@@ -135,7 +133,10 @@ class SPair71KFrameMeta(
             target_cam_tform4x4_obj, target_cam_intr4x4 = target_cam
         else:
             return None
-        cam_tform4x4_objs = [source_cam_tform4x4_obj.tolist(), target_cam_tform4x4_obj.tolist()]
+        cam_tform4x4_objs = [
+            source_cam_tform4x4_obj.tolist(),
+            target_cam_tform4x4_obj.tolist(),
+        ]
         cam_intr4x4s = [source_cam_intr4x4.tolist(), target_cam_intr4x4.tolist()]
 
         bboxs = [pair_annotation["src_bndbox"], pair_annotation["trg_bndbox"]]
@@ -156,25 +157,25 @@ class SPair71KFrameMeta(
 
     @staticmethod
     def load_from_raw_annotation(
-            pair_annotation,
-            subset: str,
-            category: str,
-            path_raw: Path,
-            rfpath_rgbs: Path,
-            source_annotation,
-            target_annotation,
-
+        pair_annotation,
+        subset: str,
+        category: str,
+        path_raw: Path,
+        rfpath_rgbs: Path,
+        source_annotation,
+        target_annotation,
     ):
         name = pair_annotation["filename"].split(":", 1)[0]
 
-        sizes = torch.Tensor([pair_annotation["src_imsize"][:2], pair_annotation["trg_imsize"][:2]])
+        sizes = torch.Tensor(
+            [pair_annotation["src_imsize"][:2], pair_annotation["trg_imsize"][:2]]
+        )
         sizes = torch.flip(sizes, [1])
 
         frame_meta = SPair71KFrameMeta.load_bbox_kpts2d_cam_from_object_annotation_raw(
             pair_annotation=pair_annotation,
             source_annotation=source_annotation,
             target_annotation=target_annotation,
-
         )
         if frame_meta is not None:
             (
@@ -199,30 +200,35 @@ class SPair71KFrameMeta(
             category=category,
             l_cam_tform4x4_objs=cam_tform4x4_objs,
             l_cam_intr4x4s=cam_intr4x4s,
-
         )
 
     @staticmethod
     def load_from_raw(
-            path_raw_pascal3d: Path,
-            pair_name: str,
-            subset: str,
-            category: str,
-            path_raw: Path,
+        path_raw_pascal3d: Path,
+        pair_name: str,
+        subset: str,
+        category: str,
+        path_raw: Path,
     ):
         pair_rfpath = f"{subset}/{pair_name}:{category}"
         # assert category == pair_name.split(":")[-1] , f"category mismatch {category} , {pair_name}"
         rfpath_annotation = Path("PairAnnotation").joinpath(f"{pair_rfpath}.json")
         src_name = pair_name.split("-", 3)[1]
         trg_name = pair_name.split("-", 3)[2]
-        rfpath_src_annotation = path_raw_pascal3d.joinpath(f"Annotations/{category}_pascal/{src_name}.mat")
-        rfpath_trg_annotation = path_raw_pascal3d.joinpath(f"Annotations/{category}_pascal/{trg_name}.mat")
+        rfpath_src_annotation = path_raw_pascal3d.joinpath(
+            f"Annotations/{category}_pascal/{src_name}.mat"
+        )
+        rfpath_trg_annotation = path_raw_pascal3d.joinpath(
+            f"Annotations/{category}_pascal/{trg_name}.mat"
+        )
         source_annotation = scipy.io.loadmat(rfpath_src_annotation)
         target_annotation = scipy.io.loadmat(rfpath_trg_annotation)
 
         pair_annotation = read_json(path_raw.joinpath(rfpath_annotation))
-        rfpath_rgbs = [Path("JPEGImages").joinpath(f"{category}/{pair_annotation['src_imname']}"),
-                       Path("JPEGImages").joinpath(f"{category}/{pair_annotation['trg_imname']}")]
+        rfpath_rgbs = [
+            Path("JPEGImages").joinpath(f"{category}/{pair_annotation['src_imname']}"),
+            Path("JPEGImages").joinpath(f"{category}/{pair_annotation['trg_imname']}"),
+        ]
 
         return SPair71KFrameMeta.load_from_raw_annotation(
             pair_annotation=pair_annotation,
@@ -232,14 +238,13 @@ class SPair71KFrameMeta(
             path_raw=path_raw,
             source_annotation=source_annotation,
             target_annotation=target_annotation,
-
         )
 
 
 from od3d.datasets.frame import (
     OD3D_FrameRGBSMixin,
-    #OD3D_FrameDepthMixin,
-    #OD3D_FrameDepthMaskMixin,
+    # OD3D_FrameDepthMixin,
+    # OD3D_FrameDepthMaskMixin,
     OD3D_FrameCategoryMixin,
     OD3D_FrameSizesMixin,
     OD3D_Frame,
@@ -247,7 +252,7 @@ from od3d.datasets.frame import (
     OD3D_FrameKpts2dIDMixin,
     OD3D_FrameRGBMaskMixin,
     OD3D_CamProj4x4ObjsMixin,
-    OD3D_FrameTformObjsMixin
+    OD3D_FrameTformObjsMixin,
 )
 
 from od3d.datasets.object import OD3D_MESH_TYPES
@@ -303,8 +308,8 @@ class SPair71KFrame(
         cam_tform4x4_objs[:, :3] = cam_tform4x4_objs[:, :3] / scale
 
         if (
-                cam_tform4x4_obj_type is None
-                or cam_tform4x4_obj_type == self.cam_tform4x4_obj_type
+            cam_tform4x4_obj_type is None
+            or cam_tform4x4_obj_type == self.cam_tform4x4_obj_type
         ) and (tform_obj_type == self.tform_obj_type or tform_obj_type is None):
             self.cam_tform4x4_obj = cam_tform4x4_objs
         return cam_tform4x4_objs
@@ -322,9 +327,3 @@ class SPair71KFrame(
         # cam_tform4x4_obj[2, :] = -cam_tform4x4_obj[2, :]
         # cam_tform4x4_obj[2, 2:3] = -cam_tform4x4_obj[2, 2:3]
         return cam_tform4x4_obj
-
-
-
-
-
-

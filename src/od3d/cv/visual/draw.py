@@ -6,12 +6,12 @@ from od3d.cv.visual.blend import rgb_to_range01
 # Initialize variables to store the coordinates
 clicked_position = None
 
-def pick_pixel(img): #
+
+def pick_pixel(img):  #
     # img: 3xHxW
     img_cv = tensor_to_cv_img(img)
 
     import cv2
-
 
     def get_pixel_location(event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:  # Left mouse button click
@@ -29,7 +29,7 @@ def pick_pixel(img): #
     # Display the image and wait for a key press to exit
     while True:
         cv2.imshow("Image", img_cv)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
     global clicked_position
@@ -40,6 +40,7 @@ def pick_pixel(img): #
 
     cv2.destroyAllWindows()
     return clicked_position
+
 
 def random_colors_as_img(K: int, res=100, device="cpu"):
     colors = get_colors(K * 3, device=device)
@@ -155,11 +156,13 @@ def add_boolean_table(img: torch.Tensor, table: torch.Tensor, text: List = None)
 
     return img
 
+
 def draw_bboxs(img, bboxs, color=(255, 255, 255), line_width=2):
     # img: 3xHxW, bboxs: Nx[x0, y0, x1, y1]
     for bbox in bboxs:
         img = draw_bbox(img=img, bbox=bbox, color=color, line_width=line_width)
     return img
+
 
 def draw_bbox(img, bbox, color=(255, 255, 255), line_width=2):
     # img: 3xHxW, bbox: [x0, y0, x1, y1]
@@ -176,6 +179,7 @@ def draw_bbox(img, bbox, color=(255, 255, 255), line_width=2):
     img = img.to(device=device, dtype=torch.uint8)
     return img
 
+
 def get_bboxs_from_masks(masks):
     # masks: ...xHxW
     # bboxs: ...x4
@@ -183,10 +187,11 @@ def get_bboxs_from_masks(masks):
     masks_batches = masks.shape[:-2]
     masks = masks.reshape(-1, H, W)
     from torchvision.ops import masks_to_boxes
+
     try:
         boxes = masks_to_boxes(masks > 0.5).long()
     except Exception:
-        boxes = torch.ones((masks.shape[0], 4, )).long()
+        boxes = torch.ones((masks.shape[0], 4)).long()
         boxes[:, 0] = 0
         boxes[:, 1] = 0
         boxes[:, 2] = W - 1
@@ -194,7 +199,8 @@ def get_bboxs_from_masks(masks):
     boxes = boxes.reshape(*masks_batches, 4)
     return boxes
 
-def draw_lines(img, lines, colors=None, thickness = 2):
+
+def draw_lines(img, lines, colors=None, thickness=2):
     # lines: K x 2 x 2
     K = lines.shape[0]
 
@@ -211,21 +217,25 @@ def draw_lines(img, lines, colors=None, thickness = 2):
     colors = (colors.detach().cpu().numpy() * 255).astype(np.uint8)
 
     for k in range(K):
-        cv2.line(img,
-                 pt1=(int(lines[k, 0, 0].item()), int(lines[k, 0, 1].item())),
-                 pt2=(int(lines[k, 1, 0].item()), int(lines[k, 1, 1].item())),
-                 color=(
-                     colors[k, 0].item(), colors[k, 1].item(), colors[k, 2].item(),
-                 ),
-                 thickness=thickness
-                 )
+        cv2.line(
+            img,
+            pt1=(int(lines[k, 0, 0].item()), int(lines[k, 0, 1].item())),
+            pt2=(int(lines[k, 1, 0].item()), int(lines[k, 1, 1].item())),
+            color=(
+                colors[k, 0].item(),
+                colors[k, 1].item(),
+                colors[k, 2].item(),
+            ),
+            thickness=thickness,
+        )
 
     # img = img / 255.0
     img = torch.from_numpy(img).permute(2, 0, 1)
     img = img.to(device=device, dtype=torch.uint8)
     return img
 
-    #cv2.line(image, start_point, end_point, color, thickness)
+    # cv2.line(image, start_point, end_point, color, thickness)
+
 
 def draw_pixels(img, pxls, colors=None, radius_in=3, radius_out=5):
     # pxls: K x 2
@@ -284,6 +294,7 @@ def floats2colors(colors_floats, color_map=cv2.COLORMAP_VIRIDIS):
     ).flip(dims=(-1,))
     return torch_colors[0]
 
+
 def get_colors(
     K,
     device=None,
@@ -291,7 +302,7 @@ def get_colors(
     last_white_grey=False,
     first_white=False,
     K_rel=None,
-    color_map=cv2.COLORMAP_HSV, # jet, winter, cool ,magma, viridis, twilight, twilight shifted, cividis
+    color_map=cv2.COLORMAP_HSV,  # jet, winter, cool ,magma, viridis, twilight, twilight shifted, cividis
     randperm=False,
 ):
     if last_white_grey:
@@ -304,9 +315,9 @@ def get_colors(
 
     if K > 0:
         if K_rel is None:
-            colors_floats = (torch.arange(K).repeat(1, 1, 1).type(torch.float32) + 1.0) / (
-                K + 1
-            )
+            colors_floats = (
+                torch.arange(K).repeat(1, 1, 1).type(torch.float32) + 1.0
+            ) / (K + 1)
         else:
             alpha_rel = 0.8
             colors_rel_floats = (
@@ -386,7 +397,11 @@ def draw_text_in_rgb(
     for i, line in enumerate(text.split("\n")):
         gap = cv2.getTextSize(line, font, fontScale, lineThickness)[0][1] + 5
         topLeftCornerOfLine = (leftTopCornerOfText[0], leftTopCornerOfText[1] + gap * i)
-        if isinstance(fontColor[0], list) or isinstance(fontColor[0], tuple) or isinstance(fontColor[0], torch.Tensor):
+        if (
+            isinstance(fontColor[0], list)
+            or isinstance(fontColor[0], tuple)
+            or isinstance(fontColor[0], torch.Tensor)
+        ):
             fontColorLine = fontColor[i]
             if isinstance(fontColorLine, torch.Tensor):
                 fontColorLine = fontColorLine.tolist()

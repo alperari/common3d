@@ -21,15 +21,17 @@ from od3d.datasets.object import (
 )
 
 from od3d.datasets.wild6d.enum import MAP_CATEGORIES_WILD6D_TO_OD3D
-#from pathlib import Path
-#from co3d.dataset.data_types import (
+
+# from pathlib import Path
+# from co3d.dataset.data_types import (
 #    SequenceAnnotation,
-#)
+# )
 
 
 @dataclass
 class WILD6D_SequenceMeta(OD3D_SequenceMetaCategoryMixin, OD3D_SequenceMeta):
     pass
+
 
 @dataclass
 class WILD6D_Sequence(

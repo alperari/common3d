@@ -14,6 +14,7 @@ import subprocess
 import datetime
 import time
 
+
 @app.command()
 def slurm():
     logging.basicConfig(level=logging.INFO)
@@ -100,12 +101,14 @@ def run(
     else:
         raise NotImplementedError
 
+
 @app.command()
 def setup(
     platform: str = typer.Option(None, "-p", "--platform"),
 ):
     cmd = "od3d debug hello-world"
     run(platform, cmd)
+
 
 def get_slurm_jobs_ids(job_id_treshold=None):
     slurm_result = subprocess.run(
@@ -175,9 +178,11 @@ def stop(
     if platform == "torque":
         logging.basicConfig(level=logging.INFO)
 
-        if '-' in job:
-            job_lower, job_upper = job.split('-')
-            job = ",".join([str(i) for i in list(range(int(job_lower), int(job_upper)+1))])
+        if "-" in job:
+            job_lower, job_upper = job.split("-")
+            job = ",".join(
+                [str(i) for i in list(range(int(job_lower), int(job_upper) + 1))]
+            )
 
         jobs = job.split(",")
         for job in jobs:
@@ -193,9 +198,11 @@ def stop(
     elif platform == "slurm":
         logging.basicConfig(level=logging.INFO)
 
-        if '-' in job:
-            job_lower, job_upper = job.split('-')
-            job = ",".join([str(i) for i in list(range(int(job_lower), int(job_upper)+1))])
+        if "-" in job:
+            job_lower, job_upper = job.split("-")
+            job = ",".join(
+                [str(i) for i in list(range(int(job_lower), int(job_upper) + 1))]
+            )
 
         jobs = job.split(",")
         if len(jobs) > 1:
@@ -271,9 +278,9 @@ def stop_not_running(platform: str = typer.Option(None, "-p", "--platform")):
     if platform == "slurm":
         stop_slurm_jobs(jobs_ids_not_running)
 
+
 @app.command()
 def queue(platform: str = typer.Option(None, "-p", "--platform")):
-
     config = od3d.io.load_hierarchical_config(platform=platform)
     platform_base = platform.split("_")[0]
 
@@ -292,7 +299,7 @@ def queue(platform: str = typer.Option(None, "-p", "--platform")):
         import numpy as np
 
         slurm_jobs_ids = np.array(
-            [int(slurm_job.split()[0].split('_')[0]) for slurm_job in slurm_jobs],
+            [int(slurm_job.split()[0].split("_")[0]) for slurm_job in slurm_jobs],
         )
         slurm_jobs_ids = slurm_jobs_ids.argsort()
         slurm_jobs = [slurm_jobs[id] for id in slurm_jobs_ids]
@@ -330,7 +337,7 @@ def status(platform: str = typer.Option(None, "-p", "--platform")):
         import numpy as np
 
         slurm_jobs_ids = np.array(
-            [int(slurm_job.split()[0].split('_')[0]) for slurm_job in slurm_jobs],
+            [int(slurm_job.split()[0].split("_")[0]) for slurm_job in slurm_jobs],
         )
         slurm_jobs_ids = slurm_jobs_ids.argsort()
         slurm_jobs = [slurm_jobs[id] for id in slurm_jobs_ids]
@@ -359,9 +366,10 @@ def torque():
     logger.info(f"ssh torque")
     logger.info(f"cd {config.platform.path_od3d} && source venv310/bin/activate")
 
+
 """
 format = '"%.200j %.8T"'
-try: 
+try:
     slurm_result = subprocess.run(
         f"ssh slurm 'squeue --me --format={format}'",
         capture_output=True,
@@ -374,12 +382,13 @@ slurm_jobs = slurm_result.stdout.decode("utf-8").split("\n")
 print(slurm_jobs)
 """
 
+
 def get_jobs_ids(platform=None):
     config = od3d.io.load_hierarchical_config(platform=platform)
     logging.basicConfig(level=logging.INFO)
     if platform == "slurm":
         # 60j = 60 characters
-        #states = 'PD' # R PD CF
+        # states = 'PD' # R PD CF
         # format = '"%.200j %.8T"'
         format = '"%.18i"'
         slurm_result = None
@@ -406,13 +415,14 @@ def get_jobs_ids(platform=None):
         slurm_jobs_ids = []
     return slurm_jobs_ids
 
+
 def get_jobs_names(platform=None, state=None):
     config = od3d.io.load_hierarchical_config(platform=platform)
     logging.basicConfig(level=logging.INFO)
     if platform == "slurm":
         # 60j = 60 characters
-        #format = '"%.18i %.19P %.60j %.8u %.8T %.10M %.9l %.6D %R"'
-        #states = 'PD' # R PD CF
+        # format = '"%.18i %.19P %.60j %.8u %.8T %.10M %.9l %.6D %R"'
+        # states = 'PD' # R PD CF
         format = '"%.200j %.8T"'
         slurm_result = None
         while slurm_result is None:
@@ -427,7 +437,9 @@ def get_jobs_names(platform=None, state=None):
                 logger.warning(f"could not get jobs due to timeout: {platform}")
                 logger.info(f"time: {datetime.datetime.now()}")
 
-                res = subprocess.run(f"loginctl list-sessions", capture_output=True, shell=True,)
+                res = subprocess.run(
+                    f"loginctl list-sessions", capture_output=True, shell=True
+                )
                 logger.info(res)
 
                 logger.warning("sleep 10 seconds")
@@ -437,11 +449,15 @@ def get_jobs_names(platform=None, state=None):
         slurm_jobs = slurm_result.stdout.decode("utf-8").split("\n")
         slurm_jobs_columns = slurm_jobs[0]
         slurm_jobs = slurm_jobs[1:-1]
-        slurm_jobs_names = [] #  [slurm_job.strip().split(' ')[0] for slurm_job in slurm_jobs]
-        slurm_jobs_states = [] # [slurm_job.strip().split(' ')[1] for slurm_job in slurm_jobs]
+        slurm_jobs_names = (
+            []
+        )  #  [slurm_job.strip().split(' ')[0] for slurm_job in slurm_jobs]
+        slurm_jobs_states = (
+            []
+        )  # [slurm_job.strip().split(' ')[1] for slurm_job in slurm_jobs]
         for i, slurm_job in enumerate(slurm_jobs):
             # logger.info(f"{i}: {slurm_job.strip()}")
-            slurm_job_split = slurm_job.strip().split('  ')
+            slurm_job_split = slurm_job.strip().split("  ")
             if len(slurm_job_split) == 2:
                 job_name = slurm_job_split[0]
                 job_state = slurm_job_split[1]
@@ -456,12 +472,16 @@ def get_jobs_names(platform=None, state=None):
 
     return slurm_jobs_names
 
+
 @app.command()
-def jobs(platform: str = typer.Option(None, "-p", "--platform"),
-         state: str = typer.Option(None, "-s", "--state"),):
+def jobs(
+    platform: str = typer.Option(None, "-p", "--platform"),
+    state: str = typer.Option(None, "-s", "--state"),
+):
     jobs_names = get_jobs_names(platform=platform, state=state)
     for i, job_name in enumerate(jobs_names):
         logger.info(f"{i}: {job_name}")
+
 
 @app.command()
 def jobs_ids(platform: str = typer.Option(None, "-p", "--platform")):

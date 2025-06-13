@@ -1,14 +1,11 @@
-import torch
-import torch.nn as nn
-
-import torch
-import torch.nn as nn
-import numpy as np
-
-import torch
-import numpy as np
-from kornia.geometry.transform import warp_affine, get_affine_matrix2d # (src, M
 from logging import getLogger
+
+import numpy as np
+import torch
+import torch.nn as nn
+from kornia.geometry.transform import get_affine_matrix2d
+from kornia.geometry.transform import warp_affine
+
 logger = getLogger(__name__)
 
 
@@ -27,10 +24,14 @@ def get_affine_from_imgs(img_a, img_b):
     img_b_fft = torch.fft.fftshift(img_b_fft, dim=(-2, -1))
     img_b_fft *= h[None,]
 
-    img_a_fft_polar, img_a_fft_polar_logbase = polar_transformer(img_a_fft[..., None], out_size=(H, W), device=device)
+    img_a_fft_polar, img_a_fft_polar_logbase = polar_transformer(
+        img_a_fft[..., None], out_size=(H, W), device=device
+    )
     img_a_fft_polar = img_a_fft_polar.permute(3, 0, 1, 2)[0]
 
-    img_b_fft_polar, img_b_fft_polar_logbase = polar_transformer(img_b_fft[..., None], out_size=(H, W), device=device)
+    img_b_fft_polar, img_b_fft_polar_logbase = polar_transformer(
+        img_b_fft[..., None], out_size=(H, W), device=device
+    )
     img_b_fft_polar = img_b_fft_polar.permute(3, 0, 1, 2)[0]
 
     index_corr_max_x, index_corr_max_y = get_corr_amax(img_a_fft_polar, img_b_fft_polar)
@@ -38,34 +39,43 @@ def get_affine_from_imgs(img_a, img_b):
     angle_ori = -index_corr_max_y / (H) * 180
     angle = angle_ori.clone()
     # angle[angle_ori < 0] += 360
-    #angle[angle_ori >= 90] -= 90.
-    #angle[angle_ori < 90] += 90.
+    # angle[angle_ori >= 90] -= 90.
+    # angle[angle_ori < 90] += 90.
 
     scale = torch.pow(img_b_fft_polar_logbase, -index_corr_max_x.float())
-
 
     scale = torch.Tensor([scale, scale]).to(device)[None,].repeat(2, 1)
     angle = torch.Tensor([angle, angle + 180]).to(device)
     transl = torch.Tensor([0, 0]).to(device)[None,].repeat(2, 1)
     center = torch.Tensor([W / 2, H / 2]).to(device)[None,].repeat(2, 1)
-    #center = torch.Tensor([0, 0]).to(device)[None,]
-    M = get_affine_matrix2d(translations=transl, angle=angle, scale=scale, center=center)
-    imgs_a_rot_scaled = warp_affine(img_a[None,].repeat(2, 1, 1, 1), M=M[:, :2, :3], dsize=(H, W))
+    # center = torch.Tensor([0, 0]).to(device)[None,]
+    M = get_affine_matrix2d(
+        translations=transl, angle=angle, scale=scale, center=center
+    )
+    imgs_a_rot_scaled = warp_affine(
+        img_a[None,].repeat(2, 1, 1, 1), M=M[:, :2, :3], dsize=(H, W)
+    )
 
-    transl1_x, transl1_y, corr1 = get_corr_amax(imgs_a_rot_scaled[0], img_b, return_corr=True)
-    transl2_x, transl2_y, corr2 = get_corr_amax(imgs_a_rot_scaled[1], img_b, return_corr=True)
+    transl1_x, transl1_y, corr1 = get_corr_amax(
+        imgs_a_rot_scaled[0], img_b, return_corr=True
+    )
+    transl2_x, transl2_y, corr2 = get_corr_amax(
+        imgs_a_rot_scaled[1], img_b, return_corr=True
+    )
     if corr1 > corr2:
         transl_x, transl_y = transl1_x, transl1_y
     else:
         transl_x, transl_y = transl2_x, transl2_y
-        angle = angle + 180.
+        angle = angle + 180.0
 
-    logger.info(f'angle {angle}, scale {scale}')
-    logger.info(f'transl_x {transl_x}, transl_y {transl_y}')
+    logger.info(f"angle {angle}, scale {scale}")
+    logger.info(f"transl_x {transl_x}, transl_y {transl_y}")
 
     transl = torch.Tensor([transl_x, transl_y]).to(device)[None,]
 
-    M = get_affine_matrix2d(translations=transl, angle=angle, scale=scale, center=center)
+    M = get_affine_matrix2d(
+        translations=transl, angle=angle, scale=scale, center=center
+    )
     return M[0]
 
 
@@ -88,7 +98,9 @@ def get_corr_amax(img_a, img_b, return_corr=False):
     R[:, :, :, 0] = real_a * real_b + imag_a * imag_b
     R[:, :, :, 1] = real_a * imag_b - real_b * imag_a
 
-    r0 = torch.sqrt(real_a ** 2 + imag_a ** 2 + eps) * torch.sqrt(real_b ** 2 + imag_b ** 2 + eps)
+    r0 = torch.sqrt(real_a**2 + imag_a**2 + eps) * torch.sqrt(
+        real_b**2 + imag_b**2 + eps
+    )
     R[:, :, :, 0] = R[:, :, :, 0].clone() / (r0 + eps).to(device)
     R[:, :, :, 1] = R[:, :, :, 1].clone() / (r0 + eps).to(device)
 
@@ -96,7 +108,7 @@ def get_corr_amax(img_a, img_b, return_corr=False):
     r_real = r[:, :, :, 0]
     r_imag = r[:, :, :, 1]
 
-    r = torch.sqrt(r_real ** 2 + r_imag ** 2 + eps)
+    r = torch.sqrt(r_real**2 + r_imag**2 + eps)
 
     r = torch.fft.ifftshift(r, dim=(-2, -1))
     r_sum = r.sum(dim=-3)
@@ -108,22 +120,24 @@ def get_corr_amax(img_a, img_b, return_corr=False):
     else:
         return index_corr_max_x, index_corr_max_y
 
+
 def logpolar_filter(shape):
     """
     Make a radial cosine filter for the logpolar transform.
     This filter suppresses low frequencies and completely removes
     the zero freq.
     """
-    yy = np.linspace(- np.pi / 2., np.pi / 2., shape[0])[:, np.newaxis]
-    xx = np.linspace(- np.pi / 2., np.pi / 2., shape[1])[np.newaxis, :]
+    yy = np.linspace(-np.pi / 2.0, np.pi / 2.0, shape[0])[:, np.newaxis]
+    xx = np.linspace(-np.pi / 2.0, np.pi / 2.0, shape[1])[np.newaxis, :]
     # Supressing low spatial frequencies is a must when using log-polar
     # transform. The scale stuff is poorly reflected with low freqs.
-    rads = np.sqrt(yy ** 2 + xx ** 2)
+    rads = np.sqrt(yy**2 + xx**2)
     filt = 1.0 - np.cos(rads) ** 2
     # vvv This doesn't really matter, very high freqs are not too usable anyway
     filt[np.abs(rads) > np.pi / 2] = 1
     filt = torch.from_numpy(filt)
     return filt
+
 
 def polar_transformer(U, out_size, device, log=True, radius_factor=0.707):
     """Polar Transformer Layer
@@ -178,8 +192,10 @@ def polar_transformer(U, out_size, device, log=True, radius_factor=0.707):
         dim1 = width * height
 
         # base = _repeat(torch.arange(0, num_batch, dtype=int)*dim1, out_height*out_width)
-        base = torch.tile(torch.arange(0, num_batch, dtype=int, device=device).unsqueeze(1) * dim1,
-                          (1, out_height * out_width)).reshape(-1)
+        base = torch.tile(
+            torch.arange(0, num_batch, dtype=int, device=device).unsqueeze(1) * dim1,
+            (1, out_height * out_width),
+        ).reshape(-1)
         base = base.long()
         # base = base.to(device)
         base_y0 = base + y0 * dim2
@@ -200,7 +216,7 @@ def polar_transformer(U, out_size, device, log=True, radius_factor=0.707):
         Ic = im_flat.gather(0, idx_c.unsqueeze(1).type(torch.int64))
         Id = im_flat.gather(0, idx_d.unsqueeze(1).type(torch.int64))
 
-        #print(im_flat.shape, Id.shape, idx_d.shape)
+        # print(im_flat.shape, Id.shape, idx_d.shape)
 
         # Ia = im_flat[idx_a].to(device)
         # Ib = im_flat[idx_b].to(device)
@@ -226,8 +242,16 @@ def polar_transformer(U, out_size, device, log=True, radius_factor=0.707):
         return output
 
     def _meshgrid(height, width):
-        x_t = torch.linspace(0.0, 1.0 * width - 1, width, device=device).unsqueeze(0).repeat(height, 1)
-        y_t = torch.linspace(0.0, 1.0, height, device=device).unsqueeze(1).repeat(1, width)
+        x_t = (
+            torch.linspace(0.0, 1.0 * width - 1, width, device=device)
+            .unsqueeze(0)
+            .repeat(height, 1)
+        )
+        y_t = (
+            torch.linspace(0.0, 1.0, height, device=device)
+            .unsqueeze(1)
+            .repeat(1, width)
+        )
         # x_t = torch.ones([height, 1]) * torch.linspace(0.0, 1.0 * width-1, width).unsqueeze(1).permute(1, 0)
         # y_t = torch.linspace(0.0, 1.0, height).unsqueeze(1) * torch.ones([1, width])
 
@@ -260,7 +284,9 @@ def polar_transformer(U, out_size, device, log=True, radius_factor=0.707):
         # then remap to 0 to 1
         EXCESS_CONST = 1.1
 
-        logbase = torch.exp(torch.log(W * EXCESS_CONST / 2) / W)  # 10. ** (torch.log10(maxR) / W)
+        logbase = torch.exp(
+            torch.log(W * EXCESS_CONST / 2) / W
+        )  # 10. ** (torch.log10(maxR) / W)
         # torch.exp(torch.log(W*EXCESS_CONST/2) / W) #
         # get radius in pix
         if log:
@@ -271,7 +297,7 @@ def polar_transformer(U, out_size, device, log=True, radius_factor=0.707):
             r_s = 1 + (grid[:, 0, :] + 1) / 2 * (maxR - 1)
 
         # y is from -1 to 1; theta is from 0 to 2pi
-        theta = np.linspace(0., np.pi, input_dim.shape[1], endpoint=False) * -1.0
+        theta = np.linspace(0.0, np.pi, input_dim.shape[1], endpoint=False) * -1.0
         # t_s = torch.from_numpy(theta).unsqueeze(1) * torch.ones([1, out_width])
         t_s = torch.from_numpy(theta).to(device).unsqueeze(1).repeat(1, out_width)
         t_s = torch.reshape(t_s, (1, -1))
@@ -284,7 +310,9 @@ def polar_transformer(U, out_size, device, log=True, radius_factor=0.707):
         y_s_flat = torch.reshape(y_s, [-1])
 
         input_transformed = _interpolate(input_dim, x_s_flat, y_s_flat, out_size)
-        output = torch.reshape(input_transformed, [num_batch, out_height, out_width, num_channels])  # .to(device)
+        output = torch.reshape(
+            input_transformed, [num_batch, out_height, out_width, num_channels]
+        )  # .to(device)
         return output, logbase
 
     output, logbase = _transform(U, out_size)

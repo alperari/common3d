@@ -1,5 +1,6 @@
 from omegaconf import DictConfig
 
+
 def unroll_nested_dict(nested_dict, parent_key="", separator="/"):
     items = {}
     for key, value in nested_dict.items():

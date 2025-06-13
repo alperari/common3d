@@ -1,11 +1,16 @@
 import logging
+
 logger = logging.getLogger(__name__)
 
 from dataclasses import dataclass
-from od3d.datasets.sequence_meta import OD3D_SequenceMeta, OD3D_SequenceMetaCategoryMixin
+from od3d.datasets.sequence_meta import (
+    OD3D_SequenceMeta,
+    OD3D_SequenceMetaCategoryMixin,
+)
 from od3d.datasets.objectron.frame import Objectron_Frame
 from od3d.datasets.objectron.enum import MAP_CATEGORIES_OBJECTRON_TO_OD3D
 import re
+
 
 @dataclass
 class Objectron_SequenceMeta(OD3D_SequenceMetaCategoryMixin, OD3D_SequenceMeta):
@@ -33,8 +38,6 @@ class Objectron_SequenceMeta(OD3D_SequenceMetaCategoryMixin, OD3D_SequenceMeta):
     # rfpath_pcl: Path
     # viewpoint_quality_score: float
 
-
-
     # @staticmethod
     # def load_from_raw(sequence_annotation: SequenceAnnotation):
     #     name = sequence_annotation.sequence_name
@@ -60,8 +63,17 @@ class Objectron_SequenceMeta(OD3D_SequenceMetaCategoryMixin, OD3D_SequenceMeta):
     #     )
 
 
-from od3d.datasets.sequence import OD3D_Sequence, OD3D_SequenceCategoryMixin, OD3D_SequenceMeshMixin
-from od3d.datasets.object import OD3D_MaskTypeMixin, OD3D_CamTform4x4ObjTypeMixin, OD3D_FrameKpts2d3dTypeMixin
+from od3d.datasets.sequence import (
+    OD3D_Sequence,
+    OD3D_SequenceCategoryMixin,
+    OD3D_SequenceMeshMixin,
+)
+from od3d.datasets.object import (
+    OD3D_MaskTypeMixin,
+    OD3D_CamTform4x4ObjTypeMixin,
+    OD3D_FrameKpts2d3dTypeMixin,
+)
+
 
 @dataclass
 class Objectron_Sequence(

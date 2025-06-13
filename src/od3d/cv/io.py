@@ -139,6 +139,7 @@ def write_mask_image(img: torch.Tensor, path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
     img.save(path)
 
+
 def read_image_exr(fpath: Path):
     """Load the mask image.
 
@@ -149,6 +150,7 @@ def read_image_exr(fpath: Path):
     import numpy as np
     import torch
     import os
+
     os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
     img = cv2.imread(str(fpath), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
     if len(img.shape) == 3:
@@ -258,8 +260,8 @@ def write_webm_videos_side_by_side(
     padding = ColorClip(
         (padding_size, video_clips[0].h),
         color=(padding_color[0] * 255, padding_color[1] * 255, padding_color[2] * 255),
-        duration=video_clips[0].duration
-    ) # .()
+        duration=video_clips[0].duration,
+    )  # .()
 
     # Combine videos and padding side by side
     video_clips_with_pad = []  #  = [ for video in video_clips]

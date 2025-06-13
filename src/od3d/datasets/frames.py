@@ -14,7 +14,11 @@ from od3d.datasets.frame import (
 )
 from od3d.datasets.sequence import OD3D_Sequence
 from typing import List
-from od3d.cv.geometry.objects3d.meshes import Meshes, MESH_RENDER_MODALITIES, PROJECT_MODALITIES
+from od3d.cv.geometry.objects3d.meshes import (
+    Meshes,
+    MESH_RENDER_MODALITIES,
+    PROJECT_MODALITIES,
+)
 from dataclasses import dataclass
 
 
@@ -103,10 +107,12 @@ class OD3D_Frames:
             ][0]
 
         if OD3D_FRAME_MODALITIES.MESH in modality_kwargs.keys():
-            modality_kwargs[OD3D_FRAME_MODALITIES.MESH], modality_kwargs[OD3D_FRAME_MODALITIES.MESH_ID_IN_BATCH] = (
-            Meshes.cat_meshes(
+            (
                 modality_kwargs[OD3D_FRAME_MODALITIES.MESH],
-            ))
+                modality_kwargs[OD3D_FRAME_MODALITIES.MESH_ID_IN_BATCH],
+            ) = Meshes.cat_meshes(
+                modality_kwargs[OD3D_FRAME_MODALITIES.MESH],
+            )
 
         return OD3D_Frames(
             modalities=modalities,
@@ -122,7 +128,7 @@ class OD3D_Frames:
 
     def __getitem__(cls, x):
         if isinstance(x, int):
-            return cls.get_items(items =[x])
+            return cls.get_items(items=[x])
         else:
             return cls.get_items(items=x)
 
@@ -212,18 +218,25 @@ class OD3D_Frames:
 
         if OD3D_FRAME_MODALITIES.PXL_CAT_ID in self.modalities:
             if OD3D_FRAME_MODALITIES.RGB in self.modalities:
-                cat_count = int(self.pxl_cat_id.max()) +1
+                cat_count = int(self.pxl_cat_id.max()) + 1
                 pxl_cat_id_long = self.pxl_cat_id.long()
                 device = pxl_cat_id_long.device
-                pxl_cat_onehot = torch.nn.functional.one_hot(pxl_cat_id_long, num_classes=cat_count).to(device)
+                pxl_cat_onehot = torch.nn.functional.one_hot(
+                    pxl_cat_id_long, num_classes=cat_count
+                ).to(device)
                 cat_colors = get_colors(cat_count, device=device, first_white=True)
-                pxl_cat_onehot_rgb = torch.einsum('bchwo,or->brhw', pxl_cat_onehot * 1., cat_colors)
+                pxl_cat_onehot_rgb = torch.einsum(
+                    "bchwo,or->brhw", pxl_cat_onehot * 1.0, cat_colors
+                )
                 from od3d.cv.visual.draw import draw_text_in_rgb
+
                 pxl_cat_ids_unique = pxl_cat_id_long.unique()
                 fontColors = cat_colors[pxl_cat_ids_unique].clone() * 255
-                pxl_cat_onehot_rgb[0] = draw_text_in_rgb(img=pxl_cat_onehot_rgb[0],
-                                                         text="\n".join(f"cat {id}" for id in pxl_cat_ids_unique.tolist()),
-                                                         fontColor=fontColors)
+                pxl_cat_onehot_rgb[0] = draw_text_in_rgb(
+                    img=pxl_cat_onehot_rgb[0],
+                    text="\n".join(f"cat {id}" for id in pxl_cat_ids_unique.tolist()),
+                    fontColor=fontColors,
+                )
 
                 img = blend_rgb(self.rgb[0], pxl_cat_onehot_rgb[0] * 255)
 
@@ -252,7 +265,7 @@ class OD3D_Frames:
         if OD3D_FRAME_MODALITIES.BBOXS in self.modalities:
             img = draw_bboxs(img=img, bboxs=self.bboxs[0])
             if OD3D_FRAME_MODALITIES.RGBS in self.modalities:
-                img2 = draw_bboxs(img=img2, bboxs=self.bboxs[0]) #
+                img2 = draw_bboxs(img=img2, bboxs=self.bboxs[0])  #
 
         if OD3D_FRAME_MODALITIES.PCL in self.modalities:
             from od3d.datasets.co3d.enum import PCL_SOURCES
@@ -284,17 +297,19 @@ class OD3D_Frames:
             # cam_tform4x4_obj = cam_tform4x4_obj.to(device='cuda:0')
             # self.mesh.verts *= 5. # this is ionly for pascal3d required currentlay
 
-            #cam_tform4x4_obj[:, :3, :4] = cam_tform4x4_obj[:, :3, :4] / cam_tform4x4_obj[0, :3, :3].norm(dim=-1, keepdim=True)
-            #cam_tform4x4_obj[:, :3, :3] *= 5
-            #from od3d.cv.visual.show import show_scene
-            #self.mesh.transf3d(self.obj_tform4x4_objs[0])
-            #self.mesh.verts = self.mesh.verts - self.mesh.verts.mean(dim=0, keepdim=True)
-            #show_scene(cams_tform4x4_world=self.cam_tform4x4_obj, cams_intr4x4=self.cam_intr4x4, meshes=self.mesh)
+            # cam_tform4x4_obj[:, :3, :4] = cam_tform4x4_obj[:, :3, :4] / cam_tform4x4_obj[0, :3, :3].norm(dim=-1, keepdim=True)
+            # cam_tform4x4_obj[:, :3, :3] *= 5
+            # from od3d.cv.visual.show import show_scene
+            # self.mesh.transf3d(self.obj_tform4x4_objs[0])
+            # self.mesh.verts = self.mesh.verts - self.mesh.verts.mean(dim=0, keepdim=True)
+            # show_scene(cams_tform4x4_world=self.cam_tform4x4_obj, cams_intr4x4=self.cam_intr4x4, meshes=self.mesh)
 
             logger.info(self.mesh.get_ranges())
 
             if self.obj_tform4x4_objs is not None:
-                logger.info(f"mesh count {len(self.mesh_id_in_batch)}, tforms count {len(torch.cat(self.obj_tform4x4_objs, dim=0))}")
+                logger.info(
+                    f"mesh count {len(self.mesh_id_in_batch)}, tforms count {len(torch.cat(self.obj_tform4x4_objs, dim=0))}"
+                )
 
             img = blend_rgb(
                 img,
@@ -303,10 +318,14 @@ class OD3D_Frames:
                         cams_tform4x4_obj=cam_tform4x4_obj,
                         cams_intr4x4=self.cam_intr4x4[:1],
                         imgs_sizes=self.size,
-                        objects_ids=self.mesh_id_in_batch[0:1], # torch.LongTensor([0]),
-                        obj_tform4x4_objs=torch.stack(self.obj_tform4x4_objs[0:1]) if self.obj_tform4x4_objs is not None else None,
+                        objects_ids=self.mesh_id_in_batch[
+                            0:1
+                        ],  # torch.LongTensor([0]),
+                        obj_tform4x4_objs=torch.stack(self.obj_tform4x4_objs[0:1])
+                        if self.obj_tform4x4_objs is not None
+                        else None,
                         modalities=PROJECT_MODALITIES.PT3D_NCDS,
-                        broadcast_batch_and_cams=False
+                        broadcast_batch_and_cams=False,
                     )[0]
                     * 255
                 ).to(dtype=self.rgb.dtype, device=img.device),
@@ -328,6 +347,7 @@ class OD3D_Frames:
 
         if OD3D_FRAME_MODALITIES.RGBS in self.modalities:
             from od3d.cv.visual.show import imgs_to_img
+
             img = imgs_to_img(rgbs=[img, img2])
 
         show_img(img)

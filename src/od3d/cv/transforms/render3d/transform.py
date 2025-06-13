@@ -1,33 +1,34 @@
 import torch
 from od3d.cv.transforms.transform import OD3D_Transform
-#from omegaconf import DictConfig
-#import genesis as gs
+
+# from omegaconf import DictConfig
+# import genesis as gs
 # pip install genesis-world
+
 
 class Render3D(OD3D_Transform):
     def __init__(
         self,
         H,
         W,
-        #apply_txtr=False,
-        #config: DictConfig = None,
-        #scale_min=None,
-        #scale_max=None,
-        #center_rel_shift_xy_min=[0.0, 0.0],
-        #center_rel_shift_xy_max=[0.0, 0.0],
-        #scale_with_mask=None,
-        #scale_with_dist=None,
-        #scale_with_pad=True,
-        #center_use_mask=False,
-        #scale_selection="shorter",
+        # apply_txtr=False,
+        # config: DictConfig = None,
+        # scale_min=None,
+        # scale_max=None,
+        # center_rel_shift_xy_min=[0.0, 0.0],
+        # center_rel_shift_xy_max=[0.0, 0.0],
+        # scale_with_mask=None,
+        # scale_with_dist=None,
+        # scale_with_pad=True,
+        # center_use_mask=False,
+        # scale_selection="shorter",
     ):
         super().__init__()
         self.H = H
         self.W = W
 
     def __call__(self, frame):
-
-        device = 'cuda'
+        device = "cuda"
         # device = 'cpu'
 
         meshes = frame.get_mesh(device=device)
@@ -36,9 +37,12 @@ class Render3D(OD3D_Transform):
         cam_intr4x4 = frame.get_cam_intr4x4().clone().to(device)
         imgs_sizes = frame.size.clone()
         with torch.no_grad():
-            mods = meshes.render(imgs_sizes=imgs_sizes, cams_tform4x4_obj=cam_tform4x4_obj[None,],
-                                 cams_intr4x4=cam_intr4x4[None,],
-                                 modalities=["rgb", "mask"])
+            mods = meshes.render(
+                imgs_sizes=imgs_sizes,
+                cams_tform4x4_obj=cam_tform4x4_obj[None,],
+                cams_intr4x4=cam_intr4x4[None,],
+                modalities=["rgb", "mask"],
+            )
 
             rgb = frame.get_rgb()
             mask = frame.get_mask()
@@ -51,8 +55,8 @@ class Render3D(OD3D_Transform):
             # mask_np = np.uint8((mask > 0.5).numpy()[0] * 255.)
             # mask_dt = torch.FloatTensor(cv2.distanceTransform(mask_np, cv2.DIST_L2, cv2.DIST_MASK_PRECISE))[None,]
 
-            #from od3d.cv.visual.show import show_imgs
-            #show_imgs([frame.mask, (mods["mask"][0]).to(dtype=mask.dtype, device=mask.device)])
+            # from od3d.cv.visual.show import show_imgs
+            # show_imgs([frame.mask, (mods["mask"][0]).to(dtype=mask.dtype, device=mask.device)])
             del meshes
             del cam_intr4x4
             del cam_tform4x4_obj
@@ -132,4 +136,3 @@ class Render3D(OD3D_Transform):
         #     cam_0.render()
         #
         # scene.reset()
-

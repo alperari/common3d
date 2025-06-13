@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List
 from typing import Union
+
 import cv2
 import numpy as np
 import torch
@@ -24,7 +25,6 @@ def save_gif(imgs: List[torch.Tensor], fpath: Path):
         duration=100,
         loop=0,
     )
-
 
 
 def save_video(imgs: List[torch.Tensor], fpath: Union[Path, str], fps=10):

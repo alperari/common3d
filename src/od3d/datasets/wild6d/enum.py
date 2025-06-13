@@ -84,12 +84,14 @@ from od3d.datasets.enum import OD3D_CATEGORIES
 #     CO3D_FRAME_TYPES.TEST_UNSEEN,
 # ]
 
+
 class WILD6D_CATEGORIES(str, ExtEnum):
     MUG = "mug"
     LAPTOP = "laptop"
     CAMERA = "camera"
     BOTTLE = "bottle"
     BOWL = "bowl"
+
 
 MAP_CATEGORIES_OD3D_TO_WILD6D = {
     OD3D_CATEGORIES.CUP: WILD6D_CATEGORIES.MUG,

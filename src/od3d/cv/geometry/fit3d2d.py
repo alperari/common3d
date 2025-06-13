@@ -140,6 +140,7 @@ def fit_se3_to_corresp_3d_2d(
         se3_mats = torch.zeros(size=(K, 4, 4), dtype=dtype, device=device)
         # import pytorch3d as t3d
         from pytorch3d.ops.perspective_n_points import efficient_pnp
+
         se3s = efficient_pnp(pts1, pxl2, weights, skip_quadratic_eq=False)
         se3_mats[:, :3, :3] = se3s.R.permute(0, 2, 1)
         se3_mats[:, :3, 3] = se3s.T

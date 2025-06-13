@@ -14,13 +14,16 @@ class OD3D_SequenceMeta(OD3D_Meta):
     def get_rfpath_metas(cls):
         return Path("sequences")
 
+
 @dataclass
 class OD3D_SequenceMetaMeshMixin(OD3D_Meta):
     rfpath_mesh: Path
 
+
 @dataclass
 class OD3D_SequenceMetaPCLMixin(OD3D_Meta):
     rfpath_pcl: Path
+
 
 @dataclass
 class OD3D_SequenceMetaCategoryMixin(OD3D_SequenceMeta):
@@ -64,5 +67,10 @@ class OD3D_SequenceMetaCategoryMixin(OD3D_SequenceMeta):
     def load_from_raw(category: str, name: str):
         return OD3D_SequenceMetaCategoryMixin(category=category, name=name)
 
-OD3D_SequenceMetaClasses = Union[OD3D_SequenceMeta, OD3D_SequenceMetaCategoryMixin, OD3D_SequenceMetaMeshMixin,
-                                OD3D_SequenceMetaPCLMixin]
+
+OD3D_SequenceMetaClasses = Union[
+    OD3D_SequenceMeta,
+    OD3D_SequenceMetaCategoryMixin,
+    OD3D_SequenceMetaMeshMixin,
+    OD3D_SequenceMetaPCLMixin,
+]

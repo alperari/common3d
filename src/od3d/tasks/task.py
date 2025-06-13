@@ -1,4 +1,5 @@
 import logging
+
 logger = logging.getLogger(__name__)
 import abc
 from omegaconf import DictConfig
@@ -6,6 +7,7 @@ import od3d.io
 from pathlib import Path
 import inspect
 from od3d.data.ext_enum import StrEnum
+
 
 class OD3D_Metrics(StrEnum):
     REC_RGB_MSE = "rec_rgb_mse"
@@ -29,6 +31,7 @@ class OD3D_Metrics(StrEnum):
     REC_MESH_VERTS_COUNT = "rec_mesh_verts_count"
     REC_MESH_FACES_COUNT = "rec_mesh_faces_count"
 
+
 class OD3D_Visuals(StrEnum):
     PRED_VS_GT_MASK = "pred_vs_gt_mask"
     PRED_VS_GT_MASK_AMODAL = "pred_vs_gt_mask_amodal"
@@ -39,6 +42,7 @@ class OD3D_Visuals(StrEnum):
     GT_VERTS_NCDS_IN_RGB = "gt_verts_ncds_in_rgb"
     PRED_VS_GT_VERTS_NCDS_IN_RGB = "pred_vs_gt_verts_ncds_in_rgb"
     NET_FEATS_NEAREST_VERTS = "net_feats_nearest_verts"
+
 
 # tasks should specify which input modalities they require to be calculated
 # tasks should take as input which metrics with what scale to consider, then there is a final metric
@@ -52,9 +56,21 @@ class OD3D_Task(abc.ABC):
         super().__init_subclass__(**kwargs)
         cls.subclasses[cls.__name__] = cls
 
-    def __init__(self, metrics: dict[OD3D_Metrics: float], visuals: list[OD3D_Visuals], visuals_res: int = 128, **kwargs):
-        self.metrics = {metric_key: metric_val for metric_key, metric_val in metrics.items() if metric_key in self.metrics_supported}
-        self.visuals = [visual for visual in visuals if visual in self.visuals_supported]
+    def __init__(
+        self,
+        metrics: dict[OD3D_Metrics:float],
+        visuals: list[OD3D_Visuals],
+        visuals_res: int = 128,
+        **kwargs,
+    ):
+        self.metrics = {
+            metric_key: metric_val
+            for metric_key, metric_val in metrics.items()
+            if metric_key in self.metrics_supported
+        }
+        self.visuals = [
+            visual for visual in visuals if visual in self.visuals_supported
+        ]
         self.visuals_res = visuals_res
 
     @abc.abstractmethod
@@ -67,12 +83,11 @@ class OD3D_Task(abc.ABC):
 
     @abc.abstractmethod
     def visualize(
-            self,
-            frames_pred,
-            frames_gt=None,
+        self,
+        frames_pred,
+        frames_gt=None,
     ):
         raise NotImplementedError
-
 
     @classmethod
     def create_by_name(cls, name: str):
@@ -91,6 +106,7 @@ class OD3D_Task(abc.ABC):
                 if config.get(key, None) is not None
             },
         )
+
 
 class OD3D_Tasks(OD3D_Task):
     def __init__(self, tasks: list[OD3D_Task]):
@@ -116,7 +132,9 @@ class OD3D_Tasks(OD3D_Task):
     ):
         for task in self.tasks:
             if task is not None:
-                frames_pred = task.visualize(frames_pred=frames_pred, frames_gt=frames_gt)
+                frames_pred = task.visualize(
+                    frames_pred=frames_pred, frames_gt=frames_gt
+                )
             else:
                 logger.warning(f"Task is None. {self.tasks}")
         return frames_pred
@@ -126,8 +144,8 @@ class OD3D_Tasks(OD3D_Task):
         tasks: list[OD3D_Task] = []
         for config_task in config.tasks:
             tasks.append(
-                OD3D_Task.subclasses[
-                    config_task.class_name
-                ].create_from_config(config=config_task),
+                OD3D_Task.subclasses[config_task.class_name].create_from_config(
+                    config=config_task
+                ),
             )
         return OD3D_Tasks(tasks)

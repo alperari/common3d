@@ -6,6 +6,7 @@ class OBJECTRON_SUBSETS(str, ExtEnum):
     TEST = "test"
     TRAIN = "train"
 
+
 class OBJECTRON_CATEGORIES(str, ExtEnum):
     BIKE = "bike"
     BOOK = "book"
@@ -16,6 +17,7 @@ class OBJECTRON_CATEGORIES(str, ExtEnum):
     CUP = "cup"
     LAPTOP = "laptop"
     SHOE = "shoe"
+
 
 MAP_CATEGORIES_OD3D_TO_OBJECTRON = {
     OD3D_CATEGORIES.BICYCLE: OBJECTRON_CATEGORIES.BIKE,

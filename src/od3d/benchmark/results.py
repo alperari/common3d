@@ -38,7 +38,15 @@ class OD3D_Results(Dict[str, Union[torch.Tensor, List]]):
             "latent",
             "kpts2d_annots",
         ]
-        self.log_blocklist = ["name_unique", "item_id", "cam_tform4x4_obj", "cam_tform4x4_obj_gt", "noise2d", "latent", "kpts2d_annots"]
+        self.log_blocklist = [
+            "name_unique",
+            "item_id",
+            "cam_tform4x4_obj",
+            "cam_tform4x4_obj_gt",
+            "noise2d",
+            "latent",
+            "kpts2d_annots",
+        ]
         self.device = device
         self.logging_dir = logging_dir
 

@@ -45,6 +45,7 @@ class FEATS_DISTR(str, Enum):
     VON_MISES_FISHER = "von-mises-fisher"
     GAUSSIAN = "gaussian"
 
+
 class FEATS_ACTIVATION(str, Enum):
     NONE = "none"
     NORM = "norm"
@@ -52,13 +53,13 @@ class FEATS_ACTIVATION(str, Enum):
     SIGMOID = "sigmoid"
     TANH = "tanh"
 
+
 # method = OD3D_Objects3D.subclasses[self.config.method.class_name]()
 from dataclasses import dataclass
 from collections.abc import Sequence
 
 
 class OD3D_Objects3D_Deform(Sequence):
-
     def __getitem__(self, i):
         raise NotImplementedError
 
@@ -74,6 +75,7 @@ class OD3D_Objects3D_Deform(Sequence):
     @classmethod
     def get_model(cls, instance_deform_net_config: DictConfig):
         from od3d.models.model import OD3D_Model
+
         return OD3D_Model(instance_deform_net_config)
 
     @classmethod
@@ -85,6 +87,7 @@ class OD3D_Objects3D_Deform(Sequence):
             objects3d_deform (OD3D_Objects3D_Deform): B
         """
         raise NotImplementedError
+
 
 class OD3D_Objects3D(abc.ABC, nn.Module):
     instance_deform_class = OD3D_Objects3D_Deform
@@ -107,7 +110,6 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         )
         return od3d_objects3d
 
-
     def read_from_files(self):
         raise NotImplementedError
 
@@ -117,65 +119,87 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
     def write_to_files(self):
         raise NotImplementedError
 
-    def get_instance_deform(self, imgs_feats, objects_ids=None, img_feats_canonical=None, use_coord_mlp=False,
-                            return_latent_feature=False):
+    def get_instance_deform(
+        self,
+        imgs_feats,
+        objects_ids=None,
+        img_feats_canonical=None,
+        use_coord_mlp=False,
+        return_latent_feature=False,
+    ):
         """
         Args:
             imgs_feats (torch.Tensor): BxCxHxW, BxC
         """
 
         if self.instance_deform_net is not None:
-            if self.instance_deform_net.config.get("in_feats", "backbone") == "backbone":
+            if (
+                self.instance_deform_net.config.get("in_feats", "backbone")
+                == "backbone"
+            ):
                 pass
             elif self.instance_deform_net.config.get("in_feats", "backbone") == "head":
                 imgs_feats.featmaps[-1] = img_feats_canonical
-            elif self.instance_deform_net.config.get("in_feats", "backbone") == "head_detach":
+            elif (
+                self.instance_deform_net.config.get("in_feats", "backbone")
+                == "head_detach"
+            ):
                 imgs_feats.featmaps[-1] = img_feats_canonical.detach()
 
             from od3d.models.heads.coordmlp import CoordMLP
+
             if isinstance(self.instance_deform_net.head, CoordMLP):
                 imgs_feats.pts3d = self.sample(
-                        cams_tform4x4_obj=None,
-                        cams_intr4x4=None,
-                        imgs_sizes=None,
-                        objects_ids=objects_ids,
-                        modalities=PROJECT_MODALITIES.PT3D,
-                        broadcast_batch_and_cams = False,
-                        down_sample_rate = 1.0,
-                        add_clutter = False,
-                        add_other_objects = False,
-                        dtype = None,
-                        device = None,
-                        sample_clutter = False,
-                        sample_other_objects = False,
-                        instance_deform = None,
-                    ).detach() # B x 3 x N
+                    cams_tform4x4_obj=None,
+                    cams_intr4x4=None,
+                    imgs_sizes=None,
+                    objects_ids=objects_ids,
+                    modalities=PROJECT_MODALITIES.PT3D,
+                    broadcast_batch_and_cams=False,
+                    down_sample_rate=1.0,
+                    add_clutter=False,
+                    add_other_objects=False,
+                    dtype=None,
+                    device=None,
+                    sample_clutter=False,
+                    sample_other_objects=False,
+                    instance_deform=None,
+                ).detach()  # B x 3 x N
 
             nearest_pt3d = self.sample_nearest_to_feats2d_img(
                 feats2d_img=img_feats_canonical,
                 objects_ids=objects_ids,
                 modalities=PROJECT_MODALITIES.PT3D,
                 add_clutter=True,
-                instance_deform=None
+                instance_deform=None,
             )
             from od3d.cv.visual.resize import resize
-            nearest_pt3d = resize(
-                    nearest_pt3d,
-                    scale_factor=imgs_feats.featmaps[-1].shape[-1] / nearest_pt3d.shape[-1],
-                    mode="nearest_v2"
-                )
 
-            instance_deform_net_nearest_pt3d = self.instance_deform_net.config.get("nearest_pt3d", "cat")
+            nearest_pt3d = resize(
+                nearest_pt3d,
+                scale_factor=imgs_feats.featmaps[-1].shape[-1] / nearest_pt3d.shape[-1],
+                mode="nearest_v2",
+            )
+
+            instance_deform_net_nearest_pt3d = self.instance_deform_net.config.get(
+                "nearest_pt3d", "cat"
+            )
             if instance_deform_net_nearest_pt3d == "cat":
-                imgs_feats.featmaps[-1] = torch.cat((imgs_feats.featmaps[-1], nearest_pt3d), dim=1)
+                imgs_feats.featmaps[-1] = torch.cat(
+                    (imgs_feats.featmaps[-1], nearest_pt3d), dim=1
+                )
             elif instance_deform_net_nearest_pt3d == "cat_harmonics":
                 from od3d.models.heads.coordmlp.head import HarmonicEmbedding
+
                 harmonic_embedding = HarmonicEmbedding(dim=1)
-                imgs_feats.featmaps[-1] = torch.cat((imgs_feats.featmaps[-1], harmonic_embedding(nearest_pt3d)), dim=1)
+                imgs_feats.featmaps[-1] = torch.cat(
+                    (imgs_feats.featmaps[-1], harmonic_embedding(nearest_pt3d)), dim=1
+                )
             elif instance_deform_net_nearest_pt3d == "sole":
                 imgs_feats.featmaps[-1] = nearest_pt3d
             elif instance_deform_net_nearest_pt3d == "sole_harmonics":
                 from od3d.models.heads.coordmlp.head import HarmonicEmbedding
+
                 harmonic_embedding = HarmonicEmbedding(dim=1)
                 imgs_feats.featmaps[-1] = harmonic_embedding(nearest_pt3d)
             else:
@@ -184,24 +208,33 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             affine = self.instance_deform_net.config.get("affine", False)
             net_out = self.instance_deform_net(imgs_feats)
             if affine:
-                meshes_deform = self.instance_deform_class.from_net_output(net_out, affine=affine)
-                meshes_deform.verts_deform[..., :3] = meshes_deform.verts_deform[..., :3] + 1.
+                meshes_deform = self.instance_deform_class.from_net_output(
+                    net_out, affine=affine
+                )
+                meshes_deform.verts_deform[..., :3] = (
+                    meshes_deform.verts_deform[..., :3] + 1.0
+                )
 
                 verts = self.sample(
                     objects_ids=objects_ids,
                     modalities=PROJECT_MODALITIES.PT3D,
                     add_clutter=False,
-                    instance_deform=None
+                    instance_deform=None,
                 ).detach()
 
-                meshes_deform.verts_deform = meshes_deform.verts_deform[..., :3] * verts + meshes_deform.verts_deform[..., 3:] - verts
+                meshes_deform.verts_deform = (
+                    meshes_deform.verts_deform[..., :3] * verts
+                    + meshes_deform.verts_deform[..., 3:]
+                    - verts
+                )
             else:
-                meshes_deform = self.instance_deform_class.from_net_output(net_out, affine=affine)
+                meshes_deform = self.instance_deform_class.from_net_output(
+                    net_out, affine=affine
+                )
 
             return meshes_deform
         else:
             return None
-
 
     def __init__(
         self,
@@ -216,8 +249,8 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         verts_requires_grad=False,
         device=None,
         dtype=None,
-        scale_3D_params=1e+2,
-        instance_deform_net_config: DictConfig= None,
+        scale_3D_params=1e2,
+        instance_deform_net_config: DictConfig = None,
     ):
         factory_kwargs = {"device": device, "dtype": dtype}
 
@@ -237,13 +270,17 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                     requires_grad=feats_requires_grad,
                 )  # F,
             else:
-                self._feat_clutter = torch.zeros(self.feat_dim, **factory_kwargs) # F,
+                self._feat_clutter = torch.zeros(self.feat_dim, **factory_kwargs)  # F,
         else:
             self.register_parameter("_feat_clutter", None)  # None
 
         if instance_deform_net_config is not None:
-            self.instance_deform_net = self.instance_deform_class.get_model(instance_deform_net_config)
-            self.verts_deform_requires_grad = True # self.instance_deform_net.requires_grad_()
+            self.instance_deform_net = self.instance_deform_class.get_model(
+                instance_deform_net_config
+            )
+            self.verts_deform_requires_grad = (
+                True  # self.instance_deform_net.requires_grad_()
+            )
         else:
             self.instance_deform_net = None
             self.verts_deform_requires_grad = False
@@ -252,18 +289,22 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
 
         if instance_deform_net_config is not None:
             affine = instance_deform_net_config.get("affine", False)
-            if instance_deform_net_config.head.get('class_name', 'MLP') == 'CoordMLP':
+            if instance_deform_net_config.head.get("class_name", "MLP") == "CoordMLP":
                 if not affine:
                     instance_deform_net_config.head.update({"out_dim": 3})
                 else:
                     instance_deform_net_config.head.update({"out_dim": 6})
             else:
                 if not affine:
-                    instance_deform_net_config.head.update({"out_dim": 3 * self.verts_counts_max})
+                    instance_deform_net_config.head.update(
+                        {"out_dim": 3 * self.verts_counts_max}
+                    )
                 else:
-                    instance_deform_net_config.head.update({"out_dim": 6 * self.verts_counts_max})
+                    instance_deform_net_config.head.update(
+                        {"out_dim": 6 * self.verts_counts_max}
+                    )
 
-    def reset_parameters(self, feat_clutter: Union[bool, torch.Tensor]=False) -> None:
+    def reset_parameters(self, feat_clutter: Union[bool, torch.Tensor] = False) -> None:
         if self.feat_clutter_requires_param:
             if self._feat_clutter is not None:
                 if isinstance(feat_clutter, torch.Tensor):
@@ -284,7 +325,9 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
 
     @feat_clutter.setter
     def feat_clutter(self, value):
-        if self._feat_clutter is None or not isinstance(self._feat_clutter, torch.nn.Parameter):
+        if self._feat_clutter is None or not isinstance(
+            self._feat_clutter, torch.nn.Parameter
+        ):
             self._feat_clutter = value
         else:
             with torch.no_grad():
@@ -343,8 +386,15 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                 imgs_sizes = imgs_sizes.clone()
         return cams_intr4x4, imgs_sizes
 
-    def cams_and_objects_broadcast(self, cams_tform4x4_obj, cams_intr4x4, objects_ids, instance_deform=None, obj_tform4x4_objs=None):
-        scenes_count = objects_ids.shape[0] # sc
+    def cams_and_objects_broadcast(
+        self,
+        cams_tform4x4_obj,
+        cams_intr4x4,
+        objects_ids,
+        instance_deform=None,
+        obj_tform4x4_objs=None,
+    ):
+        scenes_count = objects_ids.shape[0]  # sc
         if cams_tform4x4_obj.dim() == 4:
             cams_count = cams_tform4x4_obj.shape[1]
         elif cams_tform4x4_obj.dim() == 3:
@@ -371,30 +421,60 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
 
         if objects_ids.dim() == 1:
             objects_per_scene_count = 1
-            objects_ids = objects_ids[:, None].expand(scenes_count, cams_count).reshape(-1)
+            objects_ids = (
+                objects_ids[:, None].expand(scenes_count, cams_count).reshape(-1)
+            )
         elif objects_ids.dim() == 2:
             objects_per_scene_count = objects_ids.shape[-1]
-            objects_ids = objects_ids[:, None].expand(scenes_count, cams_count, objects_per_scene_count).reshape(-1, objects_per_scene_count)
+            objects_ids = (
+                objects_ids[:, None]
+                .expand(scenes_count, cams_count, objects_per_scene_count)
+                .reshape(-1, objects_per_scene_count)
+            )
         else:
-            msg = f'no implementation for dim of objects ids: {objects_ids.dim()}'
+            msg = f"no implementation for dim of objects ids: {objects_ids.dim()}"
             raise NotImplementedError(msg)
 
         if obj_tform4x4_objs is not None:
             if obj_tform4x4_objs.dim() == 3:
-                obj_tform4x4_objs = obj_tform4x4_objs[:, None, None].expand(
-                    scenes_count, cams_count, objects_per_scene_count, 4, 4).reshape(-1, objects_per_scene_count, 4, 4)
+                obj_tform4x4_objs = (
+                    obj_tform4x4_objs[:, None, None]
+                    .expand(
+                        scenes_count,
+                        cams_count,
+                        objects_per_scene_count,
+                        4,
+                        4,
+                    )
+                    .reshape(-1, objects_per_scene_count, 4, 4)
+                )
             elif obj_tform4x4_objs.dim() == 4:
                 objects_per_scene_count = obj_tform4x4_objs.shape[1]
-                obj_tform4x4_objs = obj_tform4x4_objs[:, None].expand(
-                    scenes_count, cams_count, objects_per_scene_count, 4, 4).reshape(-1, objects_per_scene_count, 4, 4)
+                obj_tform4x4_objs = (
+                    obj_tform4x4_objs[:, None]
+                    .expand(
+                        scenes_count,
+                        cams_count,
+                        objects_per_scene_count,
+                        4,
+                        4,
+                    )
+                    .reshape(-1, objects_per_scene_count, 4, 4)
+                )
             else:
-                msg = f'no implementation for dim of obj_tform4x4_objs: {obj_tform4x4_objs.dim()}'
+                msg = f"no implementation for dim of obj_tform4x4_objs: {obj_tform4x4_objs.dim()}"
                 raise NotImplementedError(msg)
 
         if instance_deform is not None:
             instance_deform = instance_deform.broadcast_with_cams(cams_count)
 
-        return cams_tform4x4_obj, cams_intr4x4, objects_ids, instance_deform, obj_tform4x4_objs
+        return (
+            cams_tform4x4_obj,
+            cams_intr4x4,
+            objects_ids,
+            instance_deform,
+            obj_tform4x4_objs,
+        )
 
     def forward(self):
         pass
@@ -405,47 +485,92 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
     def update_verts_deform(self, batch, imgs_feats, require_grad=True):
         if not require_grad:
             with torch.no_grad():
-                self.instance_deform = self.get_instance_deform(imgs_feats=imgs_feats,
-                                                                objects_ids=batch.categories_ids)
+                self.instance_deform = self.get_instance_deform(
+                    imgs_feats=imgs_feats,
+                    objects_ids=batch.categories_ids,
+                )
         else:
-            self.instance_deform = self.get_instance_deform(imgs_feats=imgs_feats,
-                                                            objects_ids=batch.categories_ids)
+            self.instance_deform = self.get_instance_deform(
+                imgs_feats=imgs_feats,
+                objects_ids=batch.categories_ids,
+            )
 
-
-    def update_and_render_with_batch_and_imgs_feats(self, batch, imgs_feats=None, modalities: Union[PROJECT_MODALITIES,
-                                                    List[PROJECT_MODALITIES],] = PROJECT_MODALITIES.FEATS,
-                                                    down_sample_rate=1., instance_deform=None, detach_objects=False,
-                                                    detach_deform=False, verts_requires_grad=True,
-                                                    verts_deform_requires_grad=True, broadcast_batch_and_cams=False,
-                                                    rgb_light_env=None, add_clutter=True):
+    def update_and_render_with_batch_and_imgs_feats(
+        self,
+        batch,
+        imgs_feats=None,
+        modalities: Union[
+            PROJECT_MODALITIES,
+            List[PROJECT_MODALITIES],
+        ] = PROJECT_MODALITIES.FEATS,
+        down_sample_rate=1.0,
+        instance_deform=None,
+        detach_objects=False,
+        detach_deform=False,
+        verts_requires_grad=True,
+        verts_deform_requires_grad=True,
+        broadcast_batch_and_cams=False,
+        rgb_light_env=None,
+        add_clutter=True,
+    ):
         if self.verts_requires_grad:
             self.update_verts(require_grad=verts_requires_grad)
         if self.verts_deform_requires_grad:
-            self.update_verts_deform_with_batch(batch=batch, imgs_feats=imgs_feats,
-                                                require_grad=verts_deform_requires_grad)
+            self.update_verts_deform_with_batch(
+                batch=batch,
+                imgs_feats=imgs_feats,
+                require_grad=verts_deform_requires_grad,
+            )
 
-        return self.render_with_batch(batch=batch, modalities=modalities, down_sample_rate=down_sample_rate,
-                                      instance_deform=instance_deform, detach_objects=detach_objects,
-                                      detach_deform=detach_deform, broadcast_batch_and_cams=broadcast_batch_and_cams,
-                                      rgb_light_env=rgb_light_env, add_clutter=add_clutter)
+        return self.render_with_batch(
+            batch=batch,
+            modalities=modalities,
+            down_sample_rate=down_sample_rate,
+            instance_deform=instance_deform,
+            detach_objects=detach_objects,
+            detach_deform=detach_deform,
+            broadcast_batch_and_cams=broadcast_batch_and_cams,
+            rgb_light_env=rgb_light_env,
+            add_clutter=add_clutter,
+        )
 
-    def render_with_batch(self, batch,
-                          modalities: Union[PROJECT_MODALITIES,List[PROJECT_MODALITIES],] = PROJECT_MODALITIES.FEATS,
-                          down_sample_rate=1., instance_deform=None, detach_objects=False, detach_deform=False,
-                          broadcast_batch_and_cams=False, rgb_light_env=None, add_clutter=True):
-
+    def render_with_batch(
+        self,
+        batch,
+        modalities: Union[
+            PROJECT_MODALITIES, List[PROJECT_MODALITIES]
+        ] = PROJECT_MODALITIES.FEATS,
+        down_sample_rate=1.0,
+        instance_deform=None,
+        detach_objects=False,
+        detach_deform=False,
+        broadcast_batch_and_cams=False,
+        rgb_light_env=None,
+        add_clutter=True,
+    ):
         if batch.objects_ids is not None:
             objects_ids = batch.objects_ids
         else:
-            objects_ids = torch.LongTensor(list(range(len(self)))).to(device=batch.cam_tform4x4_obj.device)
+            objects_ids = torch.LongTensor(list(range(len(self)))).to(
+                device=batch.cam_tform4x4_obj.device
+            )
             objects_ids = objects_ids[:, None]
 
-        return self.render(modalities=modalities, cams_tform4x4_obj=batch.cam_tform4x4_obj,
-                           cams_intr4x4=batch.cam_intr4x4, imgs_sizes=batch.size, objects_ids=objects_ids,
-                           down_sample_rate=down_sample_rate, instance_deform=instance_deform,
-                           detach_objects=detach_objects, detach_deform=detach_deform, add_clutter=add_clutter,
-                           obj_tform4x4_objs=batch.obj_tform4x4_objs, broadcast_batch_and_cams=broadcast_batch_and_cams,
-                           rgb_light_env=rgb_light_env)
+        return self.render(
+            modalities=modalities,
+            cams_tform4x4_obj=batch.cam_tform4x4_obj,
+            cams_intr4x4=batch.cam_intr4x4,
+            imgs_sizes=batch.size,
+            objects_ids=objects_ids,
+            down_sample_rate=down_sample_rate,
+            instance_deform=instance_deform,
+            detach_objects=detach_objects,
+            detach_deform=detach_deform,
+            add_clutter=add_clutter,
+            obj_tform4x4_objs=batch.obj_tform4x4_objs,
+            broadcast_batch_and_cams=broadcast_batch_and_cams,
+            rgb_light_env=rgb_light_env,
+        )
 
     def render(
         self,
@@ -466,7 +591,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         detach_objects=False,
         detach_deform=False,
         obj_tform4x4_objs=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Render the objects in the scene with the given camera parameters.
@@ -512,7 +637,9 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         if objects_ids is None:
             objects_ids = torch.LongTensor(list(range(len(self)))).to(device=device)
             if obj_tform4x4_objs is not None and obj_tform4x4_objs.dim() > 3:
-                objects_ids = objects_ids.reshape(*(((1,) * (obj_tform4x4_objs.dim() - 3)) + objects_ids.shape))
+                objects_ids = objects_ids.reshape(
+                    *(((1,) * (obj_tform4x4_objs.dim() - 3)) + objects_ids.shape)
+                )
                 objects_ids = objects_ids.expand(*obj_tform4x4_objs.shape[:-2])
                 # *(objs_lengths_acc_from_0.shape + ((1,) * (objs_mod.dim() - objs_lengths.dim())
         elif isinstance(objects_ids, int):
@@ -536,7 +663,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                 cams_intr4x4=cams_intr4x4,
                 objects_ids=objects_ids,
                 instance_deform=instance_deform,
-                obj_tform4x4_objs=obj_tform4x4_objs
+                obj_tform4x4_objs=obj_tform4x4_objs,
             )
 
             cams_times_objects_count = cams_tform4x4_obj.shape[0]
@@ -597,7 +724,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         detach_objects=False,
         detach_deform=False,
         obj_tform4x4_objs=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Render the objects in the scene with the given camera parameters.
@@ -774,7 +901,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                     add_other_objects=add_other_objects,
                     one_hot=True,
                     device=device,
-                    coarse=modality == PROJECT_MODALITIES.ONEHOT_COARSE
+                    coarse=modality == PROJECT_MODALITIES.ONEHOT_COARSE,
                 )[:, :, None].expand(
                     B,
                     V,
@@ -836,7 +963,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         device=None,
         sample_clutter=False,
         sample_other_objects=False,
-        instance_deform = None,
+        instance_deform=None,
         detach_objects=False,
         detach_deform=False,
         obj_tform4x4_objs=None,
@@ -896,13 +1023,13 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                 cams_intr4x4,
                 objects_ids,
                 instance_deform,
-                obj_tform4x4_objs
+                obj_tform4x4_objs,
             ) = self.cams_and_objects_broadcast(
                 cams_tform4x4_obj=cams_tform4x4_obj,
                 cams_intr4x4=cams_intr4x4,
                 objects_ids=objects_ids,
                 instance_deform=instance_deform,
-                obj_tform4x4_objs=obj_tform4x4_objs
+                obj_tform4x4_objs=obj_tform4x4_objs,
             )
 
             cams_times_objects_count = cams_tform4x4_obj.shape[0]
@@ -1031,7 +1158,9 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         """
         imgs_sizes = torch.LongTensor(list(feats2d_img.shape[-2:])) * down_sample_rate
         mods_rendered = self.render(
-            modalities=[PROJECT_MODALITIES.FEATS, PROJECT_MODALITIES.MASK] if object_mask is not None else PROJECT_MODALITIES.FEATS,
+            modalities=[PROJECT_MODALITIES.FEATS, PROJECT_MODALITIES.MASK]
+            if object_mask is not None
+            else PROJECT_MODALITIES.FEATS,
             cams_tform4x4_obj=cams_tform4x4_obj,
             cams_intr4x4=cams_intr4x4,
             imgs_sizes=imgs_sizes,
@@ -1040,7 +1169,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             down_sample_rate=down_sample_rate,
             add_clutter=add_clutter,
             add_other_objects=add_other_objects,
-            instance_deform=instance_deform
+            instance_deform=instance_deform,
         )
 
         if object_mask is not None:
@@ -1059,22 +1188,33 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             temp=temp,
             objects_ids=objects_ids,
             normalize_surface=normalize_surface,
-            use_neg_mse=use_neg_mse
+            use_neg_mse=use_neg_mse,
         )
 
         if object_mask is not None:
             from od3d.cv.visual.resize import resize
-            object_mask_res = resize(object_mask, H_out=mask_rendered.shape[-2], W_out=mask_rendered.shape[-1])
+
+            object_mask_res = resize(
+                object_mask,
+                H_out=mask_rendered.shape[-2],
+                W_out=mask_rendered.shape[-1],
+            )
             if broadcast_batch_and_cams:
                 object_mask_res = object_mask_res[:, None]
-            object_mask_sim_pxl = 1. - ((object_mask_res - mask_rendered) ** 2)[..., 0, :, :]
+            object_mask_sim_pxl = (
+                1.0 - ((object_mask_res - mask_rendered) ** 2)[..., 0, :, :]
+            )
             if feats2d_img_mask is not None:
                 if broadcast_batch_and_cams:
-                    object_mask_sim_pxl = (1. - 1. * feats2d_img_mask) + (1. * feats2d_img_mask) * object_mask_sim_pxl
+                    object_mask_sim_pxl = (1.0 - 1.0 * feats2d_img_mask) + (
+                        1.0 * feats2d_img_mask
+                    ) * object_mask_sim_pxl
                 else:
-                    object_mask_sim_pxl = (1. - 1. * feats2d_img_mask[..., 0, :, :]) + (1. * feats2d_img_mask[..., 0, :, :]) * object_mask_sim_pxl
+                    object_mask_sim_pxl = (
+                        1.0 - 1.0 * feats2d_img_mask[..., 0, :, :]
+                    ) + (1.0 * feats2d_img_mask[..., 0, :, :]) * object_mask_sim_pxl
 
-            object_mask_sim_pxl = object_mask_sim_pxl * 1.
+            object_mask_sim_pxl = object_mask_sim_pxl * 1.0
             object_mask_sim = object_mask_sim_pxl.flatten(-2).mean(dim=-1)
             if return_sim_pxl:
                 sim, sim_pxl = sim
@@ -1085,9 +1225,6 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                 sim += object_mask_sim
                 return sim
         return sim
-
-
-
 
     def sample_nearest_to_feats2d_img(
         self,
@@ -1108,7 +1245,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         device=None,
         smooth_labels=False,
         sim_temp=1.0,
-        instance_deform=None
+        instance_deform=None,
     ):
         """
         Args:
@@ -1316,9 +1453,12 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
 
             if add_clutter and feats2d_img_mask is not None:
                 label2d_clutter = torch.zeros_like(label2d)
-                label2d_clutter[:, -1] = 1.
-                feats2d_img_mask = 1. * (feats2d_img_mask.detach().clone() > 0.5)
-                label2d = feats2d_img_mask * label2d + (1. - feats2d_img_mask) * label2d_clutter # BxKxHxW
+                label2d_clutter[:, -1] = 1.0
+                feats2d_img_mask = 1.0 * (feats2d_img_mask.detach().clone() > 0.5)
+                label2d = (
+                    feats2d_img_mask * label2d
+                    + (1.0 - feats2d_img_mask) * label2d_clutter
+                )  # BxKxHxW
 
             return label2d, None, None
 
@@ -1560,7 +1700,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
         temp=1.0,
         objects_ids=None,
         normalize_surface=False,
-        use_neg_mse=False
+        use_neg_mse=False,
     ):
         """
         Args:
@@ -1579,7 +1719,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                 feats2d_img,
                 feats2d_rendered,
                 temp=temp,
-                use_neg_mse=use_neg_mse
+                use_neg_mse=use_neg_mse,
             )
         else:
             sim_feats2d = self.get_sim(
@@ -1587,7 +1727,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                 feats2d_img,
                 feats2d_rendered,
                 temp=temp,
-                use_neg_mse=use_neg_mse
+                use_neg_mse=use_neg_mse,
             )[:, None]
 
         # shape (B, V, H, W)
@@ -1596,7 +1736,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             feats2d_img,
             self.feat_clutter,
             temp=temp,
-            use_neg_mse=use_neg_mse
+            use_neg_mse=use_neg_mse,
         )[:, None].expand(sim_feats2d.shape)
 
         if feats2d_img_mask is not None:
@@ -1614,11 +1754,17 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             sim_surface2d = self.get_sim(
                 "bchw,bfc->bfhw",
                 feats2d_img,
-                self.sample(modalities=PROJECT_MODALITIES.FEATS_COARSE, objects_ids=objects_ids, add_clutter=True),
+                self.sample(
+                    modalities=PROJECT_MODALITIES.FEATS_COARSE,
+                    objects_ids=objects_ids,
+                    add_clutter=True,
+                ),
                 temp=temp,
-                use_neg_mse=use_neg_mse
+                use_neg_mse=use_neg_mse,
             )
-            sim_feats2d = torch.exp(sim_feats2d) / torch.exp(sim_surface2d).sum(dim=1, keepdim=True)
+            sim_feats2d = torch.exp(sim_feats2d) / torch.exp(sim_surface2d).sum(
+                dim=1, keepdim=True
+            )
 
         sim = sim_feats2d.flatten(2).mean(dim=-1)
 
@@ -1646,10 +1792,12 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
                 return torch.einsum(comb, featsA, featsB) / temp
             elif self.feats_distribution == FEATS_DISTR.GAUSSIAN:
                 from od3d.cv.geometry.dist import einsum_cdist
+
                 return -einsum_cdist(comb, featsA, featsB) / temp
             else:
                 msg = f"Unknown distribution {self.feats_distribution}"
                 raise NotImplementedError(msg)
         else:
             from od3d.cv.geometry.dist import einsum_cdist
+
             return -einsum_cdist(comb, featsA, featsB)

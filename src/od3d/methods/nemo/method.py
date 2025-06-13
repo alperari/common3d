@@ -7,14 +7,18 @@ import pandas as pd
 from od3d.benchmark.results import OD3D_Results
 from od3d.cv.geometry.objects3d.meshes.meshes import VERT_MODALITIES
 from od3d.cv.metric.pose import get_pose_diff_in_rad
+from od3d.cv.select import batched_index_select
 from od3d.datasets.dataset import OD3D_Dataset
 from od3d.methods.method import OD3D_Method
 from omegaconf import DictConfig
-from od3d.cv.select import batched_index_select
 
 logger = logging.getLogger(__name__)
 import torch
-from od3d.cv.geometry.metrics.dist import batch_chamfer_distance, batch_point_face_distance, batch_point_face_distance_v2
+from od3d.cv.geometry.metrics.dist import (
+    batch_chamfer_distance,
+    batch_point_face_distance,
+    batch_point_face_distance_v2,
+)
 from od3d.cv.geometry.transform import transf3d_broadcast
 from od3d.datasets.frame import OD3D_FRAME_MODALITIES
 from od3d.cv.geometry.transform import se3_exp_map, proj3d2d_broadcast
@@ -63,6 +67,7 @@ from od3d.cv.visual.show import get_img_from_plot
 from od3d.cv.visual.draw import draw_text_in_rgb
 from od3d.data.ext_enum import StrEnum
 
+
 class VISUAL_MODALITIES(StrEnum):
     PRED_VERTS_NCDS_IN_RGB = "pred_verts_ncds_in_rgb"
     GT_VERTS_NCDS_IN_RGB = "gt_verts_ncds_in_rgb"
@@ -78,9 +83,11 @@ class VISUAL_MODALITIES(StrEnum):
     MESH_FEATS = "mesh_feats"
     LATENT_INTERP = "latent_interp"
 
+
 class SIM_FEATS_MESH_WITH_IMAGE(StrEnum):
     VERTS2D = "verts2d"
     RENDERED = "rendered"
+
 
 class NeMo(OD3D_Method):
     def setup(self):
@@ -127,18 +134,25 @@ class NeMo(OD3D_Method):
         # self.path_shapenemo = Path(config.path_shapenemo)
         # self.fpaths_meshes_shapenemo = [self.path_shapenemo.joinpath(cls, '01.off') for cls in config.categories]
         self.fpaths_meshes = [
-            self.config.fpaths_meshes[cls] if (self.config.fpaths_meshes is not None and
-                                               cls in self.config.fpaths_meshes) else None for cls in config.categories
+            self.config.fpaths_meshes[cls]
+            if (
+                self.config.fpaths_meshes is not None
+                and cls in self.config.fpaths_meshes
+            )
+            else None
+            for cls in config.categories
         ]
         fpaths_meshes_tform_obj = self.config.get("fpaths_meshes_tform_obj", None)
         if fpaths_meshes_tform_obj is not None:
             self.fpaths_meshes_tform_obj = [
-                fpaths_meshes_tform_obj[cls] if cls in fpaths_meshes_tform_obj else None for cls in config.categories
+                fpaths_meshes_tform_obj[cls] if cls in fpaths_meshes_tform_obj else None
+                for cls in config.categories
             ]
         else:
             self.fpaths_meshes_tform_obj = [None for _ in config.categories]
 
         from od3d.cv.geometry.objects3d.objects3d import OD3D_Objects3D
+
         self.feat_dim = self.net.out_dim
 
         if self.config.get("pose_net_config", None) is not None:
@@ -146,19 +160,37 @@ class NeMo(OD3D_Method):
 
             self.net_pose_translations = self.config.pose_net_config.translations
             self.net_pose_rotation_dim = 6
-            self.net_pose_rotations_othant = torch.BoolTensor(self.config.pose_net_config.rot6d_othant).to(self.device)
-            self.net_pose_rotations_othant_signs = torch.stack(torch.meshgrid(
-                [torch.arange(1, -2, -2) if othant else torch.arange(1, 2, 1) for othant in
-                 self.net_pose_rotations_othant]), -1).view(-1, self.net_pose_rotation_dim).to(device=self.device)  # 8x6
+            self.net_pose_rotations_othant = torch.BoolTensor(
+                self.config.pose_net_config.rot6d_othant
+            ).to(self.device)
+            self.net_pose_rotations_othant_signs = (
+                torch.stack(
+                    torch.meshgrid(
+                        [
+                            torch.arange(1, -2, -2) if othant else torch.arange(1, 2, 1)
+                            for othant in self.net_pose_rotations_othant
+                        ],
+                    ),
+                    -1,
+                )
+                .view(-1, self.net_pose_rotation_dim)
+                .to(device=self.device)
+            )  # 8x6
 
-            self.net_pose_rotations = 2 ** int(self.net_pose_rotations_othant.sum().item())
+            self.net_pose_rotations = 2 ** int(
+                self.net_pose_rotations_othant.sum().item()
+            )
 
             pose_net_out_dim = (
-                    self.net_pose_translations * self.net_pose_rotations
-                    * (self.net_pose_rotation_dim + 3))  # translations * rotations * se3 params
-            self.config.pose_net_config.head.update({"in_dims": [pose_net_in_dim,]})
+                self.net_pose_translations
+                * self.net_pose_rotations
+                * (self.net_pose_rotation_dim + 3)
+            )  # translations * rotations * se3 params
+            self.config.pose_net_config.head.update({"in_dims": [pose_net_in_dim]})
             self.config.pose_net_config.head.update({"in_upsample_scales": []})
-            self.config.pose_net_config.head.fully_connected.update({"out_dim": pose_net_out_dim})
+            self.config.pose_net_config.head.fully_connected.update(
+                {"out_dim": pose_net_out_dim}
+            )
 
             self.net_pose = OD3D_Model(self.config.pose_net_config)
             self.net_pose.cuda()
@@ -168,18 +200,29 @@ class NeMo(OD3D_Method):
             self.net_pose = None
             self.net_pose_params = []
 
-        self.config.objects3d.update({
-            "feats_requires_grad": self.config.train.bank_feats_update != "moving_average" \
-                              and self.config.train.bank_feats_update != "average",
-            "feat_dim": self.feat_dim,
-            "fpaths_meshes": self.fpaths_meshes,
-            "fpaths_meshes_tforms": self.fpaths_meshes_tform_obj,
-            "feats_objects": True,
-            "feat_clutter": True,}
+        self.config.objects3d.update(
+            {
+                "feats_requires_grad": self.config.train.bank_feats_update
+                != "moving_average"
+                and self.config.train.bank_feats_update != "average",
+                "feat_dim": self.feat_dim,
+                "fpaths_meshes": self.fpaths_meshes,
+                "fpaths_meshes_tforms": self.fpaths_meshes_tform_obj,
+                "feats_objects": True,
+                "feat_clutter": True,
+            },
         )
         if self.config.objects3d.instance_deform_net_config is not None:
-            instance_deform_net_nearest_pt3d = self.config.objects3d.instance_deform_net_config.get("nearest_pt3d", "cat")
-            instance_deform_net_in_feats = self.config.objects3d.instance_deform_net_config.get("in_feats", "backbone")
+            instance_deform_net_nearest_pt3d = (
+                self.config.objects3d.instance_deform_net_config.get(
+                    "nearest_pt3d", "cat"
+                )
+            )
+            instance_deform_net_in_feats = (
+                self.config.objects3d.instance_deform_net_config.get(
+                    "in_feats", "backbone"
+                )
+            )
             if instance_deform_net_nearest_pt3d == "cat":
                 if instance_deform_net_in_feats == "backbone":
                     instance_deform_net_in_dim = self.net.backbone.out_dims[-1] + 3
@@ -187,7 +230,9 @@ class NeMo(OD3D_Method):
                     instance_deform_net_in_dim = self.feat_dim
             elif instance_deform_net_nearest_pt3d == "cat_harmonics":
                 if instance_deform_net_in_feats == "backbone":
-                    instance_deform_net_in_dim = self.net.backbone.out_dims[-1] + 3 * 2 * 10
+                    instance_deform_net_in_dim = (
+                        self.net.backbone.out_dims[-1] + 3 * 2 * 10
+                    )
                 else:
                     instance_deform_net_in_dim = self.feat_dim + 3 * 2 * 10
             elif instance_deform_net_nearest_pt3d == "sole":
@@ -199,12 +244,16 @@ class NeMo(OD3D_Method):
                     instance_deform_net_in_dim = self.net.backbone.out_dims[-1]
                 else:
                     instance_deform_net_in_dim = self.feat_dim
-            self.config.objects3d.instance_deform_net_config.head.update({"in_dim": instance_deform_net_in_dim})
+            self.config.objects3d.instance_deform_net_config.head.update(
+                {"in_dim": instance_deform_net_in_dim}
+            )
 
         config_objects3d_without_class_name = self.config.objects3d.copy()
         del config_objects3d_without_class_name.class_name
 
-        self.meshes = OD3D_Objects3D.subclasses[self.config.objects3d.class_name].read_from_ply_files(
+        self.meshes = OD3D_Objects3D.subclasses[
+            self.config.objects3d.class_name
+        ].read_from_ply_files(
             **config_objects3d_without_class_name,
         )
 
@@ -263,29 +312,34 @@ class NeMo(OD3D_Method):
         elif self.config.train.loss.appear.type == "l2_squared":
             self.criterion = torch.nn.MSELoss().cuda()
 
-        self.loss_appear_dropout = torch.nn.Dropout1d(p=self.config.train.loss.appear.dropout)
+        self.loss_appear_dropout = torch.nn.Dropout1d(
+            p=self.config.train.loss.appear.dropout
+        )
 
         # self.net = torch.nn.DataParallel(self.net).cuda()
         self.net.cuda()
         self.meshes.cuda()
 
-        self.pseudo_labels_fraction = -self.config.train.pseudo_labels_fraction_per_epoch
+        self.pseudo_labels_fraction = (
+            -self.config.train.pseudo_labels_fraction_per_epoch
+        )
         self.pseudo_tform4x4_obj = {}
 
         # load checkpoint
-        self.load_checkpoint_params(path_checkpoint=config.get("checkpoint", None),
-                                    path_checkpoint_old=config.get("checkpoint", None))
+        self.load_checkpoint_params(
+            path_checkpoint=config.get("checkpoint", None),
+            path_checkpoint_old=config.get("checkpoint", None),
+        )
         # load_mesh(config.path_shapenemo)
 
-        #from od3d.cv.visual.show import show_scene
-        #show_scene(meshes=self.meshes)
+        # from od3d.cv.visual.show import show_scene
+        # show_scene(meshes=self.meshes)
 
         self.net.eval()
         if self.net_pose is not None:
             self.net_pose.eval()
         self.meshes.eval()
         self.back_propagate = True
-
 
         logger.info(
             f"total params: {self.total_params}, trainable params: {self.trainable_params_net}",
@@ -319,7 +373,9 @@ class NeMo(OD3D_Method):
             else:
                 self.optim = od3d.io.get_obj_from_config(
                     config=self.config.train.optimizer,
-                    params=list(set(self.meshes.parameters())) + list(self.net.parameters()) + self.net_pose_params,
+                    params=list(set(self.meshes.parameters()))
+                    + list(self.net.parameters())
+                    + self.net_pose_params,
                 )
 
         self.scheduler = od3d.io.get_obj_from_config(
@@ -327,10 +383,11 @@ class NeMo(OD3D_Method):
             config=self.config.train.scheduler,
         )
 
-
         # load checkpoint
-        self.load_checkpoint_optim(path_checkpoint=config.get("checkpoint", None),
-                                    path_checkpoint_old=config.get("checkpoint", None))
+        self.load_checkpoint_optim(
+            path_checkpoint=config.get("checkpoint", None),
+            path_checkpoint_old=config.get("checkpoint", None),
+        )
 
         # self.meshes.show()
 
@@ -339,7 +396,7 @@ class NeMo(OD3D_Method):
         # self.verts_feats = self.verts_feats.reshape(len(self.meshes), self.verts_count_max, -1).flip(dims=(0,)).reshape(len(self.meshes) * self.verts_count_max, -1)
         self.down_sample_rate = self.net.downsample_rate
 
-        #import wandb
+        # import wandb
         # wandb.watch(self.meshes, log="all", log_freq=1)
         # wandb.watch(self.net, log="all", log_freq=1)
 
@@ -364,12 +421,13 @@ class NeMo(OD3D_Method):
             msg = f"Unknown distribution {self.config.distribution}"
             raise NotImplementedError(msg)
 
-
     def save_checkpoint(self, path_checkpoint: Path):
         torch.save(
             {
                 "net_state_dict": self.net.state_dict(),
-                "net_pose_state_dict": self.net_pose.state_dict() if self.net_pose is not None else None,
+                "net_pose_state_dict": self.net_pose.state_dict()
+                if self.net_pose is not None
+                else None,
                 "optimizer_state_dict": self.optim.state_dict(),
                 "scheduler_state_dict": self.scheduler.state_dict(),
                 "meshes_feats": self.meshes.state_dict(),
@@ -378,8 +436,12 @@ class NeMo(OD3D_Method):
         )
 
     def load_checkpoint(self, path_checkpoint=None, path_checkpoint_old=None):
-        self.load_checkpoint_params(path_checkpoint=path_checkpoint, path_checkpoint_old=path_checkpoint_old)
-        self.load_checkpoint_optim(path_checkpoint=path_checkpoint, path_checkpoint_old=path_checkpoint_old)
+        self.load_checkpoint_params(
+            path_checkpoint=path_checkpoint, path_checkpoint_old=path_checkpoint_old
+        )
+        self.load_checkpoint_optim(
+            path_checkpoint=path_checkpoint, path_checkpoint_old=path_checkpoint_old
+        )
 
     def load_checkpoint_optim(self, path_checkpoint=None, path_checkpoint_old=None):
         if path_checkpoint is None and self.fpath_checkpoint.exists():
@@ -394,9 +456,10 @@ class NeMo(OD3D_Method):
             try:
                 self.scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
             except Exception as e:
-                logger.warning(f'could not load net state dict {e}')
+                logger.warning(f"could not load net state dict {e}")
         elif path_checkpoint_old is not None:
             pass
+
     def load_checkpoint_params(self, path_checkpoint=None, path_checkpoint_old=None):
         if path_checkpoint is None and self.fpath_checkpoint.exists():
             path_checkpoint = self.fpath_checkpoint
@@ -407,20 +470,30 @@ class NeMo(OD3D_Method):
                 self.net.load_state_dict(checkpoint["net_state_dict"], strict=True)
                 if self.net is not None and self.net.backbone is not None:
                     pca_enabled = False
-                    if self.config.model is not None and self.config.model.backbone is not None and self.config.model.backbone is not None:
-                        pca_enabled = self.config.model.backbone.pca.get("enable", False)
+                    if (
+                        self.config.model is not None
+                        and self.config.model.backbone is not None
+                        and self.config.model.backbone is not None
+                    ):
+                        pca_enabled = self.config.model.backbone.pca.get(
+                            "enable", False
+                        )
                     self.net.backbone.pca_enabled = pca_enabled
             except Exception as e:
-                logger.warning(f'could not load net state dict {e} (or perhaps could only not load pca)')
+                logger.warning(
+                    f"could not load net state dict {e} (or perhaps could only not load pca)"
+                )
             if self.net_pose is not None:
                 try:
-                    self.net_pose.load_state_dict(checkpoint["net_pose_state_dict"], strict=True)
+                    self.net_pose.load_state_dict(
+                        checkpoint["net_pose_state_dict"], strict=True
+                    )
                 except Exception as e:
-                    logger.warning(f'could not load net pose state dict {e}')
+                    logger.warning(f"could not load net pose state dict {e}")
             try:
                 self.meshes.load_state_dict(checkpoint["meshes_feats"], strict=False)
             except Exception as e:
-                logger.warning(f'could not load meshes state dict {e}')
+                logger.warning(f"could not load meshes state dict {e}")
         elif path_checkpoint_old is not None:
             fpaths_meshes_old = list(self.config.fpaths_meshes.values())
             meshes_old = Meshes.load_from_files(fpaths_meshes=fpaths_meshes_old)
@@ -447,18 +520,25 @@ class NeMo(OD3D_Method):
                 mesh_old_id = map_mesh_id_to_old_id[i]
                 verts_feats.append(
                     checkpoint["memory"][
-                    mesh_old_id * verts_count_max: (mesh_old_id + 1) * verts_count_max
+                        mesh_old_id
+                        * verts_count_max : (mesh_old_id + 1)
+                        * verts_count_max
                     ]
                     .clone()
                     .detach()
                     .cpu(),
                 )
             self.meshes.set_feats_cat_with_pad(torch.cat(verts_feats, dim=0))
-        
+
         from od3d.cv.geometry.objects3d.dmtet_x_gaussians import DMTet_x_Gaussians
         from od3d.cv.geometry.objects3d.dmtet import DMTet
         from od3d.cv.geometry.objects3d.flexicubes import Flexicubes
-        if isinstance(self.meshes, DMTet_x_Gaussians) or isinstance(self.meshes, DMTet) or isinstance(self.meshes, Flexicubes):
+
+        if (
+            isinstance(self.meshes, DMTet_x_Gaussians)
+            or isinstance(self.meshes, DMTet)
+            or isinstance(self.meshes, Flexicubes)
+        ):
             self.meshes.update_dmtet(require_grad=False)
 
     @property
@@ -484,10 +564,13 @@ class NeMo(OD3D_Method):
     ):
         # prevents inheriting broken CUDA context for each worker
         import torch.multiprocessing as mp
-        mp.set_start_method('spawn', force=True)
 
-        score_metric_neg = self.config.train.early_stopping_score.startswith('-')
-        score_metric_name = self.config.train.early_stopping_score  # "pose/acc_pi18"  # 'pose/acc_pi18' 'pose/acc_pi6'
+        mp.set_start_method("spawn", force=True)
+
+        score_metric_neg = self.config.train.early_stopping_score.startswith("-")
+        score_metric_name = (
+            self.config.train.early_stopping_score
+        )  # "pose/acc_pi18"  # 'pose/acc_pi18' 'pose/acc_pi6'
         if score_metric_neg:
             score_metric_name = score_metric_name[1:]
 
@@ -505,26 +588,34 @@ class NeMo(OD3D_Method):
                 split=self.config.train.split,
             )
             datasets_val["main"] = dataset_val_sub
-        if (self.config.model.backbone.get(
+        if (
+            self.config.model.backbone.get(
                 "pca",
                 None,
-        ) is not None and self.config.model.backbone.pca.get("enable", False)
-                and self.config.model.backbone.pca.get("recalc", True)):
+            )
+            is not None
+            and self.config.model.backbone.pca.get("enable", False)
+            and self.config.model.backbone.pca.get("recalc", True)
+        ):
             logger.info("calc pca ...")
             from od3d.cv.cluster.embed import pca
             from od3d.datasets.dataset import OD3D_DATASET_SPLITS
 
             dataset_pca, _ = dataset_train_sub.get_split(
                 fraction1=self.config.model.backbone.pca.get("subset_fraction", 1.0),
-                fraction2=1.0 - self.config.model.backbone.pca.get("subset_fraction", 1.0),
+                fraction2=1.0
+                - self.config.model.backbone.pca.get("subset_fraction", 1.0),
                 split=OD3D_DATASET_SPLITS.RANDOM,
             )
 
-            self.net.backbone.set_pca(dataset=dataset_pca, transform=self.transform_train,
-                                      batch_size=self.config.train.dataloader.batch_size,
-                                      pin_memory=self.config.train.dataloader.pin_memory,
-                                      num_workers=self.config.train.dataloader.num_workers,
-                                      device=self.device)
+            self.net.backbone.set_pca(
+                dataset=dataset_pca,
+                transform=self.transform_train,
+                batch_size=self.config.train.dataloader.batch_size,
+                pin_memory=self.config.train.dataloader.pin_memory,
+                num_workers=self.config.train.dataloader.num_workers,
+                device=self.device,
+            )
 
         # first validation
         if self.config.train.val:
@@ -545,42 +636,50 @@ class NeMo(OD3D_Method):
 
         # self.scheduler.last_epoch
         for epoch in range(self.scheduler.last_epoch, self.config.train.epochs):
-
             # pseudo
-            if self.config.train.pseudo_labels_fraction_per_epoch > 0.:
+            if self.config.train.pseudo_labels_fraction_per_epoch > 0.0:
                 # from od3d.datasets.dataset import OD3D_DATASET_SPLITS
                 # dataset_train_sub_sub, _ = dataset_train_sub.get_split(
                 #     fraction1=0.1,
                 #     fraction2=0.9,
                 #     split=OD3D_DATASET_SPLITS.RANDOM,
                 # )
-                results_train_pseudo_mean, results_train_pseudo = self.test(dataset_train_sub, val=True, multiview=True,
-                                                                            return_results_epoch=True)
-                results_train_pseudo_mean.log_with_prefix(prefix=f"train_pseudo/{dataset_train_sub.name}")
+                results_train_pseudo_mean, results_train_pseudo = self.test(
+                    dataset_train_sub,
+                    val=True,
+                    multiview=True,
+                    return_results_epoch=True,
+                )
+                results_train_pseudo_mean.log_with_prefix(
+                    prefix=f"train_pseudo/{dataset_train_sub.name}"
+                )
 
-                tform_obj = tform4x4(inv_tform4x4(results_train_pseudo['cam_tform4x4_obj']),
-                                     results_train_pseudo['cam_tform4x4_obj_gt']).detach()
+                tform_obj = tform4x4(
+                    inv_tform4x4(results_train_pseudo["cam_tform4x4_obj"]),
+                    results_train_pseudo["cam_tform4x4_obj_gt"],
+                ).detach()
 
                 del self.pseudo_tform4x4_obj
                 self.pseudo_tform4x4_obj = {}
-                for b, name_unique in enumerate(results_train_pseudo['name_unique']):
-                    name_seq = '/'.join(name_unique.split('/')[:-1])
+                for b, name_unique in enumerate(results_train_pseudo["name_unique"]):
+                    name_seq = "/".join(name_unique.split("/")[:-1])
                     if name_seq not in self.pseudo_tform4x4_obj.keys():
                         self.pseudo_tform4x4_obj[name_seq] = tform_obj[b]
 
                 # results_train_pseudo['cam_tform4x4_obj']
                 # results_train_pseudo['cam_tform4x4_obj_gt']
                 # results_train_pseudo['name_unique']
-                self.pseudo_labels_fraction += self.config.train.pseudo_labels_fraction_per_epoch
-                self.pseudo_labels_fraction = min(self.pseudo_labels_fraction, 1.)
-
+                self.pseudo_labels_fraction += (
+                    self.config.train.pseudo_labels_fraction_per_epoch
+                )
+                self.pseudo_labels_fraction = min(self.pseudo_labels_fraction, 1.0)
 
             results_epoch = self.train_epoch(dataset=dataset_train_sub)
             results_epoch.log_with_prefix("train")
             if (
-                    self.config.train.val
-                    and self.config.train.epochs_to_next_test > 0
-                    and epoch % self.config.train.epochs_to_next_test == 0
+                self.config.train.val
+                and self.config.train.epochs_to_next_test > 0
+                and epoch % self.config.train.epochs_to_next_test == 0
             ):
                 for dataset_val_key, dataset_val in datasets_val.items():
                     results_val = self.test(dataset_val, val=True, multiview=False)
@@ -593,8 +692,8 @@ class NeMo(OD3D_Method):
                             score_latest = -score_latest
 
                 if (
-                        not self.config.train.early_stopping
-                        or score_latest >= score_ckpt_val
+                    not self.config.train.early_stopping
+                    or score_latest >= score_ckpt_val
                 ):
                     score_ckpt_val = score_latest
                     self.save_checkpoint(path_checkpoint=self.fpath_checkpoint)
@@ -602,12 +701,21 @@ class NeMo(OD3D_Method):
             elif not self.config.train.val:
                 self.save_checkpoint(path_checkpoint=self.fpath_checkpoint)
 
-            if self.config.train.get("epoch_cat_verts_requires_grad_stop", 9999999) == self.scheduler.last_epoch:
+            if (
+                self.config.train.get("epoch_cat_verts_requires_grad_stop", 9999999)
+                == self.scheduler.last_epoch
+            ):
                 self.save_checkpoint(path_checkpoint=self.fpath_checkpoint_cat)
 
         self.load_checkpoint(path_checkpoint=self.fpath_checkpoint)
 
-    def test(self, dataset: OD3D_Dataset, val=False, multiview=True, return_results_epoch=False):
+    def test(
+        self,
+        dataset: OD3D_Dataset,
+        val=False,
+        multiview=True,
+        return_results_epoch=False,
+    ):
         # note: ensure that checkpoint is saved for checkpointed runs
         if not self.fpath_checkpoint.exists():
             self.save_checkpoint(path_checkpoint=self.fpath_checkpoint)
@@ -621,16 +729,19 @@ class NeMo(OD3D_Method):
         if OD3D_FRAME_MODALITIES.KPTS2D_ANNOT in dataset.modalities:
             self.set_kpts(dataset)
 
-        multiview = ((isinstance(dataset, CO3D) or isinstance(dataset, Omni6DPose)) and multiview and
-                     self.config.multiview.get("enabled", True))
+        multiview = (
+            (isinstance(dataset, CO3D) or isinstance(dataset, Omni6DPose))
+            and multiview
+            and self.config.multiview.get("enabled", True)
+        )
 
         if not isinstance(dataset, SPair71K):
             dataset.transform = copy.deepcopy(self.transform_test)
         else:
-            #dataset.transform = self.net.transform
+            # dataset.transform = self.net.transform
             dataset.transform = SequentialTransform(
                 [
-                    OD3D_Transform.create_by_name('crop512'), # 840 512 504
+                    OD3D_Transform.create_by_name("crop512"),  # 840 512 504
                     copy.deepcopy(self.net.transform),
                 ],
             )
@@ -670,7 +781,9 @@ class NeMo(OD3D_Method):
             batch.to(device=self.device)
 
             if not isinstance(dataset, SPair71K):
-                results_batch = self.inference_batch(batch=batch, multiview=multiview, val=val)
+                results_batch = self.inference_batch(
+                    batch=batch, multiview=multiview, val=val
+                )
             else:
                 results_batch = self.inference_batch_corresp(batch=batch)
 
@@ -679,25 +792,44 @@ class NeMo(OD3D_Method):
             if not val and self.config.test.save_results:
                 # latent = results_batch['latent'][0]
                 f_in_b_id = batch.rgb.shape[0] // 2
-                backbone_out, net_out = self.net(batch.rgb[f_in_b_id:f_in_b_id+1], return_backbone_output=True)
+                backbone_out, net_out = self.net(
+                    batch.rgb[f_in_b_id : f_in_b_id + 1], return_backbone_output=True
+                )
                 feats2d_img = net_out.featmap
                 logger.info(f"categories {batch.category_id}")
-                mesh = self.meshes.get_meshes_with_ids(meshes_ids=batch.category_id[f_in_b_id:f_in_b_id+1], clone=True)
+                mesh = self.meshes.get_meshes_with_ids(
+                    meshes_ids=batch.category_id[f_in_b_id : f_in_b_id + 1], clone=True
+                )
 
-                if self.config.train.get("epoch_inst_def_start", 0) <= self.scheduler.last_epoch:
-                    instance_deform = self.meshes.get_instance_deform(backbone_out, img_feats_canonical=feats2d_img,
-                                                                      objects_ids=batch.category_id[f_in_b_id:f_in_b_id+1])
+                if (
+                    self.config.train.get("epoch_inst_def_start", 0)
+                    <= self.scheduler.last_epoch
+                ):
+                    instance_deform = self.meshes.get_instance_deform(
+                        backbone_out,
+                        img_feats_canonical=feats2d_img,
+                        objects_ids=batch.category_id[f_in_b_id : f_in_b_id + 1],
+                    )
                     mesh.verts += instance_deform.verts_deform[0]
                 else:
                     instance_deform = None
 
                 # category -name
                 # asset_name = "_".join("/".join(batch.name_unique[f_in_b_id].split("/")[1:-1]).split("_")[1:])
-                asset_name = str(batch.sequence[f_in_b_id].first_frame.get_fpaths_meshs('meta')[0]).split('/')[-2]
-                fpath_mesh_alpha500 = dataset.path_preprocess.joinpath("mesh/alpha500/PAM/object_meshes", asset_name, "Aligned.ply")
+                asset_name = str(
+                    batch.sequence[f_in_b_id].first_frame.get_fpaths_meshs("meta")[0]
+                ).split("/")[-2]
+                fpath_mesh_alpha500 = dataset.path_preprocess.joinpath(
+                    "mesh/alpha500/PAM/object_meshes", asset_name, "Aligned.ply"
+                )
                 mesh_alpha500 = Meshes.read_from_ply_file(fpath=fpath_mesh_alpha500)
-                mesh.verts *= mesh_alpha500.get_range1d().to(mesh.verts.device) / mesh.get_range1d()
-                fpath_mesh = dataset.path_preprocess.joinpath("mesh/common3d/PAM/object_meshes", asset_name, "Aligned.ply")
+                mesh.verts *= (
+                    mesh_alpha500.get_range1d().to(mesh.verts.device)
+                    / mesh.get_range1d()
+                )
+                fpath_mesh = dataset.path_preprocess.joinpath(
+                    "mesh/common3d/PAM/object_meshes", asset_name, "Aligned.ply"
+                )
                 fpath_mesh.parent.mkdir(exist_ok=True, parents=True)
                 mesh.write_to_file(fpath_mesh)
 
@@ -748,7 +880,10 @@ class NeMo(OD3D_Method):
                 self.net_pose.eval()
             self.meshes.eval()
 
-        if self.config.train.get("epoch_cat_verts_requires_grad_stop", 9999999) <= self.scheduler.last_epoch:
+        if (
+            self.config.train.get("epoch_cat_verts_requires_grad_stop", 9999999)
+            <= self.scheduler.last_epoch
+        ):
             self.meshes.set_verts_requires_grad(False)
 
         self.optim.zero_grad()
@@ -770,7 +905,10 @@ class NeMo(OD3D_Method):
                 results_batch.log_with_prefix("train")
             if not val:
                 accumulate_steps += 1
-                if accumulate_steps % self.config.train.batch_accumulate_to_next_step == 0:
+                if (
+                    accumulate_steps % self.config.train.batch_accumulate_to_next_step
+                    == 0
+                ):
                     if self.back_propagate:
                         self.optim.step()
                         self.optim.zero_grad()
@@ -799,9 +937,12 @@ class NeMo(OD3D_Method):
         from od3d.cv.geometry.objects3d.dmtet_x_gaussians import DMTet_x_Gaussians
         from od3d.cv.geometry.objects3d.dmtet import DMTet
         from od3d.cv.geometry.objects3d.flexicubes import Flexicubes
-        if (isinstance(self.meshes, DMTet_x_Gaussians) or
-                 isinstance(self.meshes, DMTet) or
-                 isinstance(self.meshes, Flexicubes)):
+
+        if (
+            isinstance(self.meshes, DMTet_x_Gaussians)
+            or isinstance(self.meshes, DMTet)
+            or isinstance(self.meshes, Flexicubes)
+        ):
             self.meshes.update_dmtet(require_feats_grad=True)
 
         elif "coarse" in self.config.train.loss.appear.type:
@@ -811,36 +952,71 @@ class NeMo(OD3D_Method):
         batch.to(device=self.device)
 
         cam_tform4x4_obj = batch.cam_tform4x4_obj.detach().clone()
-        if self.pseudo_labels_fraction > 0.:
-            seq_names = ['/'.join(name_unique.split('/')[:-1]) for name_unique in batch.name_unique]
+        if self.pseudo_labels_fraction > 0.0:
+            seq_names = [
+                "/".join(name_unique.split("/")[:-1])
+                for name_unique in batch.name_unique
+            ]
             for b in range(B):
                 if torch.rand(1)[0] < self.pseudo_labels_fraction:
-                    pseudo_tform_obj_b = self.pseudo_tform4x4_obj[seq_names[b]].detach().clone().to(cam_tform4x4_obj.device)
+                    pseudo_tform_obj_b = (
+                        self.pseudo_tform4x4_obj[seq_names[b]]
+                        .detach()
+                        .clone()
+                        .to(cam_tform4x4_obj.device)
+                    )
 
                     if OD3D_FRAME_MODALITIES.MESH in batch.modalities:
-                        mesh_verts = batch.mesh.get_verts_with_mesh_id(mesh_id=batch.category_id[b]).to(
-                            device=self.device).clone()
-                        mesh_verts = transf3d_broadcast(pts3d=mesh_verts, transf4x4=pseudo_tform_obj_b)
-                        transl = -(mesh_verts.max(dim=0)[0] + mesh_verts.min(dim=0)[0]) / 2.
+                        mesh_verts = (
+                            batch.mesh.get_verts_with_mesh_id(
+                                mesh_id=batch.category_id[b]
+                            )
+                            .to(
+                                device=self.device,
+                            )
+                            .clone()
+                        )
+                        mesh_verts = transf3d_broadcast(
+                            pts3d=mesh_verts, transf4x4=pseudo_tform_obj_b
+                        )
+                        transl = (
+                            -(mesh_verts.max(dim=0)[0] + mesh_verts.min(dim=0)[0]) / 2.0
+                        )
                         pseudo_tform_obj_b[:3, 3] += transl
 
-                        mesh_verts = batch.mesh.get_verts_with_mesh_id(mesh_id=batch.category_id[b], clone=True).to(
-                            device=self.device)
-                        mesh_verts = transf3d_broadcast(pts3d=mesh_verts, transf4x4=pseudo_tform_obj_b)
-                        scale = 1. / mesh_verts.abs().max()
+                        mesh_verts = batch.mesh.get_verts_with_mesh_id(
+                            mesh_id=batch.category_id[b], clone=True
+                        ).to(
+                            device=self.device,
+                        )
+                        mesh_verts = transf3d_broadcast(
+                            pts3d=mesh_verts, transf4x4=pseudo_tform_obj_b
+                        )
+                        scale = 1.0 / mesh_verts.abs().max()
                         pseudo_tform_obj_b[:3, :] *= scale
 
-                        mesh_verts = batch.mesh.get_verts_with_mesh_id(mesh_id=batch.category_id[b], clone=True).to(
-                            device=self.device)
-                        mesh_verts = transf3d_broadcast(mesh_verts, transf4x4=pseudo_tform_obj_b)
-                        batch.mesh.set_verts_with_mesh_id(value=mesh_verts, mesh_id=batch.category_id[b])
+                        mesh_verts = batch.mesh.get_verts_with_mesh_id(
+                            mesh_id=batch.category_id[b], clone=True
+                        ).to(
+                            device=self.device,
+                        )
+                        mesh_verts = transf3d_broadcast(
+                            mesh_verts, transf4x4=pseudo_tform_obj_b
+                        )
+                        batch.mesh.set_verts_with_mesh_id(
+                            value=mesh_verts, mesh_id=batch.category_id[b]
+                        )
 
                         if OD3D_FRAME_MODALITIES.PCL in batch.modalities:
-                            batch.pcl[b] = transf3d_broadcast(batch.pcl[b].to(self.device), pseudo_tform_obj_b)
+                            batch.pcl[b] = transf3d_broadcast(
+                                batch.pcl[b].to(self.device), pseudo_tform_obj_b
+                            )
                     else:
                         logger.info("no mesh in batch to normalize object space.")
 
-                    cam_tform4x4_obj[b] = tform4x4(cam_tform4x4_obj[b], inv_tform4x4(pseudo_tform_obj_b))
+                    cam_tform4x4_obj[b] = tform4x4(
+                        cam_tform4x4_obj[b], inv_tform4x4(pseudo_tform_obj_b)
+                    )
                     scale = (
                         cam_tform4x4_obj[b][:3, :3]
                         .norm(dim=-1, keepdim=True)
@@ -870,8 +1046,15 @@ class NeMo(OD3D_Method):
         feats2d_img = net_out.featmap
         logger.info(f"categories {batch.category_id}")
 
-        if self.config.train.get("epoch_inst_def_start", 0) <= self.scheduler.last_epoch:
-            instance_deform = self.meshes.get_instance_deform(backbone_out, img_feats_canonical=feats2d_img, objects_ids=batch.category_id)
+        if (
+            self.config.train.get("epoch_inst_def_start", 0)
+            <= self.scheduler.last_epoch
+        ):
+            instance_deform = self.meshes.get_instance_deform(
+                backbone_out,
+                img_feats_canonical=feats2d_img,
+                objects_ids=batch.category_id,
+            )
         else:
             instance_deform = None
 
@@ -899,28 +1082,42 @@ class NeMo(OD3D_Method):
         losses = []
         losses_names = []
         if self.net_pose is not None and self.config.train.loss.pose.weight is not None:
-            cam_tform4x4_objs = self.pred_poses(backbone_out=backbone_out, cam_intr4x4=batch.cam_intr4x4,
-                                                size=batch.size, cam_tform4x4_obj=batch.cam_tform4x4_obj)
+            cam_tform4x4_objs = self.pred_poses(
+                backbone_out=backbone_out,
+                cam_intr4x4=batch.cam_intr4x4,
+                size=batch.size,
+                cam_tform4x4_obj=batch.cam_tform4x4_obj,
+            )
             from od3d.cv.geometry.transform import matrix_to_rotation_6d
+
             pred_cam_rot6d_objs = matrix_to_rotation_6d(cam_tform4x4_objs[..., :3, :3])
-            gt_cam_rot6d_objs = matrix_to_rotation_6d(batch.cam_tform4x4_obj[..., :3, :3])
+            gt_cam_rot6d_objs = matrix_to_rotation_6d(
+                batch.cam_tform4x4_obj[..., :3, :3]
+            )
 
             pred_cam_transl3d_objs = cam_tform4x4_objs[..., :3, 3]
             gt_cam_transl3d_objs = batch.cam_tform4x4_obj[..., :3, 3]
 
-            pred_othant = pred_cam_rot6d_objs[..., self.net_pose_rotations_othant].sign()
+            pred_othant = pred_cam_rot6d_objs[
+                ..., self.net_pose_rotations_othant
+            ].sign()
             gt_othant = gt_cam_rot6d_objs[..., self.net_pose_rotations_othant].sign()
-            mask_othant_equal = (pred_othant == gt_othant[:, None,]).all(dim=-1)
+            mask_othant_equal = (pred_othant == gt_othant[:, None]).all(dim=-1)
             pred_cam_rot6d_objs_sel = pred_cam_rot6d_objs[mask_othant_equal]
             pred_cam_transl3d_objs_sel = pred_cam_transl3d_objs[mask_othant_equal]
-            loss_pose = ((pred_cam_rot6d_objs_sel - gt_cam_rot6d_objs) ** 2).mean() + ((pred_cam_transl3d_objs_sel - gt_cam_transl3d_objs) ** 2).mean()
+            loss_pose = ((pred_cam_rot6d_objs_sel - gt_cam_rot6d_objs) ** 2).mean() + (
+                (pred_cam_transl3d_objs_sel - gt_cam_transl3d_objs) ** 2
+            ).mean()
 
             loss_pose = loss_pose * self.config.train.loss.pose.weight
             results_batch["loss_pose"] = loss_pose[None,].detach()
             losses.append(loss_pose)
-            losses_names.append('pose')
+            losses_names.append("pose")
 
-        if self.config.train.loss.appear.weight > 0. and self.config.train.get("epoch_app_start", 0) <= self.scheduler.last_epoch:
+        if (
+            self.config.train.loss.appear.weight > 0.0
+            and self.config.train.get("epoch_app_start", 0) <= self.scheduler.last_epoch
+        ):
             if "cross_entropy" in self.config.train.loss.appear.type:
                 add_other_objects = self.config.train.get("inter_class_loss", True)
                 (
@@ -1001,14 +1198,21 @@ class NeMo(OD3D_Method):
                         labels = labels[labels_mask]
 
                 if sim.dim() == 3:
-                    sim_batchwise = (sim.max(dim=1).values * labels_mask).flatten(1).sum(
+                    sim_batchwise = (sim.max(dim=1).values * labels_mask).flatten(
+                        1
+                    ).sum(
                         dim=-1,
-                    ) / (labels_mask.flatten(1).sum(dim=-1) + 1e-6).detach()
+                    ) / (
+                        labels_mask.flatten(1).sum(dim=-1) + 1e-6
+                    ).detach()
                     sim = sim.permute(0, 2, 1)[labels_mask]
                 else:
                     sim_batchwise = sim.max(dim=1).values.flatten(1).mean(dim=-1)
 
-            elif "sim_max" in self.config.train.loss.appear.type or "sim_neg_mse_max" in self.config.train.loss.appear.type:
+            elif (
+                "sim_max" in self.config.train.loss.appear.type
+                or "sim_neg_mse_max" in self.config.train.loss.appear.type
+            ):
                 sim_batchwise = self.meshes.get_sim_render(
                     feats2d_img=feats2d_img,
                     cams_tform4x4_obj=cam_tform4x4_obj,
@@ -1023,7 +1227,7 @@ class NeMo(OD3D_Method):
                     add_other_objects=False,
                     temp=self.config.train.T,
                     instance_deform=instance_deform,
-                    use_neg_mse="sim_neg_mse_max" in self.config.train.loss.appear.type
+                    use_neg_mse="sim_neg_mse_max" in self.config.train.loss.appear.type,
                 )
                 sim = sim_batchwise.mean()
                 noise_pxl2d = None
@@ -1032,14 +1236,21 @@ class NeMo(OD3D_Method):
 
             if "cross_entropy" in self.config.train.loss.appear.type:
                 if sim.dim() == 4:
-                    sim = self.loss_appear_dropout(sim.flatten(2).permute(0, 2, 1)).permute(0, 2, 1).reshape(*sim.shape)
+                    sim = (
+                        self.loss_appear_dropout(sim.flatten(2).permute(0, 2, 1))
+                        .permute(0, 2, 1)
+                        .reshape(*sim.shape)
+                    )
                 elif sim.dim() == 2:
                     sim = self.loss_appear_dropout(sim)
                 else:
                     raise NotImplementedError
 
                 loss_app = self.criterion(sim, labels)
-            elif "sim_max" in self.config.train.loss.appear.type or "sim_neg_mse_max" in self.config.train.loss.appear.type:
+            elif (
+                "sim_max" in self.config.train.loss.appear.type
+                or "sim_neg_mse_max" in self.config.train.loss.appear.type
+            ):
                 loss_app = -sim
             else:
                 raise ValueError(f"Unknown loss {self.config.train.loss.appear.type}")
@@ -1047,64 +1258,95 @@ class NeMo(OD3D_Method):
             loss_app = loss_app * self.config.train.loss.appear.weight
             results_batch["loss_app"] = loss_app[None,].detach()
             losses.append(loss_app)
-            losses_names.append('app')
+            losses_names.append("app")
         else:
             noise_pxl2d = None
             sim_batchwise = None
-            loss_app = torch.ones([]).to(device=self.device) *  self.config.train.loss.appear.weight * 10.
+            loss_app = (
+                torch.ones([]).to(device=self.device)
+                * self.config.train.loss.appear.weight
+                * 10.0
+            )
             results_batch["loss_app"] = loss_app[None,].detach()
             losses.append(loss_app)
-            losses_names.append('app')
-
+            losses_names.append("app")
 
         if self.config.train.get("replace_mask_with_rendered_mask", False):
-            batch.mask = batch.mesh.render(modalities='mask', cams_tform4x4_obj=batch.cam_tform4x4_obj,
-                                           cams_intr4x4=batch.cam_intr4x4, imgs_sizes=batch.size,
-                                           broadcast_batch_and_cams=False) > 0.5
+            batch.mask = (
+                batch.mesh.render(
+                    modalities="mask",
+                    cams_tform4x4_obj=batch.cam_tform4x4_obj,
+                    cams_intr4x4=batch.cam_intr4x4,
+                    imgs_sizes=batch.size,
+                    broadcast_batch_and_cams=False,
+                )
+                > 0.5
+            )
 
-        #from od3d.cv.visual.show import show_scene
-        #show_scene(meshes=batch.mesh[0:2])
+        # from od3d.cv.visual.show import show_scene
+        # show_scene(meshes=batch.mesh[0:2])
 
-        geo_mask_vals = self.get_geo_mask_metrics(batch=batch, cam_tform4x4_obj=cam_tform4x4_obj,
-                                                  instance_deform=instance_deform,
-                                                  metrics=['iou', 'mse', 'overlap_dt', 'overlap_inv_dt'])
+        geo_mask_vals = self.get_geo_mask_metrics(
+            batch=batch,
+            cam_tform4x4_obj=cam_tform4x4_obj,
+            instance_deform=instance_deform,
+            metrics=["iou", "mse", "overlap_dt", "overlap_inv_dt"],
+        )
 
-        if self.config.train.loss.geo.mask.weight > 0.:
-            loss_geo_mask = -geo_mask_vals['iou']
-            loss_geo_mask = loss_geo_mask.mean() * self.config.train.loss.geo.mask.weight
+        if self.config.train.loss.geo.mask.weight > 0.0:
+            loss_geo_mask = -geo_mask_vals["iou"]
+            loss_geo_mask = (
+                loss_geo_mask.mean() * self.config.train.loss.geo.mask.weight
+            )
 
             results_batch["loss_geo_mask"] = loss_geo_mask[None,].detach()
             losses.append(loss_geo_mask)
-            losses_names.append('geo_mask')
+            losses_names.append("geo_mask")
 
-        if self.config.train.loss.geo.mask_mse.weight > 0.:
-            loss_geo_mask_mse = geo_mask_vals['mse']
-            loss_geo_mask_mse = loss_geo_mask_mse.mean() * self.config.train.loss.geo.mask_mse.weight
+        if self.config.train.loss.geo.mask_mse.weight > 0.0:
+            loss_geo_mask_mse = geo_mask_vals["mse"]
+            loss_geo_mask_mse = (
+                loss_geo_mask_mse.mean() * self.config.train.loss.geo.mask_mse.weight
+            )
             results_batch["loss_geo_mask_mse"] = loss_geo_mask_mse[None,].detach()
             losses.append(loss_geo_mask_mse)
-            losses_names.append('geo_mask_mse')
+            losses_names.append("geo_mask_mse")
 
-        if self.config.train.loss.geo.mask_dt.weight > 0. and 'overlap_dt' in geo_mask_vals:
-            loss_geo_mask_dt = -geo_mask_vals['overlap_dt']
-            loss_geo_mask_dt = loss_geo_mask_dt.mean() * self.config.train.loss.geo.mask_dt.weight
+        if (
+            self.config.train.loss.geo.mask_dt.weight > 0.0
+            and "overlap_dt" in geo_mask_vals
+        ):
+            loss_geo_mask_dt = -geo_mask_vals["overlap_dt"]
+            loss_geo_mask_dt = (
+                loss_geo_mask_dt.mean() * self.config.train.loss.geo.mask_dt.weight
+            )
             results_batch["loss_geo_mask_dt"] = loss_geo_mask_dt[None,].detach()
             losses.append(loss_geo_mask_dt)
-            losses_names.append('geo_mask_dt')
+            losses_names.append("geo_mask_dt")
 
-        if self.config.train.loss.geo.mask_inv_dt.weight > 0. and 'overlap_inv_dt' in geo_mask_vals:
-            loss_geo_mask_inv_dt = -geo_mask_vals['overlap_inv_dt']
-            loss_geo_mask_inv_dt = loss_geo_mask_inv_dt.mean() * self.config.train.loss.geo.mask_inv_dt.weight
+        if (
+            self.config.train.loss.geo.mask_inv_dt.weight > 0.0
+            and "overlap_inv_dt" in geo_mask_vals
+        ):
+            loss_geo_mask_inv_dt = -geo_mask_vals["overlap_inv_dt"]
+            loss_geo_mask_inv_dt = (
+                loss_geo_mask_inv_dt.mean()
+                * self.config.train.loss.geo.mask_inv_dt.weight
+            )
             results_batch["loss_geo_mask_inv_dt"] = loss_geo_mask_inv_dt[None,].detach()
             losses.append(loss_geo_mask_inv_dt)
-            losses_names.append('geo_mask_inv_dt')
+            losses_names.append("geo_mask_inv_dt")
 
-        if self.config.train.loss.geo.rec.weight > 0.:
-            loss_geo = self.get_geo_loss(batch=batch, instance_deform=instance_deform,
-                                         rec_type=self.config.train.loss.geo.rec.type)
+        if self.config.train.loss.geo.rec.weight > 0.0:
+            loss_geo = self.get_geo_loss(
+                batch=batch,
+                instance_deform=instance_deform,
+                rec_type=self.config.train.loss.geo.rec.type,
+            )
             loss_geo = loss_geo.mean() * self.config.train.loss.geo.rec.weight
             results_batch["loss_geo"] = loss_geo[None,].detach()
             losses.append(loss_geo)
-            losses_names.append('geo')
+            losses_names.append("geo")
 
             """
             self.config.train.loss.appear.type
@@ -1118,7 +1360,7 @@ class NeMo(OD3D_Method):
               smooth_loss: False
               weight: 0.01
             geo:
-              rec: 
+              rec:
                 weight: 1.
               smooth:
                 weight: 1.
@@ -1128,86 +1370,139 @@ class NeMo(OD3D_Method):
         from od3d.cv.geometry.objects3d.dmtet_x_gaussians import DMTet_x_Gaussians
         from od3d.cv.geometry.objects3d.dmtet import DMTet
         from od3d.cv.geometry.objects3d.flexicubes import Flexicubes
-        if self.config.train.loss.geo.smooth.weight > 0. and (instance_deform is not None or
-                                                              not (isinstance(self.meshes, DMTet_x_Gaussians) or
-                                                                   isinstance(self.meshes, DMTet) or
-                                                                   isinstance(self.meshes, Flexicubes))):
+
+        if self.config.train.loss.geo.smooth.weight > 0.0 and (
+            instance_deform is not None
+            or not (
+                isinstance(self.meshes, DMTet_x_Gaussians)
+                or isinstance(self.meshes, DMTet)
+                or isinstance(self.meshes, Flexicubes)
+            )
+        ):
             loss_geo_smooth = None
             if instance_deform is not None:
-                loss_geo_smooth = self.meshes.get_geo_smooth_loss(objects_ids=batch.category_id,
-                                                                  instance_deform=instance_deform,
-                                                                  detach_objects_verts=True)
-            if not (isinstance(self.meshes, DMTet_x_Gaussians) or isinstance(self.meshes, DMTet) or
-                    isinstance(self.meshes, Flexicubes)):
-                loss_geo_smooth_cat = self.meshes.get_geo_smooth_loss(objects_ids=batch.category_id,
-                                                                      instance_deform=None)
+                loss_geo_smooth = self.meshes.get_geo_smooth_loss(
+                    objects_ids=batch.category_id,
+                    instance_deform=instance_deform,
+                    detach_objects_verts=True,
+                )
+            if not (
+                isinstance(self.meshes, DMTet_x_Gaussians)
+                or isinstance(self.meshes, DMTet)
+                or isinstance(self.meshes, Flexicubes)
+            ):
+                loss_geo_smooth_cat = self.meshes.get_geo_smooth_loss(
+                    objects_ids=batch.category_id,
+                    instance_deform=None,
+                )
                 if loss_geo_smooth is None:
                     loss_geo_smooth = loss_geo_smooth_cat
                 else:
                     loss_geo_smooth += loss_geo_smooth_cat
-                    loss_geo_smooth /= 2.
+                    loss_geo_smooth /= 2.0
 
-            loss_geo_smooth = loss_geo_smooth.mean() * self.config.train.loss.geo.smooth.weight
+            loss_geo_smooth = (
+                loss_geo_smooth.mean() * self.config.train.loss.geo.smooth.weight
+            )
             results_batch["loss_geo_smooth"] = loss_geo_smooth[None,].detach()
             losses.append(loss_geo_smooth)
-            losses_names.append('geo_smooth')
+            losses_names.append("geo_smooth")
 
-        if self.config.train.loss.geo.sdf_reg.weight > 0. and (isinstance(self.meshes, DMTet_x_Gaussians) or
-                                                               isinstance(self.meshes, DMTet) or
-                                                               isinstance(self.meshes, Flexicubes)):
-            loss_geo_sdf_reg = self.meshes.get_geo_sdf_reg_loss(objects_ids=batch.category_id)
-            loss_geo_sdf_reg = loss_geo_sdf_reg.mean() * self.config.train.loss.geo.sdf_reg.weight
+        if self.config.train.loss.geo.sdf_reg.weight > 0.0 and (
+            isinstance(self.meshes, DMTet_x_Gaussians)
+            or isinstance(self.meshes, DMTet)
+            or isinstance(self.meshes, Flexicubes)
+        ):
+            loss_geo_sdf_reg = self.meshes.get_geo_sdf_reg_loss(
+                objects_ids=batch.category_id
+            )
+            loss_geo_sdf_reg = (
+                loss_geo_sdf_reg.mean() * self.config.train.loss.geo.sdf_reg.weight
+            )
             results_batch["loss_geo_sdf_reg"] = loss_geo_sdf_reg[None,].detach()
             losses.append(loss_geo_sdf_reg)
-            losses_names.append('geo_sdf_reg')
+            losses_names.append("geo_sdf_reg")
 
-        if self.config.train.loss.geo.deform_reg.weight > 0.:
+        if self.config.train.loss.geo.deform_reg.weight > 0.0:
             if instance_deform is not None:
                 loss_deform_reg = instance_deform.verts_deform.norm(p=2, dim=-1).mean()
             else:
                 loss_deform_reg = torch.zeros([]).to(device=self.device)
 
-            loss_deform_reg = loss_deform_reg * self.config.train.loss.geo.deform_reg.weight
+            loss_deform_reg = (
+                loss_deform_reg * self.config.train.loss.geo.deform_reg.weight
+            )
             results_batch["loss_deform_reg"] = loss_deform_reg[None,].detach()
             losses.append(loss_deform_reg)
-            losses_names.append('geo_deform_reg')
+            losses_names.append("geo_deform_reg")
 
-        if self.config.train.loss.geo.deform_latent_reg.weight > 0. and instance_deform is not None and instance_deform.latent is not None:
+        if (
+            self.config.train.loss.geo.deform_latent_reg.weight > 0.0
+            and instance_deform is not None
+            and instance_deform.latent is not None
+        ):
+            if self.config.train.loss.geo.deform_latent_reg.type == "unit":
+                loss_geo_deform_latent_reg = (
+                    instance_deform.latent.norm(dim=-1) - 1.0
+                ).abs() ** 2
+                loss_geo_deform_latent_reg = (
+                    loss_geo_deform_latent_reg.mean()
+                    * self.config.train.loss.geo.deform_latent_reg.weight
+                )
 
-            if self.config.train.loss.geo.deform_latent_reg.type == 'unit':
-                loss_geo_deform_latent_reg = (instance_deform.latent.norm(dim=-1) - 1.).abs() ** 2
-                loss_geo_deform_latent_reg = loss_geo_deform_latent_reg.mean() * self.config.train.loss.geo.deform_latent_reg.weight
-
-            elif self.config.train.loss.geo.deform_latent_reg.type == 'kl':
-                if instance_deform.latent_mu is None or instance_deform.latent_logvar is None:
+            elif self.config.train.loss.geo.deform_latent_reg.type == "kl":
+                if (
+                    instance_deform.latent_mu is None
+                    or instance_deform.latent_logvar is None
+                ):
                     logger.warning("latent distribution is missing to calculate kl")
                     loss_geo_deform_latent_reg = torch.zeros([]).to(device=self.device)
                 else:
-                    loss_geo_deform_latent_reg = -0.5 * (1 + instance_deform.latent_logvar - instance_deform.latent_mu.pow(2) - instance_deform.latent_logvar.exp()).mean() * self.config.train.loss.geo.deform_latent_reg.weight
+                    loss_geo_deform_latent_reg = (
+                        -0.5
+                        * (
+                            1
+                            + instance_deform.latent_logvar
+                            - instance_deform.latent_mu.pow(2)
+                            - instance_deform.latent_logvar.exp()
+                        ).mean()
+                        * self.config.train.loss.geo.deform_latent_reg.weight
+                    )
                     # Compute the Kullback-Leibler divergence between the learned latent variable distribution and a standard Gaussian distribution
                     # KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-            results_batch["loss_geo_deform_latent_reg"] = loss_geo_deform_latent_reg[None,].detach()
+            results_batch["loss_geo_deform_latent_reg"] = loss_geo_deform_latent_reg[
+                None,
+            ].detach()
             losses.append(loss_geo_deform_latent_reg)
-            losses_names.append('geo_deform_latent_reg')
+            losses_names.append("geo_deform_latent_reg")
 
-        if self.config.train.loss.geo.deform_smooth_reg.weight > 0.:
+        if self.config.train.loss.geo.deform_smooth_reg.weight > 0.0:
             if instance_deform is not None:
                 loss_deform_smooth_reg = self.meshes.get_geo_deform_smooth_loss(
-                    objects_ids=batch.category_id, instance_deform=instance_deform) # .mean()
+                    objects_ids=batch.category_id,
+                    instance_deform=instance_deform,
+                )  # .mean()
             else:
                 loss_deform_smooth_reg = torch.zeros([]).to(device=self.device)
 
-            loss_deform_smooth_reg = loss_deform_smooth_reg * self.config.train.loss.geo.deform_smooth_reg.weight
-            results_batch["loss_deform_smooth_reg"] = loss_deform_smooth_reg[None,].detach()
+            loss_deform_smooth_reg = (
+                loss_deform_smooth_reg
+                * self.config.train.loss.geo.deform_smooth_reg.weight
+            )
+            results_batch["loss_deform_smooth_reg"] = loss_deform_smooth_reg[
+                None,
+            ].detach()
             losses.append(loss_deform_smooth_reg)
-            losses_names.append('geo_deform_smooth_reg')
+            losses_names.append("geo_deform_smooth_reg")
 
         if len(losses) > 0:
             for l in range(len(losses)):
                 if losses[l].isnan().any():
-                    logger.warning(f'Loss {losses_names[l]} contains NaNs. Setting it to zero.')
-                    losses[l][:] = 0.
+                    logger.warning(
+                        f"Loss {losses_names[l]} contains NaNs. Setting it to zero."
+                    )
+                    losses[l][:] = 0.0
 
             loss = torch.stack(losses).sum(dim=0)
             loss = loss / self.config.train.batch_accumulate_to_next_step
@@ -1246,8 +1541,14 @@ class NeMo(OD3D_Method):
 
         return results_batch
 
-    def get_geo_mask_metrics(self, batch, cam_tform4x4_obj=None, pred_masks=None,
-                             instance_deform=None, metrics=['iou']):
+    def get_geo_mask_metrics(
+        self,
+        batch,
+        cam_tform4x4_obj=None,
+        pred_masks=None,
+        instance_deform=None,
+        metrics=["iou"],
+    ):
         B = len(batch)
         vals = {}
         if pred_masks is None:
@@ -1259,54 +1560,80 @@ class NeMo(OD3D_Method):
                 objects_ids=batch.category_id,
                 modalities=PROJECT_MODALITIES.MASK,
                 instance_deform=instance_deform,
-                down_sample_rate=self.down_sample_rate
+                down_sample_rate=self.down_sample_rate,
             )
 
-        gt_masks = resize((batch.mask > 0.5) * 1., H_out=pred_masks.shape[-2], W_out=pred_masks.shape[-1])
+        gt_masks = resize(
+            (batch.mask > 0.5) * 1.0,
+            H_out=pred_masks.shape[-2],
+            W_out=pred_masks.shape[-1],
+        )
         if OD3D_FRAME_MODALITIES.RGB_MASK in batch.modalities:
-            rgb_mask_resized = resize(batch.rgb_mask, H_out=pred_masks.shape[-2], W_out=pred_masks.shape[-1],
-                                      mode='nearest_v2')
+            rgb_mask_resized = resize(
+                batch.rgb_mask,
+                H_out=pred_masks.shape[-2],
+                W_out=pred_masks.shape[-1],
+                mode="nearest_v2",
+            )
             gt_masks *= rgb_mask_resized
             pred_masks *= rgb_mask_resized
 
         for metric in metrics:
-            if metric == 'iou':
-                iou = ((gt_masks * pred_masks).flatten(1).sum(dim=-1) / (
-                    ((gt_masks * pred_masks) + ((1. - gt_masks) * pred_masks) + (
-                                (1. - pred_masks) * gt_masks))).detach().flatten(1).sum(dim=-1) + 1e-10)
+            if metric == "iou":
+                iou = (gt_masks * pred_masks).flatten(1).sum(dim=-1) / (
+                    (gt_masks * pred_masks)
+                    + ((1.0 - gt_masks) * pred_masks)
+                    + ((1.0 - pred_masks) * gt_masks)
+                ).detach().flatten(1).sum(dim=-1) + 1e-10
                 vals[metric] = iou
 
-            elif metric == 'iou_amodal':
+            elif metric == "iou_amodal":
                 gt_masks_amod = batch.mesh.render(
                     cams_tform4x4_obj=batch.cam_tform4x4_obj,
                     cams_intr4x4=batch.cam_intr4x4,
                     imgs_sizes=batch.size,
                     modalities=PROJECT_MODALITIES.MASK,
-                    down_sample_rate=self.down_sample_rate
+                    down_sample_rate=self.down_sample_rate,
                 )
                 if OD3D_FRAME_MODALITIES.RGB_MASK in batch.modalities:
                     gt_masks_amod *= rgb_mask_resized
-                iou = ((gt_masks_amod * pred_masks).flatten(1).sum(dim=-1) / (
-                    ((gt_masks_amod * pred_masks) + ((1. - gt_masks_amod) * pred_masks) + (
-                                (1. - pred_masks) * gt_masks_amod))).detach().flatten(1).sum(dim=-1) + 1e-10)
+                iou = (gt_masks_amod * pred_masks).flatten(1).sum(dim=-1) / (
+                    (gt_masks_amod * pred_masks)
+                    + ((1.0 - gt_masks_amod) * pred_masks)
+                    + ((1.0 - pred_masks) * gt_masks_amod)
+                ).detach().flatten(1).sum(dim=-1) + 1e-10
                 vals[metric] = iou
 
-            elif metric == 'mse':
+            elif metric == "mse":
                 mse = ((gt_masks - pred_masks) ** 2).flatten(1).mean(dim=-1)
                 vals[metric] = mse
 
-            elif metric == 'overlap_dt' and OD3D_FRAME_MODALITIES.MASK_DT in batch.modalities:
-                gt_masks_dt = resize(batch.mask_dt, H_out=pred_masks.shape[-2], W_out=pred_masks.shape[-1])
+            elif (
+                metric == "overlap_dt"
+                and OD3D_FRAME_MODALITIES.MASK_DT in batch.modalities
+            ):
+                gt_masks_dt = resize(
+                    batch.mask_dt,
+                    H_out=pred_masks.shape[-2],
+                    W_out=pred_masks.shape[-1],
+                )
                 if OD3D_FRAME_MODALITIES.RGB_MASK in batch.modalities:
                     gt_masks_dt *= rgb_mask_resized
                 iou = (gt_masks_dt * pred_masks).flatten(1).mean(dim=-1)
                 vals[metric] = iou
 
-            elif metric == 'overlap_inv_dt' and OD3D_FRAME_MODALITIES.MASK_INV_DT in batch.modalities:
-                gt_masks_inv_dt = resize(batch.mask_inv_dt, H_out=pred_masks.shape[-2], W_out=pred_masks.shape[-1])
+            elif (
+                metric == "overlap_inv_dt"
+                and OD3D_FRAME_MODALITIES.MASK_INV_DT in batch.modalities
+            ):
+                gt_masks_inv_dt = resize(
+                    batch.mask_inv_dt,
+                    H_out=pred_masks.shape[-2],
+                    W_out=pred_masks.shape[-1],
+                )
                 if OD3D_FRAME_MODALITIES.RGB_MASK in batch.modalities:
                     gt_masks_inv_dt *= rgb_mask_resized
-                pred_masks_inv = 1. - pred_masks.clone()
+                pred_masks_inv = 1.0 - pred_masks.clone()
                 iou = (gt_masks_inv_dt * pred_masks_inv).flatten(1).mean(dim=-1)
                 vals[metric] = iou
 
@@ -1315,57 +1642,127 @@ class NeMo(OD3D_Method):
         else:
             return vals
 
-
-    def get_geo_loss(self, batch, instance_deform=None, rec_type='cd_mesh', gt_tform_obj=None):
+    def get_geo_loss(
+        self, batch, instance_deform=None, rec_type="cd_mesh", gt_tform_obj=None
+    ):
         # types: cd_mesh, cd_pcl, pf_mesh, pf_pcl
-        if (rec_type == 'cd_mesh' or rec_type == 'pf_mesh' or rec_type == 'pf_mesh_v2' or rec_type == 'pf_mesh_v2_cd_mesh') and not OD3D_FRAME_MODALITIES.MESH in batch.modalities:
+        if (
+            rec_type == "cd_mesh"
+            or rec_type == "pf_mesh"
+            or rec_type == "pf_mesh_v2"
+            or rec_type == "pf_mesh_v2_cd_mesh"
+        ) and not OD3D_FRAME_MODALITIES.MESH in batch.modalities:
             loss_geo = torch.zeros(len(batch)).to(device=self.device)
-        elif (rec_type == 'cd_pcl' or rec_type == 'pf_pcl' or rec_type == 'pf_pcl_v2' or rec_type == 'pf_pcl_v2_cd_pcl') and not OD3D_FRAME_MODALITIES.PCL in batch.modalities:
+        elif (
+            rec_type == "cd_pcl"
+            or rec_type == "pf_pcl"
+            or rec_type == "pf_pcl_v2"
+            or rec_type == "pf_pcl_v2_cd_pcl"
+        ) and not OD3D_FRAME_MODALITIES.PCL in batch.modalities:
             loss_geo = torch.zeros(len(batch)).to(device=self.device)
 
         else:
             # BxVx3
-            pred_meshes_verts = self.meshes.get_verts_stacked_with_mesh_ids(batch.category_id).to(device=self.device)
+            pred_meshes_verts = self.meshes.get_verts_stacked_with_mesh_ids(
+                batch.category_id
+            ).to(device=self.device)
 
-            if rec_type == 'pf_mesh' or rec_type == 'pf_mesh_v2' or rec_type == 'pf_mesh_v2_cd_mesh' or rec_type == 'pf_pcl' or rec_type == 'pf_pcl_v2' or rec_type == 'pf_pcl_v2_cd_pcl':
-                pred_meshes_faces = self.meshes.get_faces_stacked_with_mesh_ids(batch.category_id).to(device=self.device)
-                pred_meshes_faces_mask = self.meshes.get_faces_stacked_mask_with_mesh_ids(batch.category_id).to(device=self.device)
+            if (
+                rec_type == "pf_mesh"
+                or rec_type == "pf_mesh_v2"
+                or rec_type == "pf_mesh_v2_cd_mesh"
+                or rec_type == "pf_pcl"
+                or rec_type == "pf_pcl_v2"
+                or rec_type == "pf_pcl_v2_cd_pcl"
+            ):
+                pred_meshes_faces = self.meshes.get_faces_stacked_with_mesh_ids(
+                    batch.category_id
+                ).to(device=self.device)
+                pred_meshes_faces_mask = (
+                    self.meshes.get_faces_stacked_mask_with_mesh_ids(
+                        batch.category_id
+                    ).to(device=self.device)
+                )
 
             if instance_deform is not None:
                 pred_meshes_verts += instance_deform.verts_deform
 
             if gt_tform_obj is not None:
-                pred_meshes_verts = transf3d_broadcast(pts3d=pred_meshes_verts, transf4x4=gt_tform_obj[:, None])
+                pred_meshes_verts = transf3d_broadcast(
+                    pts3d=pred_meshes_verts, transf4x4=gt_tform_obj[:, None]
+                )
 
-            pred_meshes_verts_mask = self.meshes.get_verts_stacked_mask_with_mesh_ids(batch.category_id).to(
-                device=self.device)
+            pred_meshes_verts_mask = self.meshes.get_verts_stacked_mask_with_mesh_ids(
+                batch.category_id
+            ).to(
+                device=self.device,
+            )
 
-            if (rec_type == 'cd_mesh' or rec_type == 'pf_mesh' or rec_type == 'pf_mesh_v2' or rec_type == 'pf_mesh_v2_cd_mesh') and OD3D_FRAME_MODALITIES.MESH in batch.modalities:
-                #pred_ranges = pred_meshes_verts.max(dim=1)[0] - pred_meshes_verts.min(dim=1)[0]
-                gt_meshes_verts = batch.mesh.get_verts_stacked_with_mesh_ids().to(device=self.device)
-                gt_meshes_verts_mask = batch.mesh.get_verts_stacked_mask_with_mesh_ids().to(device=self.device)
+            if (
+                rec_type == "cd_mesh"
+                or rec_type == "pf_mesh"
+                or rec_type == "pf_mesh_v2"
+                or rec_type == "pf_mesh_v2_cd_mesh"
+            ) and OD3D_FRAME_MODALITIES.MESH in batch.modalities:
+                # pred_ranges = pred_meshes_verts.max(dim=1)[0] - pred_meshes_verts.min(dim=1)[0]
+                gt_meshes_verts = batch.mesh.get_verts_stacked_with_mesh_ids().to(
+                    device=self.device
+                )
+                gt_meshes_verts_mask = (
+                    batch.mesh.get_verts_stacked_mask_with_mesh_ids().to(
+                        device=self.device
+                    )
+                )
 
-                if rec_type == 'cd_mesh':
-                    loss_geo = batch_chamfer_distance(pred_meshes_verts, gt_meshes_verts, pred_meshes_verts_mask,
-                                                      gt_meshes_verts_mask)
-                elif rec_type == 'pf_mesh':
-                    loss_geo = batch_point_face_distance(verts1=pred_meshes_verts, faces1=pred_meshes_faces,
-                                                         faces1_mask=pred_meshes_faces_mask,
-                                                         pts2=gt_meshes_verts, verts1_mask=pred_meshes_verts_mask,
-                                                         pts2_mask=gt_meshes_verts_mask)
-                elif rec_type == 'pf_mesh_v2':
-                    loss_geo = batch_point_face_distance_v2(verts1=pred_meshes_verts, faces1=pred_meshes_faces,
-                                                         faces1_mask=pred_meshes_faces_mask,
-                                                         pts2=gt_meshes_verts, verts1_mask=pred_meshes_verts_mask,
-                                                         pts2_mask=gt_meshes_verts_mask)
-                elif rec_type == 'pf_mesh_v2_cd_mesh':
-                    loss_geo = batch_chamfer_distance(gt_meshes_verts, pred_meshes_verts, gt_meshes_verts_mask, pred_meshes_verts_mask, only_pts2_nn=True, uniform_weight_pts1=False)
-                    loss_geo += batch_point_face_distance_v2(verts1=pred_meshes_verts, faces1=pred_meshes_faces,
-                                                            faces1_mask=pred_meshes_faces_mask,
-                                                            pts2=gt_meshes_verts, verts1_mask=pred_meshes_verts_mask,
-                                                            pts2_mask=gt_meshes_verts_mask)
+                if rec_type == "cd_mesh":
+                    loss_geo = batch_chamfer_distance(
+                        pred_meshes_verts,
+                        gt_meshes_verts,
+                        pred_meshes_verts_mask,
+                        gt_meshes_verts_mask,
+                    )
+                elif rec_type == "pf_mesh":
+                    loss_geo = batch_point_face_distance(
+                        verts1=pred_meshes_verts,
+                        faces1=pred_meshes_faces,
+                        faces1_mask=pred_meshes_faces_mask,
+                        pts2=gt_meshes_verts,
+                        verts1_mask=pred_meshes_verts_mask,
+                        pts2_mask=gt_meshes_verts_mask,
+                    )
+                elif rec_type == "pf_mesh_v2":
+                    loss_geo = batch_point_face_distance_v2(
+                        verts1=pred_meshes_verts,
+                        faces1=pred_meshes_faces,
+                        faces1_mask=pred_meshes_faces_mask,
+                        pts2=gt_meshes_verts,
+                        verts1_mask=pred_meshes_verts_mask,
+                        pts2_mask=gt_meshes_verts_mask,
+                    )
+                elif rec_type == "pf_mesh_v2_cd_mesh":
+                    loss_geo = batch_chamfer_distance(
+                        gt_meshes_verts,
+                        pred_meshes_verts,
+                        gt_meshes_verts_mask,
+                        pred_meshes_verts_mask,
+                        only_pts2_nn=True,
+                        uniform_weight_pts1=False,
+                    )
+                    loss_geo += batch_point_face_distance_v2(
+                        verts1=pred_meshes_verts,
+                        faces1=pred_meshes_faces,
+                        faces1_mask=pred_meshes_faces_mask,
+                        pts2=gt_meshes_verts,
+                        verts1_mask=pred_meshes_verts_mask,
+                        pts2_mask=gt_meshes_verts_mask,
+                    )
 
-            elif (rec_type == 'cd_pcl' or rec_type == 'pf_pcl' or rec_type == 'pf_pcl_v2' or rec_type == 'pf_pcl_v2_cd_pcl') and OD3D_FRAME_MODALITIES.PCL in batch.modalities:
+            elif (
+                rec_type == "cd_pcl"
+                or rec_type == "pf_pcl"
+                or rec_type == "pf_pcl_v2"
+                or rec_type == "pf_pcl_v2_cd_pcl"
+            ) and OD3D_FRAME_MODALITIES.PCL in batch.modalities:
                 B = len(batch.pcl)
                 N = max([batch.pcl[b].shape[0] for b in range(B)])
                 gt_pts3d = torch.zeros((B, N, 3)).to(device=self.device)
@@ -1375,33 +1772,57 @@ class NeMo(OD3D_Method):
                     gt_pts3d[b, :N_b] = batch.pcl[b]
                     gt_pts3d_mask[b, :N_b] = True
 
-
-                #from od3d.cv.visual.show import show_scene
-                #show_scene(pts3d=[pred_meshes_verts[0][pred_meshes_verts_mask[0]],gt_pts3d[0][gt_pts3d_mask[0]]])
-                if rec_type == 'cd_pcl':
-                    loss_geo = batch_chamfer_distance(pred_meshes_verts, gt_pts3d, pred_meshes_verts_mask, gt_pts3d_mask)
-                    #from od3d.cv.visual.show import show_scene
-                    #show_scene(pts3d=[pred_meshes_verts[0], gt_pts3d[0]])
-                elif rec_type == 'pf_pcl':
-                    loss_geo = batch_point_face_distance(verts1=pred_meshes_verts, faces1=pred_meshes_faces,
-                                                         faces1_mask=pred_meshes_faces_mask,
-                                                         pts2=gt_pts3d, verts1_mask=pred_meshes_verts_mask,
-                                                         pts2_mask=gt_pts3d_mask)
-                elif rec_type == 'pf_pcl_v2':
-                    loss_geo = batch_point_face_distance_v2(verts1=pred_meshes_verts, faces1=pred_meshes_faces,
-                                                            faces1_mask=pred_meshes_faces_mask,
-                                                            pts2=gt_pts3d, verts1_mask=pred_meshes_verts_mask,
-                                                            pts2_mask=gt_pts3d_mask)
-                elif rec_type == 'pf_pcl_v2_cd_pcl':
-                    loss_geo = batch_chamfer_distance(gt_pts3d, pred_meshes_verts, gt_pts3d_mask, pred_meshes_verts_mask, only_pts2_nn=True, uniform_weight_pts1=False)
-                    loss_geo += batch_point_face_distance_v2(verts1=pred_meshes_verts, faces1=pred_meshes_faces,
-                                                            faces1_mask=pred_meshes_faces_mask,
-                                                            pts2=gt_pts3d, verts1_mask=pred_meshes_verts_mask,
-                                                            pts2_mask=gt_pts3d_mask)
+                # from od3d.cv.visual.show import show_scene
+                # show_scene(pts3d=[pred_meshes_verts[0][pred_meshes_verts_mask[0]],gt_pts3d[0][gt_pts3d_mask[0]]])
+                if rec_type == "cd_pcl":
+                    loss_geo = batch_chamfer_distance(
+                        pred_meshes_verts,
+                        gt_pts3d,
+                        pred_meshes_verts_mask,
+                        gt_pts3d_mask,
+                    )
+                    # from od3d.cv.visual.show import show_scene
+                    # show_scene(pts3d=[pred_meshes_verts[0], gt_pts3d[0]])
+                elif rec_type == "pf_pcl":
+                    loss_geo = batch_point_face_distance(
+                        verts1=pred_meshes_verts,
+                        faces1=pred_meshes_faces,
+                        faces1_mask=pred_meshes_faces_mask,
+                        pts2=gt_pts3d,
+                        verts1_mask=pred_meshes_verts_mask,
+                        pts2_mask=gt_pts3d_mask,
+                    )
+                elif rec_type == "pf_pcl_v2":
+                    loss_geo = batch_point_face_distance_v2(
+                        verts1=pred_meshes_verts,
+                        faces1=pred_meshes_faces,
+                        faces1_mask=pred_meshes_faces_mask,
+                        pts2=gt_pts3d,
+                        verts1_mask=pred_meshes_verts_mask,
+                        pts2_mask=gt_pts3d_mask,
+                    )
+                elif rec_type == "pf_pcl_v2_cd_pcl":
+                    loss_geo = batch_chamfer_distance(
+                        gt_pts3d,
+                        pred_meshes_verts,
+                        gt_pts3d_mask,
+                        pred_meshes_verts_mask,
+                        only_pts2_nn=True,
+                        uniform_weight_pts1=False,
+                    )
+                    loss_geo += batch_point_face_distance_v2(
+                        verts1=pred_meshes_verts,
+                        faces1=pred_meshes_faces,
+                        faces1_mask=pred_meshes_faces_mask,
+                        pts2=gt_pts3d,
+                        verts1_mask=pred_meshes_verts_mask,
+                        pts2_mask=gt_pts3d_mask,
+                    )
             else:
-                logger.warning('should not end here, but set geo loss to zero.')
+                logger.warning("should not end here, but set geo loss to zero.")
                 loss_geo = torch.zeros(len(batch)).to(device=self.device)
         return loss_geo
+
     """
     def get_sim_cam_tform4x4_obj(self, batch, cam_intr4x4, cam_tform4x4_obj, broadcast_batch_and_cams=False):
         with torch.no_grad():
@@ -1425,8 +1846,13 @@ class NeMo(OD3D_Method):
         backbone_outs = []
         net_outs = []
 
-        from od3d.cv.select import batched_indexMD_select, batched_argminMD_select, batched_index_in_bounds
-        batch_categories = list(set([cat for cat in batch.category]))
+        from od3d.cv.select import (
+            batched_indexMD_select,
+            batched_argminMD_select,
+            batched_index_in_bounds,
+        )
+
+        batch_categories = list({cat for cat in batch.category})
 
         results[f"kpts2d_acc/pck01"] = []
         results[f"kpts2d_acc/pck005"] = []
@@ -1437,15 +1863,32 @@ class NeMo(OD3D_Method):
             results[f"kpts2d_acc/{cat}_pck005"] = []
             results[f"kpts2d_acc/{cat}_pck001"] = []
 
-        rgbs = torch.stack([torch.stack([batch.rgbs[b][f] for f in range(2)], dim=0) for b in range(B)], dim=0).detach()
+        rgbs = torch.stack(
+            [
+                torch.stack([batch.rgbs[b][f] for f in range(2)], dim=0)
+                for b in range(B)
+            ],
+            dim=0,
+        ).detach()
         with torch.no_grad():
-            backbone_outs, net_outs = self.net(rgbs.to(self.device).reshape(B*2, *rgbs.shape[2:]), return_backbone_output=True)
-            net_outs = net_outs.featmap.detach().reshape(B, 2, *net_outs.featmap.shape[1:])
-            backbone_outs = resize(backbone_outs.featmaps[-1].detach(), H_out=net_outs.shape[-2], W_out=net_outs.shape[-1])
+            backbone_outs, net_outs = self.net(
+                rgbs.to(self.device).reshape(B * 2, *rgbs.shape[2:]),
+                return_backbone_output=True,
+            )
+            net_outs = net_outs.featmap.detach().reshape(
+                B, 2, *net_outs.featmap.shape[1:]
+            )
+            backbone_outs = resize(
+                backbone_outs.featmaps[-1].detach(),
+                H_out=net_outs.shape[-2],
+                W_out=net_outs.shape[-1],
+            )
             backbone_outs = backbone_outs.reshape(B, 2, *backbone_outs.shape[1:])
 
         net_outs = net_outs / (net_outs.norm(dim=-3, keepdim=True) + 1e-10)
-        backbone_outs = backbone_outs / (backbone_outs.norm(dim=-3, keepdim=True) + 1e-10)
+        backbone_outs = backbone_outs / (
+            backbone_outs.norm(dim=-3, keepdim=True) + 1e-10
+        )
         net_target_feats_pxl2d_all = []
 
         for b in range(B):
@@ -1457,21 +1900,44 @@ class NeMo(OD3D_Method):
             #         backbone_outs[b].append(backbone_out.featmaps[-1][0].detach())
             #         net_outs[b].append(net_out.featmap[0].detach())
 
-            backbone_query_keypoints2d = (batch.kpts2d_annots[b][0].clone() / self.down_sample_rate).long().to(self.device)
-            net_query_keypoints2d = (batch.kpts2d_annots[b][0].clone() / self.down_sample_rate).long().to(self.device)
+            backbone_query_keypoints2d = (
+                (batch.kpts2d_annots[b][0].clone() / self.down_sample_rate)
+                .long()
+                .to(self.device)
+            )
+            net_query_keypoints2d = (
+                (batch.kpts2d_annots[b][0].clone() / self.down_sample_rate)
+                .long()
+                .to(self.device)
+            )
             bH, bW = backbone_outs[b][0].shape[1:]
             nH, nW = net_outs[b][0].shape[1:]
 
-            backbone_query_keypoints2d = batched_index_in_bounds(indexMD=backbone_query_keypoints2d, bounds=[bW-1, bH-1])
-            net_query_keypoints2d = batched_index_in_bounds(indexMD=net_query_keypoints2d, bounds=[nW-1, nH-1])
+            backbone_query_keypoints2d = batched_index_in_bounds(
+                indexMD=backbone_query_keypoints2d, bounds=[bW - 1, bH - 1]
+            )
+            net_query_keypoints2d = batched_index_in_bounds(
+                indexMD=net_query_keypoints2d, bounds=[nW - 1, nH - 1]
+            )
 
-            backbone_query_feats = batched_indexMD_select(inputMD=backbone_outs[b][0], indexMD=backbone_query_keypoints2d, dims=[2, 1])
-            net_query_feats = batched_indexMD_select(inputMD=net_outs[b][0], indexMD=net_query_keypoints2d, dims=[2, 1])
+            backbone_query_feats = batched_indexMD_select(
+                inputMD=backbone_outs[b][0],
+                indexMD=backbone_query_keypoints2d,
+                dims=[2, 1],
+            )
+            net_query_feats = batched_indexMD_select(
+                inputMD=net_outs[b][0], indexMD=net_query_keypoints2d, dims=[2, 1]
+            )
 
-            backbone_sim_feats = torch.einsum('kf,fhw->khw', backbone_query_feats, backbone_outs[b][1])
-            net_sim_feats = torch.einsum('kf,fhw->khw', net_query_feats, net_outs[b][1])
+            backbone_sim_feats = torch.einsum(
+                "kf,fhw->khw", backbone_query_feats, backbone_outs[b][1]
+            )
+            net_sim_feats = torch.einsum("kf,fhw->khw", net_query_feats, net_outs[b][1])
 
-            net_sim_feats = (1. - self.config.inference.feats_corresp_alpha) * backbone_sim_feats + self.config.inference.feats_corresp_alpha * net_sim_feats
+            net_sim_feats = (
+                (1.0 - self.config.inference.feats_corresp_alpha) * backbone_sim_feats
+                + self.config.inference.feats_corresp_alpha * net_sim_feats
+            )
 
             # from od3d.cv.visual.draw import draw_pixels
             # img_gt1 = draw_pixels(batch.rgbs[b][0], pxls=batch.kpts2d_annots[b][0][:1].to(self.device))
@@ -1481,14 +1947,22 @@ class NeMo(OD3D_Method):
             # from od3d.cv.visual.show import show_imgs
             # show_imgs([img_gt1, img_gt2, img_sim])
 
-            #backbone_target_feats_pxl2d = batched_argminMD_select(inputMD=-backbone_sim_feats, dims=[2, 1])
-            #backbone_target_feats_pxl2d = backbone_target_feats_pxl2d * self.down_sample_rate + (self.down_sample_rate - 1.) * 0.5
+            # backbone_target_feats_pxl2d = batched_argminMD_select(inputMD=-backbone_sim_feats, dims=[2, 1])
+            # backbone_target_feats_pxl2d = backbone_target_feats_pxl2d * self.down_sample_rate + (self.down_sample_rate - 1.) * 0.5
 
-            net_target_feats_pxl2d = batched_argminMD_select(inputMD=-net_sim_feats, dims=[2, 1])
-            net_target_feats_pxl2d = net_target_feats_pxl2d * self.down_sample_rate + (self.down_sample_rate - 1.) * 0.5
+            net_target_feats_pxl2d = batched_argminMD_select(
+                inputMD=-net_sim_feats, dims=[2, 1]
+            )
+            net_target_feats_pxl2d = (
+                net_target_feats_pxl2d * self.down_sample_rate
+                + (self.down_sample_rate - 1.0) * 0.5
+            )
 
-            #backbone_err = torch.norm(batch.kpts2d_annots[b][1].to(self.device) - backbone_target_feats_pxl2d, dim=1)
-            net_err = torch.norm(batch.kpts2d_annots[b][1].to(self.device) - net_target_feats_pxl2d, dim=1)
+            # backbone_err = torch.norm(batch.kpts2d_annots[b][1].to(self.device) - backbone_target_feats_pxl2d, dim=1)
+            net_err = torch.norm(
+                batch.kpts2d_annots[b][1].to(self.device) - net_target_feats_pxl2d,
+                dim=1,
+            )
 
             net_target_feats_pxl2d_all.append(net_target_feats_pxl2d.detach())
 
@@ -1498,20 +1972,40 @@ class NeMo(OD3D_Method):
             # from od3d.cv.visual.show import show_imgs
             # show_imgs([img_gt, img_pred])
 
-            target_bbox = batch.bboxs[b][1] # batch.bboxs[b][1]
-            threshold = max(target_bbox[3] - target_bbox[1], target_bbox[2] - target_bbox[0])
-            results[f"kpts2d_acc/{batch.category[b]}_pck01"].append((net_err < 0.1 * threshold).to(torch.float))
-            results[f"kpts2d_acc/{batch.category[b]}_pck005"].append((net_err < 0.05 * threshold).to(torch.float))
-            results[f"kpts2d_acc/{batch.category[b]}_pck001"].append((net_err < 0.01 * threshold).to(torch.float))
+            target_bbox = batch.bboxs[b][1]  # batch.bboxs[b][1]
+            threshold = max(
+                target_bbox[3] - target_bbox[1], target_bbox[2] - target_bbox[0]
+            )
+            results[f"kpts2d_acc/{batch.category[b]}_pck01"].append(
+                (net_err < 0.1 * threshold).to(torch.float)
+            )
+            results[f"kpts2d_acc/{batch.category[b]}_pck005"].append(
+                (net_err < 0.05 * threshold).to(torch.float)
+            )
+            results[f"kpts2d_acc/{batch.category[b]}_pck001"].append(
+                (net_err < 0.01 * threshold).to(torch.float)
+            )
 
-            results[f"kpts2d_acc/pck01"].append((net_err < 0.1 * threshold).to(torch.float))
-            results[f"kpts2d_acc/pck005"].append((net_err < 0.05 * threshold).to(torch.float))
-            results[f"kpts2d_acc/pck001"].append((net_err < 0.01 * threshold).to(torch.float))
+            results[f"kpts2d_acc/pck01"].append(
+                (net_err < 0.1 * threshold).to(torch.float)
+            )
+            results[f"kpts2d_acc/pck005"].append(
+                (net_err < 0.05 * threshold).to(torch.float)
+            )
+            results[f"kpts2d_acc/pck001"].append(
+                (net_err < 0.01 * threshold).to(torch.float)
+            )
 
         for cat in batch_categories:
-            results[f"kpts2d_acc/{cat}_pck01"] = torch.cat(results[f"kpts2d_acc/{cat}_pck01"])
-            results[f"kpts2d_acc/{cat}_pck005"] = torch.cat(results[f"kpts2d_acc/{cat}_pck005"])
-            results[f"kpts2d_acc/{cat}_pck001"] = torch.cat(results[f"kpts2d_acc/{cat}_pck001"])
+            results[f"kpts2d_acc/{cat}_pck01"] = torch.cat(
+                results[f"kpts2d_acc/{cat}_pck01"]
+            )
+            results[f"kpts2d_acc/{cat}_pck005"] = torch.cat(
+                results[f"kpts2d_acc/{cat}_pck005"]
+            )
+            results[f"kpts2d_acc/{cat}_pck001"] = torch.cat(
+                results[f"kpts2d_acc/{cat}_pck001"]
+            )
 
         # net_target_feats_pxl2d_all = torch.stack(net_target_feats_pxl2d_all, dim=0)
         results[f"kpts2d_annots"] = net_target_feats_pxl2d_all
@@ -1519,12 +2013,11 @@ class NeMo(OD3D_Method):
         results[f"kpts2d_acc/pck005"] = torch.cat(results[f"kpts2d_acc/pck005"])
         results[f"kpts2d_acc/pck001"] = torch.cat(results[f"kpts2d_acc/pck001"])
 
-
         results["item_id"] = batch.item_id
 
         return results
 
-            # query_index = batch.kpts2d_annots[0] / self.net.downsample_rate
+        # query_index = batch.kpts2d_annots[0] / self.net.downsample_rate
         # query_index = query_index.to(int)  # W*H
         # # output from head
         # queried_feats = feats2d_rendered_1[0][:, query_index[0, :, 1], query_index[0, :, 0]]  # h *w
@@ -1547,8 +2040,9 @@ class NeMo(OD3D_Method):
         #     (kpts2d_dist.detach() < 0.1 * max_width_height[:, None, ].expand(*kpts2d_dist.shape))[
         #         batch.category_id == cat_id][kpts2d_mask[batch.category_id == cat_id]] * 1.
 
-
-    def inference_batch(self, batch, return_samples_with_sim=True, multiview=False, val=False):
+    def inference_batch(
+        self, batch, return_samples_with_sim=True, multiview=False, val=False
+    ):
         results = OD3D_Results(logging_dir=self.logging_dir)
         B = len(batch)
 
@@ -1568,15 +2062,25 @@ class NeMo(OD3D_Method):
             backbone_out, net_out = self.net(batch.rgb, return_backbone_output=True)
             feats2d_net = net_out.featmap
 
-
-            if self.config.train.get("epoch_inst_def_start", 0) <= self.scheduler.last_epoch:
-                instance_deform = self.meshes.get_instance_deform(backbone_out, img_feats_canonical=feats2d_net,
-                                                                  objects_ids=batch.category_id)
+            if (
+                self.config.train.get("epoch_inst_def_start", 0)
+                <= self.scheduler.last_epoch
+            ):
+                instance_deform = self.meshes.get_instance_deform(
+                    backbone_out,
+                    img_feats_canonical=feats2d_net,
+                    objects_ids=batch.category_id,
+                )
             else:
                 instance_deform = None
 
             if self.net_pose is not None:
-                pred_cam_tform4x4_objs = self.pred_poses(backbone_out=backbone_out, cam_intr4x4=batch.cam_intr4x4, size=batch.size, cam_tform4x4_obj=batch.cam_tform4x4_obj)
+                pred_cam_tform4x4_objs = self.pred_poses(
+                    backbone_out=backbone_out,
+                    cam_intr4x4=batch.cam_intr4x4,
+                    size=batch.size,
+                    cam_tform4x4_obj=batch.cam_tform4x4_obj,
+                )
             else:
                 pred_cam_tform4x4_objs = None
 
@@ -1628,7 +2132,9 @@ class NeMo(OD3D_Method):
                         temp=self.config.T,
                         instance_deform=instance_deform,
                         normalize_surface=self.config.inference.normalize_surface,
-                        object_mask=batch.mask if self.config.inference.add_mask_object_to_sim else None,
+                        object_mask=batch.mask
+                        if self.config.inference.add_mask_object_to_sim
+                        else None,
                     )
                     sim = sim.squeeze(1)
                 else:
@@ -1653,7 +2159,9 @@ class NeMo(OD3D_Method):
             meshes_scores = torch.stack(meshes_scores, dim=-1)
 
             if multiview:
-                meshes_scores = meshes_scores.mean(dim=0, keepdim=True).expand(*meshes_scores.shape)
+                meshes_scores = meshes_scores.mean(dim=0, keepdim=True).expand(
+                    *meshes_scores.shape
+                )
 
             pred_class_scores, pred_class_ids = meshes_scores.max(dim=1)
 
@@ -1674,12 +2182,16 @@ class NeMo(OD3D_Method):
                 feats2d_net_mask=feats2d_net_mask,
                 multiview=multiview,
                 instance_deform=instance_deform,
-                pred_cam_tform4x4_objs=pred_cam_tform4x4_objs
+                pred_cam_tform4x4_objs=pred_cam_tform4x4_objs,
             )
 
             if "affine" in self.config.inference.sample.method:
                 from od3d.cv.geometry.fit.phase_corr import get_affine_from_imgs
-                imgs_sizes = torch.LongTensor(list(feats2d_net.shape[-2:])) * self.down_sample_rate
+
+                imgs_sizes = (
+                    torch.LongTensor(list(feats2d_net.shape[-2:]))
+                    * self.down_sample_rate
+                )
                 feats2d_rendered_gt = self.meshes.render(
                     modalities=PROJECT_MODALITIES.FEATS,
                     cams_tform4x4_obj=batch.cam_tform4x4_obj,
@@ -1690,7 +2202,7 @@ class NeMo(OD3D_Method):
                     down_sample_rate=self.down_sample_rate,
                     add_clutter=True,
                     add_other_objects=False,
-                    instance_deform=instance_deform
+                    instance_deform=instance_deform,
                 )
                 feats2d_rendered = self.meshes.render(
                     modalities=PROJECT_MODALITIES.FEATS,
@@ -1702,22 +2214,38 @@ class NeMo(OD3D_Method):
                     down_sample_rate=self.down_sample_rate,
                     add_clutter=True,
                     add_other_objects=False,
-                    instance_deform=instance_deform
+                    instance_deform=instance_deform,
                 )
                 C = b_cams_multiview_tform4x4_obj.shape[1]
                 # perhaps good with no theta ?
                 # perhaps good with checkpoint with normalized features?
                 # perhaps angle / scale selection is not ideal?
-                M = torch.eye(4).expand(B, C, 4, 4).to(device=feats2d_net.device).clone()
+                M = (
+                    torch.eye(4)
+                    .expand(B, C, 4, 4)
+                    .to(device=feats2d_net.device)
+                    .clone()
+                )
                 for b in range(B):
                     for c in range(C):
-                        M[b, c, :3, :3] = get_affine_from_imgs(feats2d_rendered[b, c], feats2d_rendered_gt[b]) # feats2d_net[b] / feats2d_net[b].norm(dim=0, keepdim=True)
+                        M[b, c, :3, :3] = get_affine_from_imgs(
+                            feats2d_rendered[b, c], feats2d_rendered_gt[b]
+                        )  # feats2d_net[b] / feats2d_net[b].norm(dim=0, keepdim=True)
                         from kornia.geometry.transform import invert_affine_transform
-                        M[b:b+1, c, :2, :3] = invert_affine_transform(M[b:b+1, c, :2, :3])
+
+                        M[b : b + 1, c, :2, :3] = invert_affine_transform(
+                            M[b : b + 1, c, :2, :3]
+                        )
                         M[b, c, :2, 2] *= self.down_sample_rate
 
                 # b_cams_multiview_intr4x4 = tform4x4(M, b_cams_multiview_intr4x4)
-                b_cams_multiview_tform4x4_obj = tform4x4(tform4x4(tform4x4(torch.inverse(b_cams_multiview_intr4x4), M), b_cams_multiview_intr4x4), b_cams_multiview_tform4x4_obj)
+                b_cams_multiview_tform4x4_obj = tform4x4(
+                    tform4x4(
+                        tform4x4(torch.inverse(b_cams_multiview_intr4x4), M),
+                        b_cams_multiview_intr4x4,
+                    ),
+                    b_cams_multiview_tform4x4_obj,
+                )
 
             logger.info(b_cams_multiview_tform4x4_obj.shape)
             logger.info(b_cams_multiview_intr4x4.shape)
@@ -1736,17 +2264,23 @@ class NeMo(OD3D_Method):
                 return_sim_pxl=False,
                 add_clutter=True,
                 temp=self.config.train.T,
-                instance_deform=instance_deform if self.config.inference.sample.get("use_instance_deform", True) else None,
+                instance_deform=instance_deform
+                if self.config.inference.sample.get("use_instance_deform", True)
+                else None,
                 normalize_surface=self.config.inference.normalize_surface,
-                object_mask=batch.mask if self.config.inference.add_mask_object_to_sim else None,
-                use_neg_mse="sim_neg_mse_max" in self.config.train.loss.appear.type
+                object_mask=batch.mask
+                if self.config.inference.add_mask_object_to_sim
+                else None,
+                use_neg_mse="sim_neg_mse_max" in self.config.train.loss.appear.type,
             )
 
             if multiview:
                 sim = sim.mean(dim=0, keepdim=True).expand(*sim.shape)
 
             if return_samples_with_sim:
-                results["samples_cam_tform4x4_obj"] = b_cams_multiview_tform4x4_obj.detach()
+                results[
+                    "samples_cam_tform4x4_obj"
+                ] = b_cams_multiview_tform4x4_obj.detach()
                 results["samples_cam_intr4x4"] = b_cams_multiview_intr4x4.detach()
                 results["samples_sim"] = sim.detach()
 
@@ -1766,7 +2300,9 @@ class NeMo(OD3D_Method):
                 .permute(2, 0, 1)
             )
 
-            sim = batched_index_select(input=sim.detach(), index=mesh_cam_loss_min_id[:, None])[:, 0]
+            sim = batched_index_select(
+                input=sim.detach(), index=mesh_cam_loss_min_id[:, None]
+            )[:, 0]
 
             cam_intr4x4 = (
                 b_cams_multiview_intr4x4[:, mesh_cam_loss_min_id]
@@ -1789,7 +2325,10 @@ class NeMo(OD3D_Method):
                 ]
 
         if self.config.inference.refine.enabled:
-            if not val or self.config.inference.refine.get("dims_detached_val", None) is None:
+            if (
+                not val
+                or self.config.inference.refine.get("dims_detached_val", None) is None
+            ):
                 dims_detached = self.config.inference.refine.dims_detached
             else:
                 dims_detached = self.config.inference.refine.dims_detached_val
@@ -1797,16 +2336,22 @@ class NeMo(OD3D_Method):
             if instance_deform is not None and instance_deform.latent is not None:
                 if not multiview:
                     instance_deform_latent_tmp_param = torch.nn.Parameter(
-                        instance_deform.latent.detach().clone().to(device=cam_tform4x4_obj.device),
+                        instance_deform.latent.detach()
+                        .clone()
+                        .to(device=cam_tform4x4_obj.device),
                         requires_grad=True,
                     )
                     instance_deform_latent_tmp = instance_deform_latent_tmp_param
                 else:
                     instance_deform_latent_tmp_param = torch.nn.Parameter(
-                        instance_deform.latent.detach().clone()[:1].to(device=cam_tform4x4_obj.device),
+                        instance_deform.latent.detach()
+                        .clone()[:1]
+                        .to(device=cam_tform4x4_obj.device),
                         requires_grad=True,
                     )
-                    instance_deform_latent_tmp = instance_deform_latent_tmp_param.repeat( B, 1).clone()
+                    instance_deform_latent_tmp = (
+                        instance_deform_latent_tmp_param.repeat(B, 1).clone()
+                    )
 
             else:
                 instance_deform_latent_tmp_param = None
@@ -1819,19 +2364,22 @@ class NeMo(OD3D_Method):
                 )
             else:
                 init_vals = torch.zeros(size=(1, 7)).to(device=cam_tform4x4_obj.device)
-                init_vals[:, -1] = 1.
+                init_vals[:, -1] = 1.0
                 obj_tform6_tmp = torch.nn.Parameter(
                     init_vals,
                     requires_grad=True,
                 )
 
             # transl: 0, 1, 2 rot: 3, 4, 5
-            if not self.config.inference.refine.latent_detached and instance_deform_latent_tmp_param is not None:
+            if (
+                not self.config.inference.refine.latent_detached
+                and instance_deform_latent_tmp_param is not None
+            ):
                 params = [obj_tform6_tmp, instance_deform_latent_tmp_param]
             else:
                 params = [obj_tform6_tmp]
             optim_inference = torch.optim.Adam(
-                params=params, # instance_deform_latent_tmp
+                params=params,  # instance_deform_latent_tmp
                 lr=self.config.inference.optimizer.lr,
                 betas=(
                     self.config.inference.optimizer.beta0,
@@ -1849,28 +2397,43 @@ class NeMo(OD3D_Method):
                 obj_scale3x3 = torch.eye(3).to(cam_tform4x4_obj.device)[None,]
                 obj_scale3x3 = obj_scale3x3 * obj_tform6_tmp[:, -1]
                 from od3d.cv.geometry.transform import transf4x4_from_rot3x3
+
                 obj_scale4x4 = transf4x4_from_rot3x3(obj_scale3x3)
-                cam_tform4x4_obj = tform4x4_broadcast(cam_tform4x4_obj.detach(), obj_scale4x4)
+                cam_tform4x4_obj = tform4x4_broadcast(
+                    cam_tform4x4_obj.detach(), obj_scale4x4
+                )
 
             if not multiview:
                 refine_update_max = self.refine_update_max[batch.category_id].clone()
             else:
-                refine_update_max = self.refine_update_max[batch.category_id[:1]].clone()
-                refine_update_max = torch.cat([refine_update_max, 2 * torch.ones_like(refine_update_max[:1, :1])], dim=-1)
+                refine_update_max = self.refine_update_max[
+                    batch.category_id[:1]
+                ].clone()
+                refine_update_max = torch.cat(
+                    [refine_update_max, 2 * torch.ones_like(refine_update_max[:1, :1])],
+                    dim=-1,
+                )
 
-            #if not self.config.inference.refine.latent_detached and instance_deform_latent_tmp is not None:
+            # if not self.config.inference.refine.latent_detached and instance_deform_latent_tmp is not None:
             #    self.meshes.instance_deform_net.train()
 
             for epoch in range(self.config.inference.optimizer.epochs):
                 if multiview and instance_deform_latent_tmp is not None:
-                    instance_deform_latent_tmp = instance_deform_latent_tmp_param.repeat( B, 1).clone()
+                    instance_deform_latent_tmp = (
+                        instance_deform_latent_tmp_param.repeat(B, 1).clone()
+                    )
 
-                backbone_out.latent = instance_deform_latent_tmp # [:1].repeat(len(instance_deform_latent_tmp), 1).clone()
+                backbone_out.latent = instance_deform_latent_tmp  # [:1].repeat(len(instance_deform_latent_tmp), 1).clone()
 
-                if self.config.train.get("epoch_inst_def_start", 0) <= self.scheduler.last_epoch:
-                    instance_deform = self.meshes.get_instance_deform(backbone_out,
-                                                                      img_feats_canonical=feats2d_net,
-                                                                      objects_ids=batch.category_id)
+                if (
+                    self.config.train.get("epoch_inst_def_start", 0)
+                    <= self.scheduler.last_epoch
+                ):
+                    instance_deform = self.meshes.get_instance_deform(
+                        backbone_out,
+                        img_feats_canonical=feats2d_net,
+                        objects_ids=batch.category_id,
+                    )
                 else:
                     instance_deform = None
 
@@ -1882,12 +2445,15 @@ class NeMo(OD3D_Method):
                     obj_scale3x3 = torch.eye(3).to(cam_tform4x4_obj.device)[None,]
                     obj_scale3x3 = obj_scale3x3 * obj_tform6_tmp[:, -1]
                     from od3d.cv.geometry.transform import transf4x4_from_rot3x3
+
                     obj_scale4x4 = transf4x4_from_rot3x3(obj_scale3x3)
-                    cam_tform4x4_obj = tform4x4_broadcast(cam_tform4x4_obj.detach(), obj_scale4x4.detach())
+                    cam_tform4x4_obj = tform4x4_broadcast(
+                        cam_tform4x4_obj.detach(), obj_scale4x4.detach()
+                    )
 
                 obj_tform6_tmp.data[:, :6] = 0.0
                 if multiview:
-                    obj_tform6_tmp.data[:, -1] = 1.
+                    obj_tform6_tmp.data[:, -1] = 1.0
 
                 cam_tform4x4_obj = tform4x4_broadcast(
                     cam_tform4x4_obj.detach(),
@@ -1897,8 +2463,11 @@ class NeMo(OD3D_Method):
                     obj_scale3x3 = torch.eye(3).to(cam_tform4x4_obj.device)[None,]
                     obj_scale3x3 = obj_scale3x3 * obj_tform6_tmp[:, -1]
                     from od3d.cv.geometry.transform import transf4x4_from_rot3x3
+
                     obj_scale4x4 = transf4x4_from_rot3x3(obj_scale3x3)
-                    cam_tform4x4_obj = tform4x4_broadcast(cam_tform4x4_obj, obj_scale4x4)
+                    cam_tform4x4_obj = tform4x4_broadcast(
+                        cam_tform4x4_obj, obj_scale4x4
+                    )
 
                 sim, sim_pxl = self.meshes.get_sim_render(
                     feats2d_img=feats2d_net,
@@ -1913,9 +2482,11 @@ class NeMo(OD3D_Method):
                     add_clutter=True,
                     temp=self.config.train.T,
                     normalize_surface=self.config.inference.normalize_surface,
-                    object_mask=batch.mask if self.config.inference.add_mask_object_to_sim else None,
+                    object_mask=batch.mask
+                    if self.config.inference.add_mask_object_to_sim
+                    else None,
                     instance_deform=instance_deform,
-                    use_neg_mse="sim_neg_mse_max" in self.config.train.loss.appear.type
+                    use_neg_mse="sim_neg_mse_max" in self.config.train.loss.appear.type,
                 )
 
                 # sim, sim_pxl = self.get_sim_feats2d_net_with_cams(
@@ -1934,24 +2505,39 @@ class NeMo(OD3D_Method):
                 mesh_cam_loss = -sim
 
                 if self.config.inference.live:
-                    img_indices = [0,]
+                    img_indices = [0]
                     # img_indices = [0, 3, 7, ]
                     # img_indices = [0, 1, 2, 3, 4, 5, 6, 7, ]
                     from od3d.cv.visual.show import show_imgs
+
                     show_imgs(
-                        torch.stack([blend_rgb(
-                            batch.rgb[img_index],
-                            (
-                                self.meshes.render(
-                                    cams_tform4x4_obj=cam_tform4x4_obj[img_index : img_index + 1],
-                                    cams_intr4x4=cam_intr4x4[img_index : img_index + 1],
-                                    imgs_sizes=batch.size,
-                                    objects_ids=batch.category_id[img_index : img_index + 1],
-                                    modalities=PROJECT_MODALITIES.PT3D_NCDS,
-                                    instance_deform= instance_deform[img_index : img_index + 1]
-                                )[0]
-                            ).to(dtype=batch.rgb.dtype),
-                        ) for img_index in img_indices], dim=0),
+                        torch.stack(
+                            [
+                                blend_rgb(
+                                    batch.rgb[img_index],
+                                    (
+                                        self.meshes.render(
+                                            cams_tform4x4_obj=cam_tform4x4_obj[
+                                                img_index : img_index + 1
+                                            ],
+                                            cams_intr4x4=cam_intr4x4[
+                                                img_index : img_index + 1
+                                            ],
+                                            imgs_sizes=batch.size,
+                                            objects_ids=batch.category_id[
+                                                img_index : img_index + 1
+                                            ],
+                                            modalities=PROJECT_MODALITIES.PT3D_NCDS,
+                                            instance_deform=instance_deform[
+                                                img_index : img_index + 1
+                                            ],
+                                        )[0]
+                                    ).to(dtype=batch.rgb.dtype),
+                                )
+                                for img_index in img_indices
+                            ],
+                            dim=0,
+                        ),
                         duration=1,
                     )
 
@@ -1966,9 +2552,11 @@ class NeMo(OD3D_Method):
                     obj_tform6_tmp.data[:, 6] = 1.0
 
                 # clip update
-                refine_update_mask_lmax = (obj_tform6_tmp.data.abs() > refine_update_max)
+                refine_update_mask_lmax = obj_tform6_tmp.data.abs() > refine_update_max
                 if refine_update_mask_lmax.sum() > 0:
-                    logger.warning(f'refinement contains too large values {obj_tform6_tmp.data.abs()}')
+                    logger.warning(
+                        f"refinement contains too large values {obj_tform6_tmp.data.abs()}"
+                    )
                     obj_tform6_tmp.data[refine_update_mask_lmax] = (
                         obj_tform6_tmp.data[refine_update_mask_lmax].sign()
                         * refine_update_max[refine_update_mask_lmax]
@@ -1976,13 +2564,13 @@ class NeMo(OD3D_Method):
 
                 refine_update_mask_nans = obj_tform6_tmp.data.isnan()
                 if refine_update_mask_nans.sum() > 0:
-                    logger.warning('refinement contains NaNs')
-                    obj_tform6_tmp.data[refine_update_mask_nans] = 0.
+                    logger.warning("refinement contains NaNs")
+                    obj_tform6_tmp.data[refine_update_mask_nans] = 0.0
 
                 refine_update_mask_infs = obj_tform6_tmp.data.isinf()
                 if refine_update_mask_infs.sum() > 0:
-                    logger.warning('refinement contains Infs')
-                    obj_tform6_tmp.data[refine_update_mask_infs] = 0.
+                    logger.warning("refinement contains Infs")
+                    obj_tform6_tmp.data[refine_update_mask_infs] = 0.0
 
             cam_tform4x4_obj = tform4x4_broadcast(
                 cam_tform4x4_obj.detach(),
@@ -1992,8 +2580,11 @@ class NeMo(OD3D_Method):
                 obj_scale3x3 = torch.eye(3).to(cam_tform4x4_obj.device)[None,]
                 obj_scale3x3 = obj_scale3x3 * obj_tform6_tmp[:, -1]
                 from od3d.cv.geometry.transform import transf4x4_from_rot3x3
+
                 obj_scale4x4 = transf4x4_from_rot3x3(obj_scale3x3)
-                cam_tform4x4_obj = tform4x4_broadcast(cam_tform4x4_obj.detach(), obj_scale4x4.detach())
+                cam_tform4x4_obj = tform4x4_broadcast(
+                    cam_tform4x4_obj.detach(), obj_scale4x4.detach()
+                )
 
             results["time_pose_iterative"] = (
                 torch.Tensor([time.time() - time_before_pose_iterative]) / B
@@ -2001,28 +2592,47 @@ class NeMo(OD3D_Method):
 
         cam_tform4x4_obj = cam_tform4x4_obj.clone().detach()
 
-        if instance_deform is not None and instance_deform is not None and instance_deform.latent is not None:
-            results['latent'] = instance_deform.latent.detach().clone()
+        if (
+            instance_deform is not None
+            and instance_deform is not None
+            and instance_deform.latent is not None
+        ):
+            results["latent"] = instance_deform.latent.detach().clone()
 
-        if self.config.train.loss.geo.rec.weight > 0.:
-            results["geo"] = self.get_geo_loss(batch=batch, instance_deform=instance_deform,
-                                               rec_type=self.config.train.loss.geo.rec.type).detach()
+        if self.config.train.loss.geo.rec.weight > 0.0:
+            results["geo"] = self.get_geo_loss(
+                batch=batch,
+                instance_deform=instance_deform,
+                rec_type=self.config.train.loss.geo.rec.type,
+            ).detach()
 
         if OD3D_FRAME_MODALITIES.MASK in batch.modalities:
-            results["iou_pose_gt"] = self.get_geo_mask_metrics(batch=batch, cam_tform4x4_obj=batch.cam_tform4x4_obj,
-                                                               instance_deform=instance_deform).detach()
-            results["iou_pose_pred"] = self.get_geo_mask_metrics(batch=batch, cam_tform4x4_obj=cam_tform4x4_obj,
-                                                                 instance_deform=instance_deform).detach()
+            results["iou_pose_gt"] = self.get_geo_mask_metrics(
+                batch=batch,
+                cam_tform4x4_obj=batch.cam_tform4x4_obj,
+                instance_deform=instance_deform,
+            ).detach()
+            results["iou_pose_pred"] = self.get_geo_mask_metrics(
+                batch=batch,
+                cam_tform4x4_obj=cam_tform4x4_obj,
+                instance_deform=instance_deform,
+            ).detach()
         if OD3D_FRAME_MODALITIES.MESH in batch.modalities:
             if OD3D_FRAME_MODALITIES.MASK in batch.modalities:
                 results["iou_amodal_pose_gt"] = self.get_geo_mask_metrics(
-                    batch=batch, cam_tform4x4_obj=batch.cam_tform4x4_obj, instance_deform=instance_deform,
-                    metrics=['iou_amodal']).detach()
+                    batch=batch,
+                    cam_tform4x4_obj=batch.cam_tform4x4_obj,
+                    instance_deform=instance_deform,
+                    metrics=["iou_amodal"],
+                ).detach()
                 results["iou_amodal_pose_pred"] = self.get_geo_mask_metrics(
-                    batch=batch, cam_tform4x4_obj=cam_tform4x4_obj, instance_deform=instance_deform,
-                    metrics=['iou_amodal']).detach()
+                    batch=batch,
+                    cam_tform4x4_obj=cam_tform4x4_obj,
+                    instance_deform=instance_deform,
+                    metrics=["iou_amodal"],
+                ).detach()
 
-        #if self.config.train.loss.geo.mask.weight > 0.:
+        # if self.config.train.loss.geo.mask.weight > 0.:
         #    results["mask"] = self.get_mask_loss(batch=batch, instance_deform=instance_deform,
         #                                         rec_type=self.config.train.loss.geo.rec.type).detach()
 
@@ -2031,30 +2641,55 @@ class NeMo(OD3D_Method):
         if batch.kpts3d is not None and batch.kpts2d_annot is not None:
             if self.kpts3d_id is not None:
                 if batch.bbox is not None:
-                    max_width_height = (batch.bbox[..., 2:4] - batch.bbox[..., 0:2]).max(dim=-1).values
+                    max_width_height = (
+                        (batch.bbox[..., 2:4] - batch.bbox[..., 0:2]).max(dim=-1).values
+                    )
 
                 else:
                     max_width_height = batch.size.max(dim=-1).values[None,]
 
-                kpts3d_id = self.get_kpts3d_ids(category_id=batch.category_id).to(device=cam_tform4x4_obj.device)
+                kpts3d_id = self.get_kpts3d_ids(category_id=batch.category_id).to(
+                    device=cam_tform4x4_obj.device
+                )
                 # B x K
-                pts3d = self.meshes.sample(objects_ids=batch.category_id, modalities=PROJECT_MODALITIES.PT3D,
-                                           add_clutter=False, add_other_objects=False, instance_deform=instance_deform)
+                pts3d = self.meshes.sample(
+                    objects_ids=batch.category_id,
+                    modalities=PROJECT_MODALITIES.PT3D,
+                    add_clutter=False,
+                    add_other_objects=False,
+                    instance_deform=instance_deform,
+                )
                 # B x V x 3
                 kpts3d = batched_index_select(input=pts3d, index=kpts3d_id, dim=1)
-                #kpts3d = pad_sequence(batch.kpts3d, batch_first=True).to(dtype=cam_tform4x4_obj.dtype, device=cam_tform4x4_obj.device)
+                # kpts3d = pad_sequence(batch.kpts3d, batch_first=True).to(dtype=cam_tform4x4_obj.dtype, device=cam_tform4x4_obj.device)
 
-                kpts2d = proj3d2d_broadcast(proj4x4=tform4x4_broadcast(cam_intr4x4, cam_tform4x4_obj)[:, None], pts3d=kpts3d)
+                kpts2d = proj3d2d_broadcast(
+                    proj4x4=tform4x4_broadcast(cam_intr4x4, cam_tform4x4_obj)[:, None],
+                    pts3d=kpts3d,
+                )
                 # kpts2d = proj3d2d_broadcast(proj4x4=tform4x4_broadcast(batch.cam_intr4x4, batch.cam_tform4x4_obj)[:, None], pts3d=kpts3d)
 
-                kpts2d_gt = pad_sequence(batch.kpts2d_annot, batch_first=True).to(dtype=cam_tform4x4_obj.dtype, device=cam_tform4x4_obj.device)
-                kpts2d_mask = pad_sequence(batch.kpts2d_annot_vsbl, batch_first=True).to(dtype=torch.bool, device=cam_tform4x4_obj.device)
-                kpts2d_dist = torch.norm(kpts2d[:, :kpts2d_gt.shape[1]] - kpts2d_gt, dim=-1)
-                results["kpts2d_acc"] = (kpts2d_dist.detach() < 0.1 * max_width_height[:, None,].expand(*kpts2d_dist.shape))[kpts2d_mask] * 1.
+                kpts2d_gt = pad_sequence(batch.kpts2d_annot, batch_first=True).to(
+                    dtype=cam_tform4x4_obj.dtype, device=cam_tform4x4_obj.device
+                )
+                kpts2d_mask = pad_sequence(
+                    batch.kpts2d_annot_vsbl, batch_first=True
+                ).to(dtype=torch.bool, device=cam_tform4x4_obj.device)
+                kpts2d_dist = torch.norm(
+                    kpts2d[:, : kpts2d_gt.shape[1]] - kpts2d_gt, dim=-1
+                )
+                results["kpts2d_acc"] = (
+                    kpts2d_dist.detach()
+                    < 0.1 * max_width_height[:, None].expand(*kpts2d_dist.shape)
+                )[kpts2d_mask] * 1.0
 
                 for cat_id, cat in enumerate(self.config.categories):
-                    results[f"kpts2d_acc/{cat}"] = (kpts2d_dist.detach() < 0.1 * max_width_height[:, None,].expand(*kpts2d_dist.shape))[batch.category_id == cat_id][kpts2d_mask[batch.category_id == cat_id]] * 1.
-
+                    results[f"kpts2d_acc/{cat}"] = (
+                        kpts2d_dist.detach()
+                        < 0.1 * max_width_height[:, None].expand(*kpts2d_dist.shape)
+                    )[batch.category_id == cat_id][
+                        kpts2d_mask[batch.category_id == cat_id]
+                    ] * 1.0
 
                 # if 'kpts3d' in batch.
                 """
@@ -2063,7 +2698,7 @@ class NeMo(OD3D_Method):
                 - 'kpts3d'
                 """
             else:
-                logger.info('set kpts3d_id to evaluate kpts acc')
+                logger.info("set kpts3d_id to evaluate kpts acc")
 
         results["time_pose"] = torch.Tensor([time.time() - time_pred_class]) / B
 
@@ -2072,24 +2707,35 @@ class NeMo(OD3D_Method):
         gt_cam_tform4x4_obj_real_scale = batch.cam_tform4x4_obj.clone()
         pred_cam_tform4x4_obj_real_scale = cam_tform4x4_obj.clone()
         if batch.obj_tform4x4_objs is not None:
-            batch_objs_scale = torch.cat(batch.obj_tform4x4_objs, dim=0)[:, :3, :3].norm(dim=1).mean(dim=1)
-            gt_cam_tform4x4_obj_real_scale[:, :3] = gt_cam_tform4x4_obj_real_scale[:, :3] * batch_objs_scale[:, None, None]
-            pred_cam_tform4x4_obj_real_scale[:, :3] = pred_cam_tform4x4_obj_real_scale[:, :3] * batch_objs_scale[:, None, None]
+            batch_objs_scale = (
+                torch.cat(batch.obj_tform4x4_objs, dim=0)[:, :3, :3]
+                .norm(dim=1)
+                .mean(dim=1)
+            )
+            gt_cam_tform4x4_obj_real_scale[:, :3] = (
+                gt_cam_tform4x4_obj_real_scale[:, :3] * batch_objs_scale[:, None, None]
+            )
+            pred_cam_tform4x4_obj_real_scale[:, :3] = (
+                pred_cam_tform4x4_obj_real_scale[:, :3]
+                * batch_objs_scale[:, None, None]
+            )
 
             # 1) batch_objs_scale dim != gt_cam_tform4x4_obj_real_scale dim
             # 2) float instead of bool
         if batch.mesh is not None:
             # BxVx3
-            #from od3d.cv.geometry.objects3d.meshes.meshes import VERT_MODALITIES
-            #pred_meshes_verts, _ = self.meshes.get_vert_mod_from_objs(mod=VERT_MODALITIES.PT3D, objs_ids=batch.category_id, padded=True, instance_deform=instance_deform, clone=True)
-            #gt_meshes_verts, _ = batch.mesh.get_vert_mod_from_objs(mod=VERT_MODALITIES.PT3D, padded=True, clone=True)
+            # from od3d.cv.geometry.objects3d.meshes.meshes import VERT_MODALITIES
+            # pred_meshes_verts, _ = self.meshes.get_vert_mod_from_objs(mod=VERT_MODALITIES.PT3D, objs_ids=batch.category_id, padded=True, instance_deform=instance_deform, clone=True)
+            # gt_meshes_verts, _ = batch.mesh.get_vert_mod_from_objs(mod=VERT_MODALITIES.PT3D, padded=True, clone=True)
 
-            #gt_bboxs3d = torch.stack([gt_meshes_verts.min(dim=1).values, gt_meshes_verts.max(dim=1).values], dim=1)
-            #pred_bboxs3d = torch.stack([pred_meshes_verts.min(dim=1).values, pred_meshes_verts.max(dim=1).values], dim=1)
+            # gt_bboxs3d = torch.stack([gt_meshes_verts.min(dim=1).values, gt_meshes_verts.max(dim=1).values], dim=1)
+            # pred_bboxs3d = torch.stack([pred_meshes_verts.min(dim=1).values, pred_meshes_verts.max(dim=1).values], dim=1)
             # TODO get 3D BOUNDING BOXES
             #
             gt_meshes = batch.mesh
-            pred_meshes = self.meshes.get_meshes_with_ids(meshes_ids=batch.category_id, instance_deform=instance_deform)
+            pred_meshes = self.meshes.get_meshes_with_ids(
+                meshes_ids=batch.category_id, instance_deform=instance_deform
+            )
 
             gt_bboxs3d = gt_meshes.to_bboxs3d()
             pred_bboxs3d = pred_meshes.to_bboxs3d()
@@ -2100,63 +2746,103 @@ class NeMo(OD3D_Method):
             pred_cam_bboxs3d.transf3d(objs_new_tform4x4_objs=pred_cam_tform4x4_obj)
 
             gt_cam_bboxs3d_real_scale = gt_bboxs3d.get_meshes_with_ids(clone=True)
-            gt_cam_bboxs3d_real_scale.transf3d(objs_new_tform4x4_objs=gt_cam_tform4x4_obj_real_scale)
+            gt_cam_bboxs3d_real_scale.transf3d(
+                objs_new_tform4x4_objs=gt_cam_tform4x4_obj_real_scale
+            )
             pred_cam_bboxs3d_real_scale = pred_bboxs3d.get_meshes_with_ids(clone=True)
-            pred_cam_bboxs3d_real_scale.transf3d(objs_new_tform4x4_objs=pred_cam_tform4x4_obj_real_scale)
+            pred_cam_bboxs3d_real_scale.transf3d(
+                objs_new_tform4x4_objs=pred_cam_tform4x4_obj_real_scale
+            )
 
             ious_3d = []
             for b in range(len(gt_bboxs3d)):
                 from trimesh.boolean import intersection, union
+
                 a = gt_cam_bboxs3d.get_meshes_with_ids(meshes_ids=[b]).to_trimesh()
                 b = pred_cam_bboxs3d.get_meshes_with_ids(meshes_ids=[b]).to_trimesh()
-                iou_3d = intersection([a, b], check_volume=True, engine='manifold').volume / union([a, b], check_volume=False, engine='manifold').volume
+                iou_3d = (
+                    intersection([a, b], check_volume=True, engine="manifold").volume
+                    / union([a, b], check_volume=False, engine="manifold").volume
+                )
                 ious_3d.append(iou_3d)
             ious_3d = torch.Tensor(ious_3d).to(self.device)
             results["bbox3d_iou"] = ious_3d
-            results["bbox3d_acc_@25"] = 1. * (results["bbox3d_iou"] > 0.25)
-            results["bbox3d_acc_@50"] = 1. * (results["bbox3d_iou"] > 0.50)
-            results["bbox3d_acc_@75"] = 1. * (results["bbox3d_iou"] > 0.75)
+            results["bbox3d_acc_@25"] = 1.0 * (results["bbox3d_iou"] > 0.25)
+            results["bbox3d_acc_@50"] = 1.0 * (results["bbox3d_iou"] > 0.50)
+            results["bbox3d_acc_@75"] = 1.0 * (results["bbox3d_iou"] > 0.75)
 
             ious_3d = []
             for b in range(len(gt_bboxs3d)):
                 from trimesh.boolean import intersection, union
-                a = gt_cam_bboxs3d_real_scale.get_meshes_with_ids(meshes_ids=[b]).to_trimesh()
-                b = pred_cam_bboxs3d_real_scale.get_meshes_with_ids(meshes_ids=[b]).to_trimesh()
-                iou_3d = intersection([a, b], check_volume=True, engine='manifold').volume / union([a, b], check_volume=False, engine='manifold').volume
+
+                a = gt_cam_bboxs3d_real_scale.get_meshes_with_ids(
+                    meshes_ids=[b]
+                ).to_trimesh()
+                b = pred_cam_bboxs3d_real_scale.get_meshes_with_ids(
+                    meshes_ids=[b]
+                ).to_trimesh()
+                iou_3d = (
+                    intersection([a, b], check_volume=True, engine="manifold").volume
+                    / union([a, b], check_volume=False, engine="manifold").volume
+                )
                 ious_3d.append(iou_3d)
             ious_3d = torch.Tensor(ious_3d).to(self.device)
             results["bbox3d_real_scale_iou"] = ious_3d
-            results["bbox3d_real_scale_acc_@25"] = 1. * (results["bbox3d_iou"] > 0.25)
-            results["bbox3d_real_scale_acc_@50"] = 1. * (results["bbox3d_iou"] > 0.50)
-            results["bbox3d_real_scale_acc_@75"] = 1. * (results["bbox3d_iou"] > 0.75)
+            results["bbox3d_real_scale_acc_@25"] = 1.0 * (results["bbox3d_iou"] > 0.25)
+            results["bbox3d_real_scale_acc_@50"] = 1.0 * (results["bbox3d_iou"] > 0.50)
+            results["bbox3d_real_scale_acc_@75"] = 1.0 * (results["bbox3d_iou"] > 0.75)
 
         batch_rot_diff_rad = get_pose_diff_in_rad(
             pred_tform4x4=cam_tform4x4_obj,
             gt_tform4x4=batch.cam_tform4x4_obj,
         )
 
-        batch_transl_diff = (pred_cam_tform4x4_obj[:, :3, 3] - gt_cam_tform4x4_obj[:, :3, 3]).norm(dim=-1)
+        batch_transl_diff = (
+            pred_cam_tform4x4_obj[:, :3, 3] - gt_cam_tform4x4_obj[:, :3, 3]
+        ).norm(dim=-1)
         results["transl_diff"] = batch_transl_diff.detach()
-        results["transl_acc_@5%"] = 1. * (results["transl_diff"] < 0.1)
-        results["transl_acc_@10%"] = 1. * (results["transl_diff"] < 0.2)
+        results["transl_acc_@5%"] = 1.0 * (results["transl_diff"] < 0.1)
+        results["transl_acc_@10%"] = 1.0 * (results["transl_diff"] < 0.2)
 
-
-        batch_transl_diff_real_scale = (pred_cam_tform4x4_obj_real_scale[:, :3, 3] - gt_cam_tform4x4_obj_real_scale[:, :3, 3]).norm(dim=-1)
+        batch_transl_diff_real_scale = (
+            pred_cam_tform4x4_obj_real_scale[:, :3, 3]
+            - gt_cam_tform4x4_obj_real_scale[:, :3, 3]
+        ).norm(dim=-1)
         results["transl_diff_real_scale"] = batch_transl_diff_real_scale.detach()
-        results["transl_acc_real_scale_@2cm"] = 1. * (results["transl_diff_real_scale"] < 0.02)
-        results["transl_acc_real_scale_@5cm"] = 1. * (results["transl_diff_real_scale"] < 0.05)
-        results["transl_acc_real_scale_@10cm"] = 1. * (results["transl_diff_real_scale"] < 0.1)
+        results["transl_acc_real_scale_@2cm"] = 1.0 * (
+            results["transl_diff_real_scale"] < 0.02
+        )
+        results["transl_acc_real_scale_@5cm"] = 1.0 * (
+            results["transl_diff_real_scale"] < 0.05
+        )
+        results["transl_acc_real_scale_@10cm"] = 1.0 * (
+            results["transl_diff_real_scale"] < 0.1
+        )
 
         results["rot_diff_rad"] = batch_rot_diff_rad.detach()
-        results["rot_acc_@5deg"] = 1. * (results["rot_diff_rad"] < ((5. / 360.) * torch.pi * 2.))
-        results["rot_acc_@10deg"] = 1. * (results["rot_diff_rad"] < ((10. / 360.) * torch.pi * 2.))
-        results["rot_acc_@30deg"] = 1. * (results["rot_diff_rad"] < ((30. / 360.) * torch.pi * 2.))
+        results["rot_acc_@5deg"] = 1.0 * (
+            results["rot_diff_rad"] < ((5.0 / 360.0) * torch.pi * 2.0)
+        )
+        results["rot_acc_@10deg"] = 1.0 * (
+            results["rot_diff_rad"] < ((10.0 / 360.0) * torch.pi * 2.0)
+        )
+        results["rot_acc_@30deg"] = 1.0 * (
+            results["rot_diff_rad"] < ((30.0 / 360.0) * torch.pi * 2.0)
+        )
 
-        results["transl_rot_acc_@10deg_5cm"] = results["rot_acc_@10deg"] * results["transl_acc_real_scale_@5cm"]
-        results["transl_rot_acc_@30deg_10cm"] = results["rot_acc_@30deg"] * results["transl_acc_real_scale_@10cm"]
+        results["transl_rot_acc_@10deg_5cm"] = (
+            results["rot_acc_@10deg"] * results["transl_acc_real_scale_@5cm"]
+        )
+        results["transl_rot_acc_@30deg_10cm"] = (
+            results["rot_acc_@30deg"] * results["transl_acc_real_scale_@10cm"]
+        )
 
-        results["transl_rot_acc_@10deg_5%"] = results["rot_acc_@10deg"] * results["transl_acc_@5%"]
-        results["transl_rot_acc_@30deg_10%"] = results["rot_acc_@30deg"] * results["transl_acc_@10%"]
+        results["transl_rot_acc_@10deg_5%"] = (
+            results["rot_acc_@10deg"] * results["transl_acc_@5%"]
+        )
+        results["transl_rot_acc_@30deg_10%"] = (
+            results["rot_acc_@30deg"] * results["transl_acc_@10%"]
+        )
 
         for cat_id, cat in enumerate(self.config.categories):
             results[f"{cat}_rot_diff_rad"] = batch_rot_diff_rad[
@@ -2173,16 +2859,17 @@ class NeMo(OD3D_Method):
 
         return results
 
-    def set_kpts(self, dataset: OD3D_Dataset, subset_fraction=1.):
+    def set_kpts(self, dataset: OD3D_Dataset, subset_fraction=1.0):
         """
         Args:
             dataset (OD3D_Dataset)
         """
 
         from od3d.datasets.dataset import OD3D_DATASET_SPLITS
+
         dataset_sub, _ = dataset.get_split(
             fraction1=subset_fraction,
-            fraction2=1. - subset_fraction,
+            fraction2=1.0 - subset_fraction,
             split=OD3D_DATASET_SPLITS.RANDOM,
         )
 
@@ -2196,18 +2883,20 @@ class NeMo(OD3D_Method):
             num_workers=self.config.test.dataloader.num_workers,
             pin_memory=self.config.test.dataloader.pin_memory,
         )
-        logger.info('setting kpts3d')
+        logger.info("setting kpts3d")
         logger.info(f"Dataset contains {len(dataset_sub)} frames.")
         ### METHOD 1: find 3D keypoints among mesh vertices
-        if self.config.test.kpts3d == 'vertex_sim_max' or self.config.test.kpts3d == 'vertex_dist2d_min':
+        if (
+            self.config.test.kpts3d == "vertex_sim_max"
+            or self.config.test.kpts3d == "vertex_dist2d_min"
+        ):
             sim_feats_total = []
             cats_total = []
             K = 0
             V = 0
             for i, batch in tqdm(enumerate(iter(dataloader))):
                 batch.to(device=self.device)
-                with (torch.no_grad()):
-
+                with torch.no_grad():
                     # results_batch = self.inference_batch(batch=batch, multiview=False)
                     net_out = self.net(batch.rgb)
                     feats2d_net = net_out.featmap
@@ -2218,23 +2907,33 @@ class NeMo(OD3D_Method):
                         imgs_sizes=None,
                         objects_ids=batch.category_id,
                         broadcast_batch_and_cams=False,
-                        down_sample_rate=1.,
+                        down_sample_rate=1.0,
                         add_clutter=False,
                         add_other_objects=False,
                         instance_deform=None,
-                    ) # B x V x F
+                    )  # B x V x F
 
                     from od3d.cv.visual.sample import sample_pxl2d_pts
                     from torch.nn.utils.rnn import pad_sequence
-                    kpts2d_vsbl_gt = pad_sequence(batch.kpts2d_annot_vsbl, batch_first=True).to(feats2d_net.device)
-                    kpts2d_gt = pad_sequence(batch.kpts2d_annot, batch_first=True).to(feats2d_net.device)
-                    img_feats1d_sampled = sample_pxl2d_pts(x=feats2d_net, pxl2d=kpts2d_gt / self.down_sample_rate) # B x K x F
-                    sim_feats1d = self.meshes.get_sim_feats1d_img_and_feats1d_obj(
-                        img_feats1d_sampled,
-                        obj3d_feats1d_sampled,
-                        add_clutter=False,
-                        temp=self.config.train.T,
-                    ) * kpts2d_vsbl_gt[:, None, :] # B x V x K
+
+                    kpts2d_vsbl_gt = pad_sequence(
+                        batch.kpts2d_annot_vsbl, batch_first=True
+                    ).to(feats2d_net.device)
+                    kpts2d_gt = pad_sequence(batch.kpts2d_annot, batch_first=True).to(
+                        feats2d_net.device
+                    )
+                    img_feats1d_sampled = sample_pxl2d_pts(
+                        x=feats2d_net, pxl2d=kpts2d_gt / self.down_sample_rate
+                    )  # B x K x F
+                    sim_feats1d = (
+                        self.meshes.get_sim_feats1d_img_and_feats1d_obj(
+                            img_feats1d_sampled,
+                            obj3d_feats1d_sampled,
+                            add_clutter=False,
+                            temp=self.config.train.T,
+                        )
+                        * kpts2d_vsbl_gt[:, None, :]
+                    )  # B x V x K
                     if sim_feats1d.shape[-1] > K:
                         K = sim_feats1d.shape[-1]
                     if sim_feats1d.shape[-2] > V:
@@ -2243,25 +2942,35 @@ class NeMo(OD3D_Method):
                     if len(sim_feats_total) == 0:
                         sim_feats_total = sim_feats1d
                     else:
-                        _sim_feats_total = torch.zeros((sim_feats_total.shape[0] + sim_feats1d.shape[0], V, K)).to(device=sim_feats1d.device)
-                        _sim_feats_total[:sim_feats_total.shape[0], :sim_feats_total.shape[1],
-                        :sim_feats_total.shape[2]] = sim_feats_total
-                        _sim_feats_total[sim_feats_total.shape[0]:, :sim_feats1d.shape[1],
-                        :sim_feats1d.shape[2]] = sim_feats1d
+                        _sim_feats_total = torch.zeros(
+                            (sim_feats_total.shape[0] + sim_feats1d.shape[0], V, K)
+                        ).to(device=sim_feats1d.device)
+                        _sim_feats_total[
+                            : sim_feats_total.shape[0],
+                            : sim_feats_total.shape[1],
+                            : sim_feats_total.shape[2],
+                        ] = sim_feats_total
+                        _sim_feats_total[
+                            sim_feats_total.shape[0] :,
+                            : sim_feats1d.shape[1],
+                            : sim_feats1d.shape[2],
+                        ] = sim_feats1d
                         sim_feats_total = _sim_feats_total
                     cats_total.append(batch.category_id)
 
             kpts3d = []
             kpts3d_id = []
-            cats_total = torch.cat(cats_total) # B
+            cats_total = torch.cat(cats_total)  # B
             for cat_id in range(len(dataset.categories)):
                 cat_sim_feats_total = sim_feats_total[cats_total == cat_id]
                 cat_vert_id = cat_sim_feats_total.mean(dim=0).argmax(dim=0)
-                cat_kpts3d = self.meshes.get_verts_with_mesh_id(mesh_id=cat_id)[cat_vert_id]
+                cat_kpts3d = self.meshes.get_verts_with_mesh_id(mesh_id=cat_id)[
+                    cat_vert_id
+                ]
                 kpts3d.append(cat_kpts3d)
                 kpts3d_id.append(cat_vert_id)
 
-        elif self.config.test.kpts3d == 'avg_kpts3d':
+        elif self.config.test.kpts3d == "avg_kpts3d":
             ### METHOD 2: simply average 3D keypoints
             kpts3d = []
             kpts3d_id = []
@@ -2277,26 +2986,40 @@ class NeMo(OD3D_Method):
             for cat_id in range(len(dataset.categories)):
                 # kpts3d[cat_id] = torch.stack(kpts3d[cat_id]).unique().mean(dim=0)
                 if len(kpts3d[cat_id]) > 0:
-                    kpts3d[cat_id] = torch.stack(kpts3d[cat_id]) # .mean(dim=0)
+                    kpts3d[cat_id] = torch.stack(kpts3d[cat_id])  # .mean(dim=0)
                     kpts3d_unique = kpts3d[cat_id].unique(dim=0)
                     kpts3d_unique_noninf = ~kpts3d_unique.isinf()
                     kpts3d_unique[~kpts3d_unique_noninf] = 0
-                    kpts3d_unique_mean = kpts3d_unique.sum(dim=0) / kpts3d_unique_noninf.sum(dim=0)
-                    kpts3d[cat_id] = kpts3d_unique_mean.to(device=self.device)  #  kpts3d[cat_id].unique(dim=0).mean(dim=0)
-                    cat_verts = self.meshes.get_verts_with_mesh_id(mesh_id=cat_id).to(device=self.device) # Vx3
-                    cat_vert_id = (kpts3d[cat_id][:, None] - cat_verts[None, :]).norm(dim=-1).argmin(dim=-1)
+                    kpts3d_unique_mean = kpts3d_unique.sum(
+                        dim=0
+                    ) / kpts3d_unique_noninf.sum(dim=0)
+                    kpts3d[cat_id] = kpts3d_unique_mean.to(
+                        device=self.device
+                    )  #  kpts3d[cat_id].unique(dim=0).mean(dim=0)
+                    cat_verts = self.meshes.get_verts_with_mesh_id(mesh_id=cat_id).to(
+                        device=self.device
+                    )  # Vx3
+                    cat_vert_id = (
+                        (kpts3d[cat_id][:, None] - cat_verts[None, :])
+                        .norm(dim=-1)
+                        .argmin(dim=-1)
+                    )
                     kpts3d_id.append(cat_vert_id)
                 else:
-                    logger.warning(f'no kpts set for category {dataset.categories[cat_id]}')
+                    logger.warning(
+                        f"no kpts set for category {dataset.categories[cat_id]}"
+                    )
                     kpts3d[cat_id] = torch.zeros((1, 3)).to(device=self.device)
-                    kpts3d_id.append(torch.zeros((1, )).to(dtype=torch.long, device=self.device))
+                    kpts3d_id.append(
+                        torch.zeros((1,)).to(dtype=torch.long, device=self.device)
+                    )
 
         from torch.nn.utils.rnn import pad_sequence
-        self.kpts3d = pad_sequence(kpts3d, batch_first=True) # CxKx3
-        self.kpts3d_id = pad_sequence(kpts3d_id, batch_first=True).long() # CxKx3
+
+        self.kpts3d = pad_sequence(kpts3d, batch_first=True)  # CxKx3
+        self.kpts3d_id = pad_sequence(kpts3d_id, batch_first=True).long()  # CxKx3
         del kpts3d
         del kpts3d_id
-
 
     def get_kpts3d_ids(self, category_id):
         """
@@ -2306,7 +3029,7 @@ class NeMo(OD3D_Method):
             kpts3d_id (torch.Tensor): BxK
         """
         if self.kpts3d_id is None:
-            raise ValueError('kpts3d is not set')
+            raise ValueError("kpts3d is not set")
 
         else:
             return self.kpts3d_id.to(category_id.device)[category_id].clone()
@@ -2376,13 +3099,21 @@ class NeMo(OD3D_Method):
                 )
 
             backbone_out, net_out = self.net(batch.rgb, return_backbone_output=True)
-            if 'latent' in results_batch.keys():
-                backbone_out.latent = torch.stack([results_batch['latent'][b] for b in batch_result_ids], dim=0).to(device=self.device)
+            if "latent" in results_batch.keys():
+                backbone_out.latent = torch.stack(
+                    [results_batch["latent"][b] for b in batch_result_ids], dim=0
+                ).to(device=self.device)
             feats2d_net = net_out.featmap
 
-            if self.config.train.get("epoch_inst_def_start", 0) <= self.scheduler.last_epoch:
-                instance_deform = self.meshes.get_instance_deform(backbone_out, img_feats_canonical=feats2d_net,
-                                                                  objects_ids=batch.category_id)
+            if (
+                self.config.train.get("epoch_inst_def_start", 0)
+                <= self.scheduler.last_epoch
+            ):
+                instance_deform = self.meshes.get_instance_deform(
+                    backbone_out,
+                    img_feats_canonical=feats2d_net,
+                    objects_ids=batch.category_id,
+                )
             else:
                 instance_deform = None
 
@@ -2404,7 +3135,7 @@ class NeMo(OD3D_Method):
                     PROJECT_MODALITIES.MASK,
                     PROJECT_MODALITIES.IMG,
                 ],
-                instance_deform=instance_deform
+                instance_deform=instance_deform,
             )
             vts2d, vts2d_mask = (
                 sample1d_mods[PROJECT_MODALITIES.PXL2D],
@@ -2426,24 +3157,44 @@ class NeMo(OD3D_Method):
             # )
             #
 
-            if VISUAL_MODALITIES.LATENT_INTERP in modalities and instance_deform is not None and instance_deform.latent is not None:
+            if (
+                VISUAL_MODALITIES.LATENT_INTERP in modalities
+                and instance_deform is not None
+                and instance_deform.latent is not None
+            ):
                 L = 4  # int(latent_scale * 2)
-                latent_interp = torch.stack([instance_deform.latent, instance_deform.latent.roll(1, dims=(0,))], dim=-1)
-                latent_interp = torch.nn.functional.interpolate(latent_interp, scale_factor=L / 2., mode='linear')
+                latent_interp = torch.stack(
+                    [instance_deform.latent, instance_deform.latent.roll(1, dims=(0,))],
+                    dim=-1,
+                )
+                latent_interp = torch.nn.functional.interpolate(
+                    latent_interp, scale_factor=L / 2.0, mode="linear"
+                )
 
                 latent_interp = latent_interp.permute(0, 2, 1).reshape(B * L, -1)
                 objects_ids_interp = batch.category_id.repeat_interleave(L)
                 feats2d_net_interp = feats2d_net.repeat_interleave(L, dim=0)
                 backbone_out.latent = latent_interp
-                instance_deform_interp = self.meshes.get_instance_deform(backbone_out,
-                                                                         img_feats_canonical=feats2d_net_interp,
-                                                                         objects_ids=objects_ids_interp)
-                from od3d.cv.visual.show import get_default_camera_intrinsics_from_img_size
-                from od3d.cv.geometry.transform import get_cam_tform4x4_obj_for_viewpoints_count
+                instance_deform_interp = self.meshes.get_instance_deform(
+                    backbone_out,
+                    img_feats_canonical=feats2d_net_interp,
+                    objects_ids=objects_ids_interp,
+                )
+                from od3d.cv.visual.show import (
+                    get_default_camera_intrinsics_from_img_size,
+                )
+                from od3d.cv.geometry.transform import (
+                    get_cam_tform4x4_obj_for_viewpoints_count,
+                )
+
                 V = 3
-                cam_tform4x4_obj_interp = get_cam_tform4x4_obj_for_viewpoints_count(viewpoints_count=V, dist=5.)
-                cam_intr4x4_interp = get_default_camera_intrinsics_from_img_size(H=batch.size[0].item(), W=batch.size[
-                    0].item())  # batch.cam_intr4x4[:1].repeat(V, 1, 1)
+                cam_tform4x4_obj_interp = get_cam_tform4x4_obj_for_viewpoints_count(
+                    viewpoints_count=V, dist=5.0
+                )
+                cam_intr4x4_interp = get_default_camera_intrinsics_from_img_size(
+                    H=batch.size[0].item(),
+                    W=batch.size[0].item(),
+                )  # batch.cam_intr4x4[:1].repeat(V, 1, 1)
 
                 ncds = self.meshes.render(
                     cams_tform4x4_obj=cam_tform4x4_obj_interp.to(self.device),
@@ -2453,97 +3204,162 @@ class NeMo(OD3D_Method):
                     down_sample_rate=down_sample_rate,
                     broadcast_batch_and_cams=True,
                     modalities=PROJECT_MODALITIES.PT3D_NCDS,
-                    instance_deform=instance_deform_interp
+                    instance_deform=instance_deform_interp,
                 )
-                ncds = ncds.reshape(B, L, V, *ncds.shape[-3:]).permute(0, 2, 1, 3, 4, 5).reshape(B * V, L,
-                                                                                                 *ncds.shape[-3:])
+                ncds = (
+                    ncds.reshape(B, L, V, *ncds.shape[-3:])
+                    .permute(0, 2, 1, 3, 4, 5)
+                    .reshape(
+                        B * V,
+                        L,
+                        *ncds.shape[-3:],
+                    )
+                )
 
                 ncds_rgb_interp_1 = resize(
-                    (batch.rgb - batch.rgb.min()) / ((batch.rgb.max() - batch.rgb.min()) + 1e-10),
+                    (batch.rgb - batch.rgb.min())
+                    / ((batch.rgb.max() - batch.rgb.min()) + 1e-10),
                     H_out=ncds.shape[-2],
                     W_out=ncds.shape[-1],
                 )
                 ncds_rgb_interp_2 = ncds_rgb_interp_1.roll(1, dims=(0,)).clone()
 
-                ncds_rgb_interp_1 = ncds_rgb_interp_1[:, None,].repeat_interleave(V, dim=0)
-                ncds_rgb_interp_2 = ncds_rgb_interp_2[:, None,].repeat_interleave(V, dim=0)
+                ncds_rgb_interp_1 = ncds_rgb_interp_1[:, None].repeat_interleave(
+                    V, dim=0
+                )
+                ncds_rgb_interp_2 = ncds_rgb_interp_2[:, None].repeat_interleave(
+                    V, dim=0
+                )
 
                 ncds = torch.cat([ncds_rgb_interp_1, ncds, ncds_rgb_interp_2], dim=1)
-                #show_imgs(ncds)
+                # show_imgs(ncds)
 
                 logger.info("upload latent interp...")
                 for b in range(B):
                     results_batch_visual[
                         f"visual/{VISUAL_MODALITIES.LATENT_INTERP}/{batch_sel_names[b]}"
                     ] = image_as_wandb_image(
-                        imgs_to_img(ncds[b*V:(b+1)*V], pad_value=1.),
+                        imgs_to_img(ncds[b * V : (b + 1) * V], pad_value=1.0),
                         caption=f"{batch_sel_names[b]}, {batch_names[b]}, {batch_sel_scores[b]}",
                     )
 
             if VISUAL_MODALITIES.MESH in modalities:
                 logger.info("upload meshes...")
 
-                pred_o3d_meshes = self.meshes.get_rgb_meshes_as_list_of_o3d(category_id=batch.category_id,
-                                                                            instance_deform=instance_deform,
-                                                                            device=self.device)
+                pred_o3d_meshes = self.meshes.get_rgb_meshes_as_list_of_o3d(
+                    category_id=batch.category_id,
+                    instance_deform=instance_deform,
+                    device=self.device,
+                )
 
-                pred_o3d_meshes_cat = self.meshes.get_rgb_meshes_as_list_of_o3d(category_id=batch.category_id,
-                                                                            instance_deform=None,
-                                                                            device=self.device)
+                pred_o3d_meshes_cat = self.meshes.get_rgb_meshes_as_list_of_o3d(
+                    category_id=batch.category_id,
+                    instance_deform=None,
+                    device=self.device,
+                )
 
-                gt_o3d_meshes = batch.mesh.get_rgb_meshes_as_list_of_o3d(device=self.device)
+                gt_o3d_meshes = batch.mesh.get_rgb_meshes_as_list_of_o3d(
+                    device=self.device
+                )
 
                 for b in range(B):
-                    offset_pred_cat = (np.array(pred_o3d_meshes[b].vertices)[:, 2].max() - np.array(pred_o3d_meshes_cat[b].vertices)[:, 2].min()) * 1.4
-                    offset_gt = offset_pred_cat + (np.array(pred_o3d_meshes_cat[b].vertices)[:, 2].max() - np.array(gt_o3d_meshes[b].vertices)[:, 2].min()) * 1.4
+                    offset_pred_cat = (
+                        np.array(pred_o3d_meshes[b].vertices)[:, 2].max()
+                        - np.array(pred_o3d_meshes_cat[b].vertices)[:, 2].min()
+                    ) * 1.4
+                    offset_gt = (
+                        offset_pred_cat
+                        + (
+                            np.array(pred_o3d_meshes_cat[b].vertices)[:, 2].max()
+                            - np.array(gt_o3d_meshes[b].vertices)[:, 2].min()
+                        )
+                        * 1.4
+                    )
 
-                    pred_cat_o3d_meshes_vertices = np.array(pred_o3d_meshes_cat[b].vertices)
+                    pred_cat_o3d_meshes_vertices = np.array(
+                        pred_o3d_meshes_cat[b].vertices
+                    )
                     pred_cat_o3d_meshes_vertices[:, 2] += offset_pred_cat
-                    pred_o3d_meshes_cat[b].vertices = open3d.utility.Vector3dVector(pred_cat_o3d_meshes_vertices)
+                    pred_o3d_meshes_cat[b].vertices = open3d.utility.Vector3dVector(
+                        pred_cat_o3d_meshes_vertices
+                    )
                     pred_vertices_count = pred_cat_o3d_meshes_vertices.shape[0]
 
                     gt_o3d_meshes_vertices = np.array(gt_o3d_meshes[b].vertices)
                     gt_o3d_meshes_vertices[:, 2] += offset_gt
-                    gt_o3d_meshes[b].vertices = open3d.utility.Vector3dVector(gt_o3d_meshes_vertices)
+                    gt_o3d_meshes[b].vertices = open3d.utility.Vector3dVector(
+                        gt_o3d_meshes_vertices
+                    )
                     gt_vertices_count = gt_o3d_meshes_vertices.shape[0]
 
                     pred_o3d_meshes[b] += gt_o3d_meshes[b]
                     pred_o3d_meshes[b] += pred_o3d_meshes_cat[b]
 
-                    from od3d.cv.geometry.transform import get_ico_cam_tform4x4_obj_for_viewpoints_count
-                    from od3d.cv.visual.show import get_default_camera_intrinsics_from_img_size, show_imgs
+                    from od3d.cv.geometry.transform import (
+                        get_ico_cam_tform4x4_obj_for_viewpoints_count,
+                    )
+                    from od3d.cv.visual.show import (
+                        get_default_camera_intrinsics_from_img_size,
+                        show_imgs,
+                    )
+
                     _mesh = Meshes.from_o3d(pred_o3d_meshes[b], device=self.device)
-                    _mesh.verts = _mesh.verts.clone() - _mesh.get_limits().max(dim=0).values.sum(dim=0) / 2
+                    _mesh.verts = (
+                        _mesh.verts.clone()
+                        - _mesh.get_limits().max(dim=0).values.sum(dim=0) / 2
+                    )
                     obj_scale = _mesh.get_range1d()
 
                     imgs_sizes = batch.size / down_sample_rate * 2
                     H = imgs_sizes[0]
                     W = imgs_sizes[1]
                     cams_tform4x4_obj = get_ico_cam_tform4x4_obj_for_viewpoints_count(
-                        viewpoints_count=8, radius=4. * obj_scale.cpu(), theta_count=1,
-                        viewpoints_uniform=True, theta_uniform=True).to(device=_mesh.device)
-                    cam_intr4x4 = get_default_camera_intrinsics_from_img_size(W=W, H=H).to(_mesh.device)
+                        viewpoints_count=8,
+                        radius=4.0 * obj_scale.cpu(),
+                        theta_count=1,
+                        viewpoints_uniform=True,
+                        theta_uniform=True,
+                    ).to(device=_mesh.device)
+                    cam_intr4x4 = get_default_camera_intrinsics_from_img_size(
+                        W=W, H=H
+                    ).to(_mesh.device)
 
-                    imgs = _mesh.render(cams_tform4x4_obj=cams_tform4x4_obj, cams_intr4x4=cam_intr4x4,
-                                        imgs_sizes=imgs_sizes, modalities=PROJECT_MODALITIES.RGB,
-                                        broadcast_batch_and_cams=True)
+                    imgs = _mesh.render(
+                        cams_tform4x4_obj=cams_tform4x4_obj,
+                        cams_intr4x4=cam_intr4x4,
+                        imgs_sizes=imgs_sizes,
+                        modalities=PROJECT_MODALITIES.RGB,
+                        broadcast_batch_and_cams=True,
+                    )
 
-                    feats = self.meshes.render(cams_tform4x4_obj=cams_tform4x4_obj, cams_intr4x4=cam_intr4x4,
-                                               imgs_sizes=imgs_sizes, modalities=PROJECT_MODALITIES.FEATS,
-                                               broadcast_batch_and_cams=True)
+                    feats = self.meshes.render(
+                        cams_tform4x4_obj=cams_tform4x4_obj,
+                        cams_intr4x4=cam_intr4x4,
+                        imgs_sizes=imgs_sizes,
+                        modalities=PROJECT_MODALITIES.FEATS,
+                        broadcast_batch_and_cams=True,
+                    )
 
                     from od3d.cv.cluster.embed import pca
-                    feats_rgb = pca(feats.permute(0, 1, 3, 4, 2), C=3).permute(0, 1, 4, 2, 3)
+
+                    feats_rgb = pca(feats.permute(0, 1, 3, 4, 2), C=3).permute(
+                        0, 1, 4, 2, 3
+                    )
                     # show_imgs(imgs)
 
                     results_batch_visual[
                         f"visual/{VISUAL_MODALITIES.MESH}/{batch_sel_names[b]}"
-                    ] = image_as_wandb_image(img=imgs_to_img(imgs[0]), caption=f"vertices count: pred={pred_vertices_count}, gt={gt_vertices_count}")
+                    ] = image_as_wandb_image(
+                        img=imgs_to_img(imgs[0]),
+                        caption=f"vertices count: pred={pred_vertices_count}, gt={gt_vertices_count}",
+                    )
 
                     results_batch_visual[
                         f"visual/{VISUAL_MODALITIES.MESH_FEATS}/{batch_sel_names[b]}"
-                    ] = image_as_wandb_image(img=imgs_to_img(feats_rgb[0]), caption=f"vertices count: pred={pred_vertices_count}, gt={gt_vertices_count}")
-
+                    ] = image_as_wandb_image(
+                        img=imgs_to_img(feats_rgb[0]),
+                        caption=f"vertices count: pred={pred_vertices_count}, gt={gt_vertices_count}",
+                    )
 
                     # import plotly.graph_objects as go
                     # fig = go.Figure(layout= {"title": f"vertices count: pred={pred_vertices_count}, gt={gt_vertices_count}"}, data=[
@@ -2584,7 +3400,7 @@ class NeMo(OD3D_Method):
                     objects_ids=batch.category_id,
                     modalities=PROJECT_MODALITIES.PT3D_NCDS,
                     add_clutter=True,
-                    instance_deform=instance_deform
+                    instance_deform=instance_deform,
                 )
 
                 # verts3d = self.get_nearest_verts3d_to_feats2d_net(
@@ -2743,7 +3559,9 @@ class NeMo(OD3D_Method):
                     add_clutter=True,
                     instance_deform=instance_deform,
                     normalize_surface=self.config.inference.normalize_surface,
-                    object_mask=batch.mask if self.config.inference.add_mask_object_to_sim else None
+                    object_mask=batch.mask
+                    if self.config.inference.add_mask_object_to_sim
+                    else None,
                 )
 
                 sim_pxl = resize(
@@ -2816,7 +3634,7 @@ class NeMo(OD3D_Method):
                     down_sample_rate=down_sample_rate,
                     broadcast_batch_and_cams=False,
                     modalities=PROJECT_MODALITIES.PT3D_NCDS,
-                    instance_deform=instance_deform
+                    instance_deform=instance_deform,
                 )
 
                 if VISUAL_MODALITIES.GT_VERTS_NCDS_IN_RGB in modalities:
@@ -3012,7 +3830,9 @@ class NeMo(OD3D_Method):
             dim=0,
         )
         sel_item_ids = results_epoch["item_id"][sel_rank_ids]
-        sel_names = epoch_best_names + epoch_worst_names + epoch_rand_names + epoch_sel_names
+        sel_names = (
+            epoch_best_names + epoch_worst_names + epoch_rand_names + epoch_sel_names
+        )
         sel_name_unique = [results_epoch["name_unique"][id] for id in sel_rank_ids]
         dict_name_unique_to_result_id = dict(zip(sel_name_unique, sel_rank_ids))
         dict_name_unique_to_sel_name = dict(zip(sel_name_unique, sel_names))
@@ -3105,13 +3925,29 @@ class NeMo(OD3D_Method):
 
         return nearest_verts3d, nearest_verts2d, prob_corresp2d3d
 
-    def pred_poses(self, backbone_out, cam_intr4x4: torch.Tensor, size: torch.Tensor, cam_tform4x4_obj: torch.Tensor=None):
+    def pred_poses(
+        self,
+        backbone_out,
+        cam_intr4x4: torch.Tensor,
+        size: torch.Tensor,
+        cam_tform4x4_obj: torch.Tensor = None,
+    ):
         from torch.nn import Softplus
-        softplus = Softplus(beta = 2 * np.log(2))
 
-        from od3d.cv.geometry.transform import cam_intr4x4_2_rays3d, cam_intr4x4_downsample, inv_tform4x4
+        softplus = Softplus(beta=2 * np.log(2))
+
+        from od3d.cv.geometry.transform import (
+            cam_intr4x4_2_rays3d,
+            cam_intr4x4_downsample,
+            inv_tform4x4,
+        )
+
         backbone_out = copy.deepcopy(backbone_out)
-        cam_intr4x4_down, img_size_down = cam_intr4x4_downsample(cams_intr4x4=cam_intr4x4, imgs_sizes=size, down_sample_rate=self.net.backbone.downsample_rate)
+        cam_intr4x4_down, img_size_down = cam_intr4x4_downsample(
+            cams_intr4x4=cam_intr4x4,
+            imgs_sizes=size,
+            down_sample_rate=self.net.backbone.downsample_rate,
+        )
         rays3d = cam_intr4x4_2_rays3d(cam_intr4x4_down, img_size_down)
 
         # PxNx2x3
@@ -3119,52 +3955,72 @@ class NeMo(OD3D_Method):
         # lines = transf3d_broadcast(pts3d=lines, transf4x4=inv_tform4x4(cam_tform4x4_obj[0]))
         # from od3d.cv.visual.show import show_scene
         # show_scene(meshes=self.meshes, lines3d=[lines.detach().cpu()], cams_tform4x4_world=[cam_tform4x4_obj.detach().cpu()[0]], cams_intr4x4=[cam_intr4x4.detach().cpu()[0]])
-        #show_scene(show_coordinate_frame=True, cams_tform4x4_world=poses_tform4x4[0].detach().cpu(), cams_intr4x4=cam_intr4x4[:1].repeat(poses_tform4x4[0].shape[0], 1, 1).detach().cpu())
+        # show_scene(show_coordinate_frame=True, cams_tform4x4_world=poses_tform4x4[0].detach().cpu(), cams_intr4x4=cam_intr4x4[:1].repeat(poses_tform4x4[0].shape[0], 1, 1).detach().cpu())
 
-        backbone_out.featmaps[-1] = torch.cat([backbone_out.featmaps[-1], rays3d], dim=-3)
-        #feats2d_net = backbone_out.feats_map
+        backbone_out.featmaps[-1] = torch.cat(
+            [backbone_out.featmaps[-1], rays3d], dim=-3
+        )
+        # feats2d_net = backbone_out.feats_map
         poses = self.net_pose(backbone_out)
-        poses = poses.feat.reshape(poses.feat.shape[0], self.net_pose_translations, self.net_pose_rotations, self.net_pose_rotation_dim + 3)
+        poses = poses.feat.reshape(
+            poses.feat.shape[0],
+            self.net_pose_translations,
+            self.net_pose_rotations,
+            self.net_pose_rotation_dim + 3,
+        )
         # [B, T, R, 9])
         # rot 6d to matrix, [x, y, z], x=lookat, y=up
         # zero dim: [False, False, False, False, False, False]
         # add othant: [True, True, True, False, True, False]
         # 2 ** 6 # 64
         poses_rot6d = poses[..., -6:].clone()
-        #poses_rot6d_othants = poses_rot6d[..., self.net_pose_rotations_othant]
-        #poses_rot6d_othants = softplus(poses_rot6d_othants)
+        # poses_rot6d_othants = poses_rot6d[..., self.net_pose_rotations_othant]
+        # poses_rot6d_othants = softplus(poses_rot6d_othants)
 
-        poses_rot6d[..., self.net_pose_rotations_othant] = softplus(poses_rot6d[..., self.net_pose_rotations_othant]).clone()
+        poses_rot6d[..., self.net_pose_rotations_othant] = softplus(
+            poses_rot6d[..., self.net_pose_rotations_othant]
+        ).clone()
 
-        #self.net_pose_rotations_othant_signs #R x 9
-        poses_rot6d = poses_rot6d * self.net_pose_rotations_othant_signs[None, None].to(device=self.device)
+        # self.net_pose_rotations_othant_signs #R x 9
+        poses_rot6d = poses_rot6d * self.net_pose_rotations_othant_signs[None, None].to(
+            device=self.device
+        )
         # poses[..., -6:] = poses.clone()[..., -6:] * self.net_pose_rotations_othant_signs[None, None].to(device=self.device)
 
         poses = torch.cat([poses[..., :3], poses_rot6d], dim=-1)
 
-        from od3d.cv.geometry.transform import (transf4x4_from_rot3x3_and_transl3, rotation_6d_to_matrix,
-                                                cam_intr4x4_to_cam_intr_ncds4x4, inv_cam_intr4x4, inv_tform4x4)
-        #cam_intr_ncds4x4 = cam_intr4x4_to_cam_intr_ncds4x4(cam_intr4x4=cam_intr4x4, size=size)
-        #cam_intr_ncds_inv4x4 = inv_cam_intr4x4(cam_intr_ncds4x4)
-        #poses[..., :3] = transf3d_broadcast(transf4x4=cam_intr_ncds_inv4x4[:, None, None], pts3d=poses[..., :3])
+        from od3d.cv.geometry.transform import (
+            transf4x4_from_rot3x3_and_transl3,
+            rotation_6d_to_matrix,
+            cam_intr4x4_to_cam_intr_ncds4x4,
+            inv_cam_intr4x4,
+            inv_tform4x4,
+        )
 
-        #poses[..., :3] = poses[..., :3] * 0
-        #poses[..., 2] = 10.
-        #poses[..., -3] = 0.
-        #poses[..., -2] = 1.
-        #poses[..., -1] = 0.
+        # cam_intr_ncds4x4 = cam_intr4x4_to_cam_intr_ncds4x4(cam_intr4x4=cam_intr4x4, size=size)
+        # cam_intr_ncds_inv4x4 = inv_cam_intr4x4(cam_intr_ncds4x4)
+        # poses[..., :3] = transf3d_broadcast(transf4x4=cam_intr_ncds_inv4x4[:, None, None], pts3d=poses[..., :3])
+
+        # poses[..., :3] = poses[..., :3] * 0
+        # poses[..., 2] = 10.
+        # poses[..., -3] = 0.
+        # poses[..., -2] = 1.
+        # poses[..., -1] = 0.
 
         poses_rot3x3 = rotation_6d_to_matrix(poses[..., -6:])
-        poses_tform4x4 = transf4x4_from_rot3x3_and_transl3(rot3x3=poses_rot3x3, transl3=poses[..., :3])
+        poses_tform4x4 = transf4x4_from_rot3x3_and_transl3(
+            rot3x3=poses_rot3x3, transl3=poses[..., :3]
+        )
 
-        poses_tform4x4 = poses_tform4x4.reshape(poses_tform4x4.shape[0], -1, *poses_tform4x4.shape[-2:])
+        poses_tform4x4 = poses_tform4x4.reshape(
+            poses_tform4x4.shape[0], -1, *poses_tform4x4.shape[-2:]
+        )
 
-        #from od3d.cv.visual.show import show_scene
+        # from od3d.cv.visual.show import show_scene
         # show_scene(cam_intr4x4=cam_intr4x4[:1], cam_)
-        #show_scene(show_coordinate_frame=True, cams_tform4x4_world=poses_tform4x4[0].detach().cpu(), cams_intr4x4=cam_intr4x4[:1].repeat(poses_tform4x4[0].shape[0], 1, 1).detach().cpu())
+        # show_scene(show_coordinate_frame=True, cams_tform4x4_world=poses_tform4x4[0].detach().cpu(), cams_intr4x4=cam_intr4x4[:1].repeat(poses_tform4x4[0].shape[0], 1, 1).detach().cpu())
 
         return poses_tform4x4
-
 
     def get_samples(
         self,
@@ -3197,7 +4053,7 @@ class NeMo(OD3D_Method):
                 categories_ids=categories_ids[:1],
                 feats2d_net_mask=feats2d_net_mask[:1],
                 instance_deform=instance_deform_first,
-                pred_cam_tform4x4_objs=pred_cam_tform4x4_objs_first
+                pred_cam_tform4x4_objs=pred_cam_tform4x4_objs_first,
             )
             # scale = (
             #     b_cams_multiview_tform4x4_obj[..., 2, 3]
@@ -3233,7 +4089,10 @@ class NeMo(OD3D_Method):
 
             b_cams_multiview_tform4x4_obj = tform4x4_broadcast(
                 cam_tform4x4_obj[:, None].clone(),
-                tform4x4_broadcast(inv_tform4x4(cam_tform4x4_obj[:1, None]), b_cams_multiview_tform4x4_obj),
+                tform4x4_broadcast(
+                    inv_tform4x4(cam_tform4x4_obj[:1, None]),
+                    b_cams_multiview_tform4x4_obj,
+                ),
             )
 
             b_cams_multiview_intr4x4 = cam_intr4x4[:, None].expand(
@@ -3249,10 +4108,10 @@ class NeMo(OD3D_Method):
                 # b_cams_multiview_tform4x4_obj[:, :, 2, 3] = cam_tform4x4_obj[:, None].repeat(1, C, 1, 1)[:, :, 2, 3]
                 # logger.info(f'dist {batch.cam_tform4x4_obj[:, 2, 3]}')
                 # assumption 2: translation to object is known
-                #b_cams_multiview_tform4x4_obj[:, :, :4, 3] = cam_tform4x4_obj[
+                # b_cams_multiview_tform4x4_obj[:, :, :4, 3] = cam_tform4x4_obj[
                 #    :,
                 #    None,
-                #].repeat(1, C, 1, 1)[:, :, :4, 3]
+                # ].repeat(1, C, 1, 1)[:, :, :4, 3]
 
                 b_cams_multiview_intr4x4 = cam_intr4x4[:, None].repeat(1, C, 1, 1)
 
@@ -3336,28 +4195,44 @@ class NeMo(OD3D_Method):
                     clutter_pxl2d=0,
                     return_feats=False,
                     instance_deform=None,
-                    coarse_labels=coarse_labels
+                    coarse_labels=coarse_labels,
                 )
 
                 H, W = feats2d_net.shape[-2:]
                 # sim_feats[sim_feats == 0.] = -torch.inf
-                sim_feats_top_vals, sim_feats_top_ids = sim_feats[:, :].sort(dim=1, descending=True)
+                sim_feats_top_vals, sim_feats_top_ids = sim_feats[:, :].sort(
+                    dim=1, descending=True
+                )
                 sim_feats_selected = torch.ones_like(sim_feats)
-                sim_feats_selected[:] = - torch.inf
+                sim_feats_selected[:] = -torch.inf
 
                 # add top
                 pt_nn_top_k = config_sample.epnp3d2d.pt_nn_top_k
-                sim_feats_selected = torch.scatter(input=sim_feats_selected, dim=1, index=sim_feats_top_ids[:, :pt_nn_top_k], src=sim_feats_top_vals[:, :pt_nn_top_k])
+                sim_feats_selected = torch.scatter(
+                    input=sim_feats_selected,
+                    dim=1,
+                    index=sim_feats_top_ids[:, :pt_nn_top_k],
+                    src=sim_feats_top_vals[:, :pt_nn_top_k],
+                )
                 # add clutter
                 sim_feats_selected[:, -1:] = sim_feats[:, -1:]
 
-                modality_pt3d = PROJECT_MODALITIES.PT3D if not coarse_labels else PROJECT_MODALITIES.PT3D_COARSE
-                pts3d = self.meshes.sample(objects_ids=categories_ids, modalities=modality_pt3d, add_clutter=False,
-                                           add_other_objects=False, instance_deform=instance_deform)
+                modality_pt3d = (
+                    PROJECT_MODALITIES.PT3D
+                    if not coarse_labels
+                    else PROJECT_MODALITIES.PT3D_COARSE
+                )
+                pts3d = self.meshes.sample(
+                    objects_ids=categories_ids,
+                    modalities=modality_pt3d,
+                    add_clutter=False,
+                    add_other_objects=False,
+                    instance_deform=instance_deform,
+                )
                 pts3d_prob = torch.softmax(sim_feats_selected, dim=1)[:, :-1].flatten(2)
 
-                #from od3d.cv.visual.show import show_imgs
-                #show_imgs(feats2d_net_mask)
+                # from od3d.cv.visual.show import show_imgs
+                # show_imgs(feats2d_net_mask)
 
                 # from od3d.cv.visual.show import show_imgs
                 # show_imgs(pts3d_prob.sum(dim=1).reshape(B, 1, H, W))
@@ -3365,16 +4240,14 @@ class NeMo(OD3D_Method):
                 if feats2d_net_mask is not None:
                     pts3d_prob = pts3d_prob * feats2d_net_mask.flatten(2)
 
-
                 # B x F x N
-                pts3d_prob[pts3d_prob.sum(dim=-1).sum(dim=-1) == 0.] = 1.
+                pts3d_prob[pts3d_prob.sum(dim=-1).sum(dim=-1) == 0.0] = 1.0
                 K = config_sample.epnp3d2d.count_cams
                 N = config_sample.epnp3d2d.count_pts
                 if N == -1:
-                    pts3d_prob[(pts3d_prob.sum(dim=-1) > 0).sum(dim=-1) < 4] = 1.
+                    pts3d_prob[(pts3d_prob.sum(dim=-1) > 0).sum(dim=-1) < 4] = 1.0
                 else:
-                    pts3d_prob[(pts3d_prob.sum(dim=-1) > 0).sum(dim=-1) < N] = 1.
-
+                    pts3d_prob[(pts3d_prob.sum(dim=-1) > 0).sum(dim=-1) < N] = 1.0
 
                 # rgb = torch.zeros_like(feats2d_net)[:, :3]
                 # from od3d.cv.select import batched_indexMD_fill, batched_index_select
@@ -3386,13 +4259,16 @@ class NeMo(OD3D_Method):
                 # from od3d.cv.visual.show import show_imgs
                 # show_imgs(rgb)
 
-                pxl2d = get_pxl2d_like(sim_feats.permute(0, 2, 3, 1)).permute(
-                    0,
-                    3,
-                    1,
-                    2,
-                ).flatten(2)
-
+                pxl2d = (
+                    get_pxl2d_like(sim_feats.permute(0, 2, 3, 1))
+                    .permute(
+                        0,
+                        3,
+                        1,
+                        2,
+                    )
+                    .flatten(2)
+                )
 
                 count_pts3d = pts3d_prob.shape[-2]
                 count_pxl2d = pts3d_prob.shape[-1]
@@ -3414,8 +4290,8 @@ class NeMo(OD3D_Method):
                 # pts3d_ids = torch.multinomial(pts3d_prob_3d.reshape(-1, count_pts3d), num_samples=1, replacement=False)
                 # pts3d_ids = pts3d_ids.reshape(pts3d_prob.shape[0], K, N)
 
-                #SAMPLING SEQUENTIAL: First 3D
-                #sample 1st 3D
+                # SAMPLING SEQUENTIAL: First 3D
+                # sample 1st 3D
                 # N x K (where N never has includes the same pxl id)
                 # pts3d_ids = torch.multinomial(
                 #     pts3d_prob.sum(dim=-1)[:, None].expand(pts3d_prob.shape[0], K, count_pts3d).reshape(-1, count_pts3d),
@@ -3440,8 +4316,8 @@ class NeMo(OD3D_Method):
                 # grid_pxl2d_dist = torch.cdist(grid_pxl2d, grid_pxl2d)
                 # grid_pxl2d_prob = 1. - torch.exp(- grid_pxl2d_dist / ( W / 10 )) # , dim=-1)
 
-                #from od3d.cv.visual.show import show_imgs
-                #show_imgs(255 * grid_pxl2d_prob[:3].reshape(3, 1, H, W))
+                # from od3d.cv.visual.show import show_imgs
+                # show_imgs(255 * grid_pxl2d_prob[:3].reshape(3, 1, H, W))
 
                 # pts3d2d_ids = []
                 # for n in range(N):
@@ -3460,27 +4336,39 @@ class NeMo(OD3D_Method):
 
                 if N != -1:
                     pts3d2d_ids = torch.multinomial(
-                        #pts3d_prob.flatten(1),
-                        pts3d_prob[:, None].expand(pts3d_prob.shape[0], K, *pts3d_prob.shape[1:]).reshape(pts3d_prob.shape[0] * K, -1), # BxVxH*W
+                        # pts3d_prob.flatten(1),
+                        pts3d_prob[:, None]
+                        .expand(pts3d_prob.shape[0], K, *pts3d_prob.shape[1:])
+                        .reshape(pts3d_prob.shape[0] * K, -1),  # BxVxH*W
                         num_samples=N,
                         replacement=False,
                     ).reshape(pts3d_prob.shape[0], K, N)
 
-                    pts3d_ids = pts3d2d_ids // count_pxl2d # BxKxN
-                    pxl2d_ids = pts3d2d_ids % count_pxl2d # BxKxN
+                    pts3d_ids = pts3d2d_ids // count_pxl2d  # BxKxN
+                    pxl2d_ids = pts3d2d_ids % count_pxl2d  # BxKxN
                     device = pts3d.device
                     dtype = pts3d.dtype
                     pts3d_pairs = torch.zeros(B, 3, K, N).to(device=device, dtype=dtype)
-                    pts3d_pairs_prob = torch.zeros(B, K, K, N).to(device=device, dtype=dtype)
+                    pts3d_pairs_prob = torch.zeros(B, K, K, N).to(
+                        device=device, dtype=dtype
+                    )
                     pxl2d_pairs = torch.zeros(B, 2, K, N).to(device=device, dtype=dtype)
-                    pts3d2d_pairs_mask = torch.eye(K).to(device=device, dtype=bool)[None, :, :, None].expand(B, K, K, N) # (B, K, K*N)
-                    pts3d2d_pairs_mask = pts3d2d_pairs_mask.reshape(B, K, K*N)
+                    pts3d2d_pairs_mask = (
+                        torch.eye(K)
+                        .to(device=device, dtype=bool)[None, :, :, None]
+                        .expand(B, K, K, N)
+                    )  # (B, K, K*N)
+                    pts3d2d_pairs_mask = pts3d2d_pairs_mask.reshape(B, K, K * N)
                     for b in range(B):
                         pts3d_pairs[b] = pts3d[b, pts3d_ids[b], :].permute(2, 0, 1)
                         pxl2d_pairs[b] = pxl2d[b, :, pxl2d_ids[b]]
-                        pts3d_pairs_prob[b] = pts3d_prob[b].flatten()[pts3d2d_ids[b]][None,].expand(K, K, N)
+                        pts3d_pairs_prob[b] = (
+                            pts3d_prob[b]
+                            .flatten()[pts3d2d_ids[b]][None,]
+                            .expand(K, K, N)
+                        )
 
-                    pts3d_pairs_prob = pts3d_pairs_prob.reshape(B, K, K*N)
+                    pts3d_pairs_prob = pts3d_pairs_prob.reshape(B, K, K * N)
                     pts3d_pairs = pts3d_pairs.reshape(B, 3, -1)
                     pxl2d_pairs = pxl2d_pairs.reshape(B, 2, -1)
 
@@ -3497,10 +4385,14 @@ class NeMo(OD3D_Method):
                 else:
                     pxl2d_pairs = pxl2d.reshape(*pxl2d.shape[:2], H, W)
                     pts3d_pairs_prob, pts3d_pairs_ids = pts3d_prob.max(dim=1)
-                    pts3d_pairs = batched_index_select(input=pts3d, index=pts3d_pairs_ids, dim=1)
+                    pts3d_pairs = batched_index_select(
+                        input=pts3d, index=pts3d_pairs_ids, dim=1
+                    )
                     pts3d_pairs = pts3d_pairs.permute(0, 2, 1)
                     pts3d_pairs = pts3d_pairs.reshape(*pts3d_pairs.shape[:2], H, W)
-                    pts3d_pairs_prob = pts3d_pairs_prob.reshape(*pts3d_pairs_prob.shape[:1], 1, H, W)
+                    pts3d_pairs_prob = pts3d_pairs_prob.reshape(
+                        *pts3d_pairs_prob.shape[:1], 1, H, W
+                    )
                     pts3d2d_pairs_mask = pts3d_pairs_prob > 0
                     if not config_sample.epnp3d2d.pt_nn_weights:
                         pts3d_pairs_prob = None
@@ -3522,13 +4414,21 @@ class NeMo(OD3D_Method):
                 )
 
                 if b_cams_multiview_tform4x4_obj.isnan().any():
-                    logger.info(f'NaNs in cam_tform_obj')
-                    b_nans = b_cams_multiview_tform4x4_obj.flatten(2).isnan().any(dim=-1)
-                    b_cams_multiview_tform4x4_obj[b_nans] = torch.eye(4).to(device=b_nans.device)[None]
-                if b_cams_multiview_tform4x4_obj.abs().max() > 1e+5:
-                    logger.info(f'Too large values in cam_tform_obj')
-                    b_too_largs = (b_cams_multiview_tform4x4_obj.flatten(2).abs() > 1e+5).any(dim=-1)
-                    b_cams_multiview_tform4x4_obj[b_too_largs] = torch.eye(4).to(device=b_too_largs.device)[None]
+                    logger.info(f"NaNs in cam_tform_obj")
+                    b_nans = (
+                        b_cams_multiview_tform4x4_obj.flatten(2).isnan().any(dim=-1)
+                    )
+                    b_cams_multiview_tform4x4_obj[b_nans] = torch.eye(4).to(
+                        device=b_nans.device
+                    )[None]
+                if b_cams_multiview_tform4x4_obj.abs().max() > 1e5:
+                    logger.info(f"Too large values in cam_tform_obj")
+                    b_too_largs = (
+                        b_cams_multiview_tform4x4_obj.flatten(2).abs() > 1e5
+                    ).any(dim=-1)
+                    b_cams_multiview_tform4x4_obj[b_too_largs] = torch.eye(4).to(
+                        device=b_too_largs.device
+                    )[None]
 
                 b_cams_multiview_intr4x4 = cam_intr4x4[:, None].repeat(1, K, 1, 1)
                 b_cams_multiview_tform4x4_obj[

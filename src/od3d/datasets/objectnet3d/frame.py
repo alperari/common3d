@@ -286,7 +286,7 @@ class ObjectNet3D_Frame(
         return OBJECTNET3D_SCALE_NORMALIZE_TO_REAL[self.category]
 
     def get_norm_scale(self):
-        return 2. / 0.85 # note: on average
+        return 2.0 / 0.85  # note: on average
 
     def get_mesh(self, mesh_type=None, clone=False):
         if (mesh_type is None or mesh_type == self.mesh_type) and self.mesh is not None:

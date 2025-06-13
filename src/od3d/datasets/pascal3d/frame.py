@@ -363,7 +363,7 @@ class Pascal3DFrame(
         return PASCAL3D_SCALE_NORMALIZE_TO_REAL[self.category]
 
     def get_norm_scale(self):
-        return 2. / 0.85 # note: on average
+        return 2.0 / 0.85  # note: on average
 
     def read_mesh(self, mesh_type=None):
         if mesh_type is None:
@@ -377,7 +377,7 @@ class Pascal3DFrame(
             # note: preprocessed meshes are in real scale (not anymore)
             mesh = Meshes.read_from_ply_file(
                 fpath=self.get_fpath_mesh(mesh_type=mesh_type),
-                scale = self.scale,
+                scale=self.scale,
             )
 
         if mesh_type is None or mesh_type == self.mesh_type:
@@ -433,9 +433,7 @@ class Pascal3DFrame(
         return cam_tform4x4_obj
 
     def read_kpts3d(self):
-        kpts3d = (
-            self.meta.kpts3d.clone() * self.scale
-        )
+        kpts3d = self.meta.kpts3d.clone() * self.scale
         return kpts3d
 
     @staticmethod

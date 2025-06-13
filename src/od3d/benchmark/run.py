@@ -12,6 +12,7 @@ def bench_single_method_local(config: DictConfig):
     benchmark = OD3D_Benchmark(config=config)
     benchmark.run()
 
+
 def bench_single_method_local_separate_venv(cfg: DictConfig):
     # 1. save config
     # 2. setup od3d in separate virtual environment
@@ -422,11 +423,11 @@ export https_proxy
 # echo LD_LIBRARY_PATH=${{LD_LIBRARY_PATH}}
 echo CUDA_HOME=${{CUDA_HOME}}
 
-echo "Getting the lock." 
+echo "Getting the lock."
 PATH_LOCK="{cfg.platform.path_od3d}/installing.txt"
 exec 200>${{PATH_LOCK}}
 flock 200
-echo "Got the lock." 
+echo "Got the lock."
 
 # while [[ -e "{cfg.platform.path_od3d}/installing.txt" ]]; do
 #     sleep 3
@@ -465,9 +466,9 @@ exec 200>&- # free lock
 
 od3d debug hello-world
 
-trap "scontrol requeue ${{SLURM_JOB_ID}}" SIGUSR1 
+trap "scontrol requeue ${{SLURM_JOB_ID}}" SIGUSR1
 
-{cmd} & 
+{cmd} &
 
 PID=$!
 wait "${{PID}}"
@@ -480,7 +481,7 @@ echo "${{EXITCODE}}"
 {restart_upon_fail_cmds_str}
 
 exit 0
-        """ # could add if $?== 1 then requeue
+        """  # could add if $?== 1 then requeue
         rsh.write(script_as_string)
     if not cfg.platform.shared_home_with_local:
         run_cmd(f'ssh slurm "mkdir -p {remote_tmp_script_fpath_parent}"', logger=None)

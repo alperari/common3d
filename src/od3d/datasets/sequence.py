@@ -201,7 +201,7 @@ class OD3D_Sequence(OD3D_FrameModalitiesMixin, OD3D_Object, Dataset):
             pts3d_colors=[pts3d_colors],
             pts3d=[pts3d, mesh_feats_viewpoints, cams_viewpoints],
             meshes=[mesh],
-            renderer="pyrender"
+            renderer="pyrender",
         )
 
     def read_cams(
@@ -450,7 +450,7 @@ class OD3D_SequencePCLMixin(
         pcl_type=None,
         device="cpu",
         tform_obj_type: OD3D_TFROM_OBJ_TYPES = None,
-        max_pts = None
+        max_pts=None,
     ):
         fpath_pcl = self.get_fpath_pcl(pcl_type=pcl_type)
         pts3d, pts3d_colors, pts3d_normals = read_pts3d_with_colors_and_normals(
@@ -459,26 +459,29 @@ class OD3D_SequencePCLMixin(
         )
 
         if max_pts is not None:
-            #from od3d.cv.geometry.downsample import fps
-            #pts3d_mask, pts3d = fps(pts3d, K=max_pts, fill=True)
+            # from od3d.cv.geometry.downsample import fps
+            # pts3d_mask, pts3d = fps(pts3d, K=max_pts, fill=True)
             # note pts3d_mask are actually indices
             from od3d.cv.geometry.downsample import random_sampling
-            pts3d, pts3d_mask = random_sampling(pts3d, pts3d_max_count=max_pts, return_mask=True)
+
+            pts3d, pts3d_mask = random_sampling(
+                pts3d, pts3d_max_count=max_pts, return_mask=True
+            )
 
             if pts3d_colors is not None:
                 pts3d_colors = pts3d_colors[pts3d_mask]
             if pts3d_normals is not None:
                 pts3d_normals = pts3d_normals[pts3d_mask]
 
-            #pts3d_inds, pts3d_vals = fps(pts3d=pts3d, K=max_pts, fill=False)
-            #pts3d = pts3d[pts3d_inds]
+            # pts3d_inds, pts3d_vals = fps(pts3d=pts3d, K=max_pts, fill=False)
+            # pts3d = pts3d[pts3d_inds]
             # if pts3d_colors is not None:
             #     pts3d_colors = pts3d_colors[pts3d_inds]
             # if pts3d_normals is not None:
             #     pts3d_normals = pts3d_normals[pts3d_inds]
 
-            #from od3d.cv.visual.show import show_scene
-            #show_scene(pts3d=[pts3d], pts3d_colors=pts3d_colors)
+            # from od3d.cv.visual.show import show_scene
+            # show_scene(pts3d=[pts3d], pts3d_colors=pts3d_colors)
 
         tform_obj = self.get_tform_obj(tform_obj_type=tform_obj_type)
         if tform_obj is not None:
@@ -505,7 +508,7 @@ class OD3D_SequencePCLMixin(
         clone=False,
         device="cpu",
         tform_obj_type: OD3D_TFROM_OBJ_TYPES = None,
-        max_pts = None
+        max_pts=None,
     ):
         if (
             self.pts3d is not None
@@ -522,7 +525,7 @@ class OD3D_SequencePCLMixin(
                 pcl_type=pcl_type,
                 device=device,
                 tform_obj_type=tform_obj_type,
-                max_pts=max_pts
+                max_pts=max_pts,
             )
         if not clone:
             return pts3d, pts3d_colors, pts3d_normals
@@ -530,14 +533,18 @@ class OD3D_SequencePCLMixin(
             return pts3d.clone(), pts3d_colors.clone(), pts3d_normals.clone()
 
     def preprocess_pcl_poisson_disk(self, override=False):
-        pcd = self.read_mesh(OD3D_MESH_TYPES.META).to_o3d().sample_points_poisson_disk(4096, init_factor=5, pcl=None)
+        pcd = (
+            self.read_mesh(OD3D_MESH_TYPES.META)
+            .to_o3d()
+            .sample_points_poisson_disk(4096, init_factor=5, pcl=None)
+        )
         pts3d = torch.from_numpy(np.asarray(pcd.points)).to(
-            dtype=torch.float
+            dtype=torch.float,
         )
         pts3d_colors = None  # torch.from_numpy(np.asarray(pcd.colors)).to(
         #    dtype=torch.float
         # )
-        pts3d_normals = None,  # torch.from_numpy(np.asarray(pcd.normals)).to(
+        pts3d_normals = (None,)  # torch.from_numpy(np.asarray(pcd.normals)).to(
         #    dtype=torch.float
         # )
         write_pts3d_with_colors_and_normals(
@@ -546,18 +553,24 @@ class OD3D_SequencePCLMixin(
             pts3d_colors=None,  # pts3d_colors.detach().cpu(),
             pts3d_normals=None,  # pts3d_normals.detach().cpu(),
         )
+
     def preprocess_pcl(self, override=False):
         if self.pcl_type == OD3D_PCL_TYPES.META:
             logger.info("no need to preprocess pcl for meta pcl type")
             return
         elif self.pcl_type == OD3D_PCL_TYPES.POISSON_DISK_FPS:
             if not override and self.fpath_pcl.exists():
-                logger.info(f"fpath poisson disk fps already exists at {self.fpath_pcl}")
+                logger.info(
+                    f"fpath poisson disk fps already exists at {self.fpath_pcl}"
+                )
                 return
 
             self.preprocess_pcl_poisson_disk(override=override)
-            pts3d, pts3d_colors, pts3d_normals = read_pts3d_with_colors_and_normals(fpath=self.get_fpath_pcl(pcl_type=OD3D_PCL_TYPES.POISSON_DISK))
+            pts3d, pts3d_colors, pts3d_normals = read_pts3d_with_colors_and_normals(
+                fpath=self.get_fpath_pcl(pcl_type=OD3D_PCL_TYPES.POISSON_DISK)
+            )
             from od3d.cv.geometry.downsample import fps
+
             pts3d_ids, pts3d = fps(pts3d=pts3d, K=1024, fill=True)
             pts3d_colors = pts3d_colors[pts3d_ids]
             pts3d_normals = pts3d_normals[pts3d_ids]
@@ -719,6 +732,7 @@ class OD3D_SequencePCLMixin(
             return
         elif tform_obj_type == OD3D_TFROM_OBJ_TYPES.META:
             from od3d.cv.geometry.fit.se3s_alignment import get_se3s_alignment
+
             logger.info(
                 f"reading cam_tform_obj meta",
             )
@@ -728,11 +742,11 @@ class OD3D_SequencePCLMixin(
                 cam_tform4x4_obj_type=OD3D_CAM_TFORM_OBJ_TYPES.META,
                 tform_obj_type=OD3D_TFROM_OBJ_TYPES.RAW,
             )
-            cam_tform4x4_meta_obj = torch.stack(cam_tform4x4_meta_obj)# [::10]
-            #cams_intr4x4 = torch.stack(cams_intr4x4)[::10]
-            #cams_imgs = cams_imgs[::10]
-            #from od3d.cv.visual.show import show_scene
-            #show_scene(cams_intr4x4=cams_intr4x4, cams_tform4x4_world=cam_tform4x4_meta_obj, cams_imgs=cams_imgs)
+            cam_tform4x4_meta_obj = torch.stack(cam_tform4x4_meta_obj)  # [::10]
+            # cams_intr4x4 = torch.stack(cams_intr4x4)[::10]
+            # cams_imgs = cams_imgs[::10]
+            # from od3d.cv.visual.show import show_scene
+            # show_scene(cams_intr4x4=cams_intr4x4, cams_tform4x4_world=cam_tform4x4_meta_obj, cams_imgs=cams_imgs)
             logger.info(
                 f"reading cam_tform_obj sfm",
             )
@@ -742,15 +756,18 @@ class OD3D_SequencePCLMixin(
                 cam_tform4x4_obj_type=OD3D_CAM_TFORM_OBJ_TYPES.SFM,
                 tform_obj_type=OD3D_TFROM_OBJ_TYPES.RAW,
             )
-            cam_tform4x4_meta_sfm = torch.stack(cam_tform4x4_meta_sfm)# [::10]
-            #cams_intr4x4 = torch.stack(cams_intr4x4)[::10]
-            #cams_imgs = cams_imgs[::10]
-            #from od3d.cv.visual.show import show_scene
-            #show_scene(cams_intr4x4=cams_intr4x4, cams_tform4x4_world=cam_tform4x4_meta_sfm, cams_imgs=cams_imgs)
+            cam_tform4x4_meta_sfm = torch.stack(cam_tform4x4_meta_sfm)  # [::10]
+            # cams_intr4x4 = torch.stack(cams_intr4x4)[::10]
+            # cams_imgs = cams_imgs[::10]
+            # from od3d.cv.visual.show import show_scene
+            # show_scene(cams_intr4x4=cams_intr4x4, cams_tform4x4_world=cam_tform4x4_meta_sfm, cams_imgs=cams_imgs)
 
-            sfm_tform4x4_meta_mean = get_se3s_alignment(cam_tform4x4_meta_sfm, cam_tform4x4_meta_obj)
+            sfm_tform4x4_meta_mean = get_se3s_alignment(
+                cam_tform4x4_meta_sfm, cam_tform4x4_meta_obj
+            )
 
             from od3d.cv.geometry.transform import inv_tform4x4
+
             self.write_tform_obj(
                 tform_obj=inv_tform4x4(sfm_tform4x4_meta_mean),
                 fpath_tform_obj=fpath_tform_obj,
@@ -1031,7 +1048,6 @@ class OD3D_SequencePCLMixin(
         #     logger.info(f'not storing labeled axis.')
 
 
-
 @dataclass
 class OD3D_SequenceMeshMixin(
     OD3D_MeshFeatsTypeMixin,
@@ -1042,8 +1058,10 @@ class OD3D_SequenceMeshMixin(
     mesh_feats = None
     mesh_feats_viewpoint = None
 
-    def get_tform_obj(self, tform_obj_type: OD3D_TFROM_OBJ_TYPES = None, device="cpu", center=True):
-        tform_obj = super(OD3D_SequenceMeshMixin, self).get_tform_obj(tform_obj_type=tform_obj_type, device=device)
+    def get_tform_obj(
+        self, tform_obj_type: OD3D_TFROM_OBJ_TYPES = None, device="cpu", center=True
+    ):
+        tform_obj = super().get_tform_obj(tform_obj_type=tform_obj_type, device=device)
 
         if tform_obj is not None and center:
             mesh = Meshes.read_from_ply_file(
@@ -1051,13 +1069,17 @@ class OD3D_SequenceMeshMixin(
                 device=device,
             )
 
-            mesh_verts = transf3d_broadcast(pts3d=mesh.verts.clone(), transf4x4=tform_obj)
+            mesh_verts = transf3d_broadcast(
+                pts3d=mesh.verts.clone(), transf4x4=tform_obj
+            )
             tform_obj_buf = tform_obj.clone()
-            transl = -(mesh_verts.max(dim=0)[0] + mesh_verts.min(dim=0)[0]) / 2.
+            transl = -(mesh_verts.max(dim=0)[0] + mesh_verts.min(dim=0)[0]) / 2.0
             tform_obj_buf[:3, 3] += transl
 
-            mesh_verts = transf3d_broadcast(pts3d=mesh.verts.clone(), transf4x4=tform_obj_buf)
-            scale = 1. / mesh_verts.abs().max()
+            mesh_verts = transf3d_broadcast(
+                pts3d=mesh.verts.clone(), transf4x4=tform_obj_buf
+            )
+            scale = 1.0 / mesh_verts.abs().max()
             tform_obj_buf[:3, :] *= scale
 
             # mesh_verts = transf3d_broadcast(pts3d=mesh.verts.clone(), transf4x4=tform_obj_buf)
@@ -1148,6 +1170,7 @@ class OD3D_SequenceMeshMixin(
             )
 
         import re
+
         match = re.match(r"([a-z]+)([0-9]+)", self.mesh_type, re.I)
         if match and len(match.groups()) == 2:
             mesh_type, mesh_vertices_count = match.groups()
@@ -1168,17 +1191,27 @@ class OD3D_SequenceMeshMixin(
 
         device = get_default_device()
 
-        if mesh_type == "trellis" or mesh_type == "trellismv" or mesh_type == "trellismask" or mesh_type == "trellismvmask" or mesh_type == "hunyuan" or mesh_type == "hunyuanmask":
-
+        if (
+            mesh_type == "trellis"
+            or mesh_type == "trellismv"
+            or mesh_type == "trellismask"
+            or mesh_type == "trellismvmask"
+            or mesh_type == "hunyuan"
+            or mesh_type == "hunyuanmask"
+        ):
             if "trellis" in mesh_type:
                 import os
+
                 # os.environ['ATTN_BACKEND'] = 'xformers'   # Can be 'flash-attn' or 'xformers', default is 'flash-attn'
-                os.environ['SPCONV_ALGO'] = 'native'  # Can be 'native' or 'auto', default is 'auto'.
+                os.environ[
+                    "SPCONV_ALGO"
+                ] = "native"  # Can be 'native' or 'auto', default is 'auto'.
                 # 'auto' is faster but will do benchmarking at the beginning.
                 # Recommended to set to 'native' if run only once.
 
                 import imageio
                 from PIL import Image
+
                 # git submodule add git@github.com:microsoft/TRELLIS.git
                 # pip install pillow imageio imageio-ffmpeg tqdm easydict opencv-python-headless scipy ninja rembg onnxruntime trimesh xatlas pyvista pymeshfix igraph transformers
                 # pip install git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
@@ -1193,15 +1226,16 @@ class OD3D_SequenceMeshMixin(
                 from trellis.utils import render_utils, postprocessing_utils
 
                 # Load a pipeline from a model folder or a Hugging Face model hub.
-                pipeline = TrellisImageTo3DPipeline.from_pretrained("JeffreyXiang/TRELLIS-image-large")
+                pipeline = TrellisImageTo3DPipeline.from_pretrained(
+                    "JeffreyXiang/TRELLIS-image-large"
+                )
                 pipeline.cuda()
-
 
                 # import torch
                 import torchvision.transforms as transforms
                 from PIL import Image
 
-                #tensor = self.image
+                # tensor = self.image
                 if "mv" not in mesh_type:
                     frames = self.get_frames_uniform(4)
                 else:
@@ -1212,15 +1246,21 @@ class OD3D_SequenceMeshMixin(
                 if "mask" not in mesh_type:
                     pil_rgbs = [to_pil(rgb) for rgb in rgbs]
                 else:
-                    masks = [((frame.read_mask() > 0.5) * 255).type(torch.uint8) for frame in frames]
-                    pil_rgbs = [to_pil(torch.cat([rgbs[i], masks[i]], dim=0)) for i in range(len(rgbs))]
+                    masks = [
+                        ((frame.read_mask() > 0.5) * 255).type(torch.uint8)
+                        for frame in frames
+                    ]
+                    pil_rgbs = [
+                        to_pil(torch.cat([rgbs[i], masks[i]], dim=0))
+                        for i in range(len(rgbs))
+                    ]
 
-                #frame0 = self.get_frame_by_index(0)
-                #rgb0 = frame0.read_rgb()
-                #tensor = torch.rand(3, 128, 128)  # Values are between 0 and 1
-                #tensor = rgb0
+                # frame0 = self.get_frame_by_index(0)
+                # rgb0 = frame0.read_rgb()
+                # tensor = torch.rand(3, 128, 128)  # Values are between 0 and 1
+                # tensor = rgb0
                 # Convert tensor to PIL image
-                #pil_image = to_pil(tensor)
+                # pil_image = to_pil(tensor)
 
                 # Load an image
                 # pil_image = Image.open("assets/example_image/T.png")
@@ -1256,22 +1296,20 @@ class OD3D_SequenceMeshMixin(
                         # },
                     )
 
-
                 # GLB files can be extracted from the outputs
                 glb = postprocessing_utils.to_glb(
-                    outputs['gaussian'][0],
-                    outputs['mesh'][0],
+                    outputs["gaussian"][0],
+                    outputs["mesh"][0],
                     # Optional parameters
-                    simplify=0.99, # 0.95  # Ratio of triangles to remove in the simplification process
+                    simplify=0.99,  # 0.95  # Ratio of triangles to remove in the simplification process
                     texture_size=1024,  # Size of the texture used for the GLB
                 )
                 # ranges are 1
                 # .write_to_file(fpath=self.fpath_mesh)
-                fpath_mesh = self.fpath_mesh.with_suffix('.glb')
+                fpath_mesh = self.fpath_mesh.with_suffix(".glb")
                 fpath_mesh.parent.mkdir(exist_ok=True, parents=True)
                 _ = glb.export(fpath_mesh)
                 del pipeline
-
 
             elif "hunyuan" in mesh_type:
                 # pip install git+https://github.com/Tencent/Hunyuan3D-2.git
@@ -1296,25 +1334,31 @@ class OD3D_SequenceMeshMixin(
                 frames = self.get_frames_uniform(1)
                 image_path = frames[0].fpath_rgb
 
-                model_path = 'tencent/Hunyuan3D-2'
-                subfolder = 'hunyuan3d-dit-v2-0' # -turbo, -fast
+                model_path = "tencent/Hunyuan3D-2"
+                subfolder = "hunyuan3d-dit-v2-0"  # -turbo, -fast
 
-                #model_path = 'tencent/Hunyuan3D-2mini'
-                #subfolder = 'hunyuan3d-dit-v2-mini'
+                # model_path = 'tencent/Hunyuan3D-2mini'
+                # subfolder = 'hunyuan3d-dit-v2-mini'
 
-                pipeline_shapegen = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(model_path, subfolder=subfolder)
+                pipeline_shapegen = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(
+                    model_path, subfolder=subfolder
+                )
                 pipeline_texgen = Hunyuan3DPaintPipeline.from_pretrained(model_path)
 
                 pil_img = Image.open(image_path)
 
                 if "hunyuanmask" in mesh_type:
                     from torchvision import transforms
-                    to_pil = transforms.ToPILImage()
-                    masks = [((frame.read_mask() > 0.5) * 255).type(torch.uint8) for frame in frames]
-                    rgbs = [frame.read_rgb() for frame in frames]
-                    pil_img  = to_pil(torch.cat([rgbs[0], masks[0]], dim=0))
 
-                if pil_img.mode == 'RGB':
+                    to_pil = transforms.ToPILImage()
+                    masks = [
+                        ((frame.read_mask() > 0.5) * 255).type(torch.uint8)
+                        for frame in frames
+                    ]
+                    rgbs = [frame.read_rgb() for frame in frames]
+                    pil_img = to_pil(torch.cat([rgbs[0], masks[0]], dim=0))
+
+                if pil_img.mode == "RGB":
                     rembg = BackgroundRemover()
                     pil_img = rembg(pil_img)
 
@@ -1323,7 +1367,7 @@ class OD3D_SequenceMeshMixin(
                 glb = pipeline_texgen(glb, image=pil_img)
 
                 # .write_to_file(fpath=self.fpath_mesh)
-                fpath_mesh = self.fpath_mesh.with_suffix('.glb')
+                fpath_mesh = self.fpath_mesh.with_suffix(".glb")
                 fpath_mesh.parent.mkdir(exist_ok=True, parents=True)
                 _ = glb.export(fpath_mesh)
                 del pipeline_shapegen, pipeline_texgen
@@ -1340,8 +1384,12 @@ class OD3D_SequenceMeshMixin(
             # OD3D_MESH_FEATS_TYPES.M_DINOV2_FROZEN_BASE_NO_NORM_T_CENTERZOOM512_R_ACC
             # M_DINOV2_VITS14_FROZEN_BASE_NO_NORM_T_CENTERZOOM512_R_ACC
             ref_mesh_type = OD3D_MESH_TYPES.ALPHA500
-            mesh_feats_type = OD3D_MESH_FEATS_TYPES.M_DINOV2_VITS14_FROZEN_BASE_NO_NORM_T_CENTERZOOM512_R_ACC
-            mesh_feats_type = 'M_dinov2_vits14_frozen_base_no_norm_T_centerzoom512_R_acc'
+            mesh_feats_type = (
+                OD3D_MESH_FEATS_TYPES.M_DINOV2_VITS14_FROZEN_BASE_NO_NORM_T_CENTERZOOM512_R_ACC
+            )
+            mesh_feats_type = (
+                "M_dinov2_vits14_frozen_base_no_norm_T_centerzoom512_R_acc"
+            )
             # /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/feats/M_dinov2_vits14_frozen_base_no_norm_T_centerzoom512_R_acc
             meshes = Meshes.read_from_ply_file(fpath_mesh, device=device)
             meshes_smpl = meshes.get_simplified_mesh()
@@ -1358,12 +1406,21 @@ class OD3D_SequenceMeshMixin(
                 msg = f"could not retrieve model, transform, and reduce type from mesh feats type {self.mesh_feats_type}"
                 raise Exception(msg)
 
-            from od3d.cv.geometry.transform import get_ico_cam_tform4x4_obj_for_viewpoints_count
-            from od3d.cv.visual.show import get_default_camera_intrinsics_from_img_size, show_imgs
+            from od3d.cv.geometry.transform import (
+                get_ico_cam_tform4x4_obj_for_viewpoints_count,
+            )
+            from od3d.cv.visual.show import (
+                get_default_camera_intrinsics_from_img_size,
+                show_imgs,
+            )
 
-            cam_tform4x4_obj = get_ico_cam_tform4x4_obj_for_viewpoints_count(viewpoints_count=100, radius=4.).to(device)
-            imgs_sizes = torch.Tensor([512, 512]) # frame.size.clone()
-            cam_intr4x4 = get_default_camera_intrinsics_from_img_size(H=imgs_sizes[0], W=imgs_sizes[1], device=device)
+            cam_tform4x4_obj = get_ico_cam_tform4x4_obj_for_viewpoints_count(
+                viewpoints_count=100, radius=4.0
+            ).to(device)
+            imgs_sizes = torch.Tensor([512, 512])  # frame.size.clone()
+            cam_intr4x4 = get_default_camera_intrinsics_from_img_size(
+                H=imgs_sizes[0], W=imgs_sizes[1], device=device
+            )
 
             # outputs['mesh'][0].vertices.shape
 
@@ -1378,55 +1435,92 @@ class OD3D_SequenceMeshMixin(
             feature_dim = model.out_dim
 
             meshes_verts_aggregated_features = [
-                                                   torch.zeros((0, feature_dim), device="cpu"),
-                                               ] * meshes_smpl.verts.shape[0]
+                torch.zeros((0, feature_dim), device="cpu"),
+            ] * meshes_smpl.verts.shape[0]
             meshes_verts_aggregated_viewpoints = [
-                                                     torch.zeros((0, 3), device="cpu"),
-                                                 ] * meshes_smpl.verts.shape[0]
+                torch.zeros((0, 3), device="cpu"),
+            ] * meshes_smpl.verts.shape[0]
             vertices_count = len(meshes_verts_aggregated_features)
 
             viewpoints_count = cam_tform4x4_obj.shape[0]
             viewpoints_count_batch = 6
             import math
-            for i in range(math.ceil(viewpoints_count/viewpoints_count_batch)):
-                b_cam_tform4x4_obj = cam_tform4x4_obj[i*viewpoints_count_batch:(i+1)*viewpoints_count_batch]
+
+            for i in range(math.ceil(viewpoints_count / viewpoints_count_batch)):
+                b_cam_tform4x4_obj = cam_tform4x4_obj[
+                    i * viewpoints_count_batch : (i + 1) * viewpoints_count_batch
+                ]
                 b_cam_intr4x4 = cam_intr4x4[None,].repeat(len(b_cam_tform4x4_obj), 1, 1)
                 imgs_sizes = imgs_sizes.to(device)
-                mods = meshes.render(imgs_sizes=imgs_sizes, cams_tform4x4_obj=b_cam_tform4x4_obj,
-                                    cams_intr4x4=cam_intr4x4, # [None,]
-                                    modalities=["rgb", "mask"], broadcast_batch_and_cams=True)
+                mods = meshes.render(
+                    imgs_sizes=imgs_sizes,
+                    cams_tform4x4_obj=b_cam_tform4x4_obj,
+                    cams_intr4x4=cam_intr4x4,  # [None,]
+                    modalities=["rgb", "mask"],
+                    broadcast_batch_and_cams=True,
+                )
                 rgb = mods["rgb"][0]
                 rgb_mask = mods["mask"][0] > 0.5
                 # show_imgs(rgb)
-                self.add_mesh_verts_agg_feats_and_viewpoints(meshes_verts_aggregated_features,
-                                                             meshes_verts_aggregated_viewpoints,
-                                                             b_cam_intr4x4, b_cam_tform4x4_obj, imgs_sizes, down_sample_rate,
-                                                             meshes_smpl, device, model, rgb, rgb_mask)
+                self.add_mesh_verts_agg_feats_and_viewpoints(
+                    meshes_verts_aggregated_features,
+                    meshes_verts_aggregated_viewpoints,
+                    b_cam_intr4x4,
+                    b_cam_tform4x4_obj,
+                    imgs_sizes,
+                    down_sample_rate,
+                    meshes_smpl,
+                    device,
+                    model,
+                    rgb,
+                    rgb_mask,
+                )
 
-            meshes_verts_aggregated_features, meshes_verts_aggregated_viewpoints = (
-                self.reduce_mesh_verts_agg_feats_and_viewpoints(meshes_verts_aggregated_features,
-                                                                meshes_verts_aggregated_viewpoints,
-                                                                reduce_type=reduce_type))
+            (
+                meshes_verts_aggregated_features,
+                meshes_verts_aggregated_viewpoints,
+            ) = self.reduce_mesh_verts_agg_feats_and_viewpoints(
+                meshes_verts_aggregated_features,
+                meshes_verts_aggregated_viewpoints,
+                reduce_type=reduce_type,
+            )
 
             del model
 
             from od3d.cv.geometry.fit.se3_align_mesh import se3_align_mesh
 
-            pts_ref_feats = self.read_mesh_feats(mesh_type=ref_mesh_type,
-                                           mesh_feats_type=mesh_feats_type,
-                                           cache=False)
+            pts_ref_feats = self.read_mesh_feats(
+                mesh_type=ref_mesh_type,
+                mesh_feats_type=mesh_feats_type,
+                cache=False,
+            )
 
-
-            pts_ref = self.read_mesh(mesh_type=ref_mesh_type, device=device, tform_obj_type=OD3D_TFROM_OBJ_TYPES.RAW).verts.detach()
+            pts_ref = self.read_mesh(
+                mesh_type=ref_mesh_type,
+                device=device,
+                tform_obj_type=OD3D_TFROM_OBJ_TYPES.RAW,
+            ).verts.detach()
             pts_src = meshes_smpl.verts.detach()
-            src_tform4x4_ref = se3_align_mesh(pts_ref=pts_ref, pts_src=pts_src,
-                                              seq_ref_feats=pts_ref_feats,
-                                              seq_src_feats=meshes_verts_aggregated_features)
+            src_tform4x4_ref = se3_align_mesh(
+                pts_ref=pts_ref,
+                pts_src=pts_src,
+                seq_ref_feats=pts_ref_feats,
+                seq_src_feats=meshes_verts_aggregated_features,
+            )
 
             from od3d.cv.geometry.transform import transf3d_broadcast, inv_tform4x4
-            glb.vertices = transf3d_broadcast(pts3d=torch.Tensor(glb.vertices).to(device), transf4x4=inv_tform4x4(src_tform4x4_ref)).detach().cpu().numpy()
+
+            glb.vertices = (
+                transf3d_broadcast(
+                    pts3d=torch.Tensor(glb.vertices).to(device),
+                    transf4x4=inv_tform4x4(src_tform4x4_ref),
+                )
+                .detach()
+                .cpu()
+                .numpy()
+            )
             _ = glb.export(fpath_mesh)
-            logger.info(f'saving mesh at {fpath_mesh}')
+            logger.info(f"saving mesh at {fpath_mesh}")
 
             return
 
@@ -1516,7 +1610,11 @@ class OD3D_SequenceMeshMixin(
                             pts3d_downsample_count = int(pts3d_downsample_count * 0.95)
                             alpha = alpha * 1.1
 
-                            o3d_pcl = open3d.geometry.PointCloud.farthest_point_down_sample(o3d_pcl, pts3d_downsample_count)
+                            o3d_pcl = (
+                                open3d.geometry.PointCloud.farthest_point_down_sample(
+                                    o3d_pcl, pts3d_downsample_count
+                                )
+                            )
                         o3d_obj_mesh = open3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(
                             o3d_pcl,
                             alpha,
@@ -1782,39 +1880,49 @@ class OD3D_SequenceMeshMixin(
             )
 
         elif mesh_type == "cuboid" or mesh_type == "sphere" or mesh_type == "icosphere":
-            from od3d.cv.geometry.fit.cuboid import fit_cuboid_to_pts3d, fit_sphere_to_pts3d
+            from od3d.cv.geometry.fit.cuboid import (
+                fit_cuboid_to_pts3d,
+                fit_sphere_to_pts3d,
+            )
 
-            #if mesh_type == "sphere" or mesh_type == "icosphere":
+            # if mesh_type == "sphere" or mesh_type == "icosphere":
             #    tform_obj = torch.eye(4).to(device=device)
             if (
-                self.get_tform_obj(tform_obj_type=OD3D_TFROM_OBJ_TYPES.LABEL3D_CUBOID, center=False)
+                self.get_tform_obj(
+                    tform_obj_type=OD3D_TFROM_OBJ_TYPES.LABEL3D_CUBOID, center=False
+                )
                 is not None
             ):
                 tform_obj = self.get_tform_obj(
                     tform_obj_type=OD3D_TFROM_OBJ_TYPES.LABEL3D_CUBOID,
-                    device=device, center=False
+                    device=device,
+                    center=False,
                 )
 
             elif (
                 self.get_tform_obj(
-                    tform_obj_type=OD3D_TFROM_OBJ_TYPES.LABEL3D_ZSP_CUBOID, center=False
+                    tform_obj_type=OD3D_TFROM_OBJ_TYPES.LABEL3D_ZSP_CUBOID,
+                    center=False,
                 )
                 is not None
             ):
                 tform_obj = self.get_tform_obj(
                     tform_obj_type=OD3D_TFROM_OBJ_TYPES.LABEL3D_ZSP_CUBOID,
-                    device=device, center=False
+                    device=device,
+                    center=False,
                 )
 
             elif (
                 self.get_tform_obj(
-                    tform_obj_type=OD3D_TFROM_OBJ_TYPES.META_CUBOID, center=False
+                    tform_obj_type=OD3D_TFROM_OBJ_TYPES.META_CUBOID,
+                    center=False,
                 )
                 is not None
             ):
                 tform_obj = self.get_tform_obj(
                     tform_obj_type=OD3D_TFROM_OBJ_TYPES.META_CUBOID,
-                    device=device, center=False
+                    device=device,
+                    center=False,
                 )
 
             else:
@@ -2349,19 +2457,20 @@ class OD3D_SequenceMeshMixin(
             "mesh_feats_dist.pt",
         )
 
-    def add_mesh_verts_agg_feats_and_viewpoints(self,
-                                 meshes_verts_aggregated_features,
-                                meshes_verts_aggregated_viewpoints,
-                                 cam_intr4x4,
-                                 cam_tform4x4_obj,
-                                 imgs_sizes,
-                                 down_sample_rate,
-                                 meshes,
-                                 device,
-                                 model,
-                                 rgb,
-                                 rgb_mask,):
-
+    def add_mesh_verts_agg_feats_and_viewpoints(
+        self,
+        meshes_verts_aggregated_features,
+        meshes_verts_aggregated_viewpoints,
+        cam_intr4x4,
+        cam_tform4x4_obj,
+        imgs_sizes,
+        down_sample_rate,
+        meshes,
+        device,
+        model,
+        rgb,
+        rgb_mask,
+    ):
         from od3d.cv.visual.sample import sample_pxl2d_pts
 
         B = len(cam_tform4x4_obj)
@@ -2469,8 +2578,12 @@ class OD3D_SequenceMeshMixin(
                 dim=0,
             )
 
-    def reduce_mesh_verts_agg_feats_and_viewpoints(self, meshes_verts_aggregated_features,
-                                                   meshes_verts_aggregated_viewpoints, reduce_type):
+    def reduce_mesh_verts_agg_feats_and_viewpoints(
+        self,
+        meshes_verts_aggregated_features,
+        meshes_verts_aggregated_viewpoints,
+        reduce_type,
+    ):
         if reduce_type == "acc":
             return meshes_verts_aggregated_features, meshes_verts_aggregated_viewpoints
 
@@ -2490,7 +2603,10 @@ class OD3D_SequenceMeshMixin(
                 ],
                 dim=0,
             )
-            return meshes_verts_aggregated_features_avg, meshes_verts_aggregated_viewpoints_avg
+            return (
+                meshes_verts_aggregated_features_avg,
+                meshes_verts_aggregated_viewpoints_avg,
+            )
         elif reduce_type == "avg_norm":
             meshes_verts_aggregated_features_avg_norm = torch.nn.functional.normalize(
                 torch.stack(
@@ -2509,7 +2625,10 @@ class OD3D_SequenceMeshMixin(
                 ],
                 dim=0,
             )
-            return meshes_verts_aggregated_features_avg_norm, meshes_verts_aggregated_viewpoints_avg
+            return (
+                meshes_verts_aggregated_features_avg_norm,
+                meshes_verts_aggregated_viewpoints_avg,
+            )
 
         elif reduce_type == "min50":
             meshes_verts_aggregated_features_padded = torch.nn.utils.rnn.pad_sequence(
@@ -2541,10 +2660,12 @@ class OD3D_SequenceMeshMixin(
                 index=indices[:, None],
                 dim=1,
             )[:, 0]
-            return mesh_verts_aggregated_features_min50, mesh_verts_aggregated_viewpoints_min50
+            return (
+                mesh_verts_aggregated_features_min50,
+                mesh_verts_aggregated_viewpoints_min50,
+            )
         else:
             raise NotImplementedError
-
 
     def read_mesh_feats_dist(
         self,

@@ -22,6 +22,7 @@ def fit_tform4x4_with_matches3d3d(
     N, F = pts.shape[-2:]
     device = pts.device
     from pytorch3d.ops.points_alignment import corresponding_points_alignment
+
     S = corresponding_points_alignment(
         pts.view(-1, N, F),
         pts_ref.view(-1, N, F),

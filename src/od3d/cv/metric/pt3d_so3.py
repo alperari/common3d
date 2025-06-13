@@ -3,17 +3,16 @@
 #
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
-
 # pyre-unsafe
-
+import math
 import warnings
 from typing import Tuple
 
 import torch
 from od3d.cv.metric import pt3d_rotation_conversions as rotation_conversions
-import math
 
 DEFAULT_ACOS_BOUND: float = 1.0 - 1e-4
+
 
 def acos_linear_extrapolation(
     x: torch.Tensor,
@@ -73,8 +72,6 @@ def acos_linear_extrapolation(
     return acos_extrap
 
 
-
-
 def _acos_linear_approximation(x: torch.Tensor, x0: float) -> torch.Tensor:
     """
     Calculates the 1st order Taylor expansion of `arccos(x)` around `x0`.
@@ -126,6 +123,7 @@ def so3_relative_angle(
     """
     R12 = torch.bmm(R1, R2.permute(0, 2, 1))
     return so3_rotation_angle(R12, cos_angle=cos_angle, cos_bound=cos_bound, eps=eps)
+
 
 def so3_rotation_angle(
     R: torch.Tensor,
@@ -182,6 +180,7 @@ def so3_rotation_angle(
         else:
             return torch.acos(phi_cos)
 
+
 def so3_exp_map(log_rot: torch.Tensor, eps: float = 0.0001) -> torch.Tensor:
     """
     Convert a batch of logarithmic representations of rotation matrices `log_rot`
@@ -208,6 +207,7 @@ def so3_exp_map(log_rot: torch.Tensor, eps: float = 0.0001) -> torch.Tensor:
     """
     return _so3_exp_map(log_rot, eps=eps)[0]
 
+
 def so3_exponential_map(log_rot: torch.Tensor, eps: float = 0.0001) -> torch.Tensor:
     warnings.warn(
         """so3_exponential_map is deprecated,
@@ -218,8 +218,10 @@ def so3_exponential_map(log_rot: torch.Tensor, eps: float = 0.0001) -> torch.Ten
 
     return so3_exp_map(log_rot, eps)
 
+
 def _so3_exp_map(
-    log_rot: torch.Tensor, eps: float = 0.0001
+    log_rot: torch.Tensor,
+    eps: float = 0.0001,
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     A helper function that computes the so3 exponential map and,
@@ -240,8 +242,11 @@ def _so3_exp_map(
 
     return R, rot_angles, skews, skews_square
 
+
 def so3_log_map(
-    R: torch.Tensor, eps: float = 0.0001, cos_bound: float = 1e-4
+    R: torch.Tensor,
+    eps: float = 0.0001,
+    cos_bound: float = 1e-4,
 ) -> torch.Tensor:
     """
     Convert a batch of 3x3 rotation matrices `R`
@@ -263,6 +268,7 @@ def so3_log_map(
         raise ValueError("Input has to be a batch of 3x3 Tensors.")
 
     return rotation_conversions.matrix_to_axis_angle(R)
+
 
 def hat_inv(h: torch.Tensor) -> torch.Tensor:
     """

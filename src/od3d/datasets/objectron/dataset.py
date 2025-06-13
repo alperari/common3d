@@ -21,18 +21,29 @@ from omegaconf import DictConfig
 import shutil
 from od3d.datasets.objectron.frame import Objectron_FrameMeta, Objectron_Frame
 from od3d.datasets.objectron.sequence import Objectron_Sequence
-from od3d.datasets.objectron.enum import OBJECTRON_CATEGORIES, MAP_CATEGORIES_OBJECTRON_TO_OD3D
+from od3d.datasets.objectron.enum import (
+    OBJECTRON_CATEGORIES,
+    MAP_CATEGORIES_OBJECTRON_TO_OD3D,
+)
 import torch
-from od3d.datasets.object import (OD3D_CAM_TFORM_OBJ_TYPES, OD3D_FRAME_MASK_TYPES,
-                                  OD3D_MESH_TYPES, OD3D_MESH_FEATS_TYPES, OD3D_MESH_FEATS_DIST_REDUCE_TYPES,
-                                  OD3D_TFROM_OBJ_TYPES, OD3D_PCL_TYPES, OD3D_SEQUENCE_SFM_TYPES)
+from od3d.datasets.object import (
+    OD3D_CAM_TFORM_OBJ_TYPES,
+    OD3D_FRAME_MASK_TYPES,
+    OD3D_MESH_TYPES,
+    OD3D_MESH_FEATS_TYPES,
+    OD3D_MESH_FEATS_DIST_REDUCE_TYPES,
+    OD3D_TFROM_OBJ_TYPES,
+    OD3D_PCL_TYPES,
+    OD3D_SEQUENCE_SFM_TYPES,
+)
 from od3d.datasets.frame import OD3D_FRAME_KPTS2D_ANNOT_TYPES, OD3D_FRAME_MODALITIES
-
 
 
 class Objectron(OD3D_SequenceDataset):
     all_categories = list(OBJECTRON_CATEGORIES)
-    sequence_type = Objectron_Sequence  # od3d.datasets.monolmb.sequence.MonoLMB_Sequence
+    sequence_type = (
+        Objectron_Sequence  # od3d.datasets.monolmb.sequence.MonoLMB_Sequence
+    )
     frame_type = Objectron_Frame  # od3d.datasets.monolmb.frame.MonoLMB_Frame
 
     def path_frames_rgb(self):
@@ -91,11 +102,11 @@ class Objectron(OD3D_SequenceDataset):
 
     @staticmethod
     def setup(config: DictConfig):
-
         import requests
         from od3d.datasets.objectron.enum import OBJECTRON_CATEGORIES
 
         from pathlib import Path
+
         path_objectron_raw = Path(config.path_raw)
 
         if path_objectron_raw.exists() and config.setup.remove_previous:
@@ -107,7 +118,7 @@ class Objectron(OD3D_SequenceDataset):
         else:
             logger.info(f"Downloading Objectron dataset at {path_objectron_raw}")
 
-            logger.info('categories')
+            logger.info("categories")
             for category in list(OBJECTRON_CATEGORIES):
                 category_str = f"{category}"
                 logger.info(category_str)
@@ -118,40 +129,54 @@ class Objectron(OD3D_SequenceDataset):
                 public_url = "https://storage.googleapis.com/objectron"
                 blob_path = public_url + f"/v1/index/{category_str}_annotations"
                 video_ids = requests.get(blob_path).text
-                video_ids = video_ids.split('\n')
+                video_ids = video_ids.split("\n")
 
                 from tqdm import tqdm
+
                 # Download the first ten videos in cup test dataset
                 for i in tqdm(range(len(video_ids))):
-                    video_id = video_ids[i]  # "bike/batch-4/38" "bike/batch-4/43" # video_ids[i]
+                    video_id = video_ids[
+                        i
+                    ]  # "bike/batch-4/38" "bike/batch-4/43" # video_ids[i]
                     if len(video_id) == 0:
                         continue
                     video_filename = public_url + f"/videos/" + video_id + "/video.MOV"
-                    metadata_filename = public_url + "/videos/" + video_id + "/geometry.pbdata"
-                    annotation_filename = public_url + "/annotations/" + video_id + ".pbdata"
+                    metadata_filename = (
+                        public_url + "/videos/" + video_id + "/geometry.pbdata"
+                    )
+                    annotation_filename = (
+                        public_url + "/annotations/" + video_id + ".pbdata"
+                    )
 
-                    seq_name = '_'.join(video_id.split('/')[1:]).replace('-', '_')
+                    seq_name = "_".join(video_id.split("/")[1:]).replace("-", "_")
 
                     annotation = requests.get(annotation_filename)
-                    path_objectron_raw.joinpath(category_str, seq_name).mkdir(exist_ok=True, parents=True)
-                    annotation_fpath = path_objectron_raw.joinpath(category_str, seq_name, "annotation.pbdata")
+                    path_objectron_raw.joinpath(category_str, seq_name).mkdir(
+                        exist_ok=True, parents=True
+                    )
+                    annotation_fpath = path_objectron_raw.joinpath(
+                        category_str, seq_name, "annotation.pbdata"
+                    )
                     file = open(annotation_fpath, "wb")
                     file.write(annotation.content)
                     file.close()
 
                     metadata = requests.get(metadata_filename)
-                    metadata_fpath = path_objectron_raw.joinpath(category_str, seq_name, "meta.pbdata")
+                    metadata_fpath = path_objectron_raw.joinpath(
+                        category_str, seq_name, "meta.pbdata"
+                    )
                     file = open(metadata_fpath, "wb")
                     file.write(metadata.content)
                     file.close()
 
                     # video.content contains the video file.
                     video = requests.get(video_filename)
-                    video_fpath = path_objectron_raw.joinpath(category_str, seq_name, "video.MOV")
+                    video_fpath = path_objectron_raw.joinpath(
+                        category_str, seq_name, "video.MOV"
+                    )
                     file = open(video_fpath, "wb")
                     file.write(video.content)
                     file.close()
-
 
     @staticmethod
     def extract_meta(config: DictConfig):
@@ -159,7 +184,9 @@ class Objectron(OD3D_SequenceDataset):
         path_raw = Path(config.path_raw)
 
         config.setup.remove_previous = True
-        if path_meta.exists() and config.get("extract_meta", False).get("remove_previous", False):
+        if path_meta.exists() and config.get("extract_meta", False).get(
+            "remove_previous", False
+        ):
             logger.info(f"Removing previous Objectron meta")
             shutil.rmtree(path_meta)
 
@@ -172,7 +199,6 @@ class Objectron(OD3D_SequenceDataset):
             False,
         )
 
-
         categories = (
             list(dict_nested_frames.keys())
             if dict_nested_frames is not None
@@ -180,10 +206,10 @@ class Objectron(OD3D_SequenceDataset):
         )
 
         # path_sequences = Objectron.get_path_frames_rgb(path_raw=path_raw)
-        #sequences_count_max_per_category = config.get(
+        # sequences_count_max_per_category = config.get(
         #    "sequences_count_max_per_category",
         #    None,
-        #)
+        # )
 
         for category in categories:
             logger.info(f"preprocess meta for class {category}")
@@ -222,6 +248,7 @@ class Objectron(OD3D_SequenceDataset):
                 )
 
             from tqdm import tqdm
+
             for sequence_name in tqdm(sequences_names):
                 fpath_sequence_meta = OD3D_SequenceMetaCategoryMixin.get_fpath_sequence_meta_with_category_and_name(
                     path_meta=path_meta,
@@ -253,17 +280,21 @@ class Objectron(OD3D_SequenceDataset):
                 path_sequence = path_raw.joinpath(
                     sequence_meta.name_unique,
                 )
-                frames_path = path_raw.joinpath('frames', category, sequence_name)
-                fpath_video = path_sequence.joinpath('video.MOV')
-                fpath_annotation = path_sequence.joinpath('annotation.pbdata')
+                frames_path = path_raw.joinpath("frames", category, sequence_name)
+                fpath_video = path_sequence.joinpath("video.MOV")
+                fpath_annotation = path_sequence.joinpath("annotation.pbdata")
                 # fpath_meta_objectron = path_sequence.joinpath('meta.pbdata')
 
-                from od3d.datasets.objectron.schema import annotation_data_pb2 as annotation_protocol
+                from od3d.datasets.objectron.schema import (
+                    annotation_data_pb2 as annotation_protocol,
+                )
+
                 with open(fpath_annotation, "rb") as pb:
                     sequence_annotation = annotation_protocol.Sequence()
                     sequence_annotation.ParseFromString(pb.read())
 
                 import cv2
+
                 # Create a VideoCapture object
                 cap = cv2.VideoCapture(fpath_video)
 
@@ -288,10 +319,12 @@ class Objectron(OD3D_SequenceDataset):
 
                         frame_id += 1
                         # Wait for 25ms and check if the user pressed the 'q' key to exit
-                        if cv2.waitKey(25) & 0xFF == ord('q'):
+                        if cv2.waitKey(25) & 0xFF == ord("q"):
                             break
 
-                        l_size = torch.LongTensor([frame.shape[0], frame.shape[1]]).tolist()
+                        l_size = torch.LongTensor(
+                            [frame.shape[0], frame.shape[1]]
+                        ).tolist()
                         frame_meta = Objectron_FrameMeta.load_from_raw(
                             name=fpath_frame.stem,
                             category=category,
@@ -311,5 +344,3 @@ class Objectron(OD3D_SequenceDataset):
                 # Release the VideoCapture object and close any open windows
                 cap.release()
                 cv2.destroyAllWindows()
-
-

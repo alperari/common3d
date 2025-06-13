@@ -6,18 +6,22 @@ import od3d.io
 import pandas as pd
 from od3d.benchmark.results import OD3D_Results
 from od3d.cv.metric.pose import get_pose_diff_in_rad
-from od3d.datasets.dataset import OD3D_Dataset
-from od3d.methods.method import OD3D_Method
-from omegaconf import DictConfig
 from od3d.cv.select import batched_index_select
+from od3d.datasets.dataset import OD3D_Dataset
 from od3d.datasets.frames import OD3D_Frames
-
+from od3d.methods.method import OD3D_Method
 from od3d.tasks.reconstruction import Reconstruction
-from od3d.tasks.task import OD3D_Visuals, OD3D_Metrics
+from od3d.tasks.task import OD3D_Metrics
+from od3d.tasks.task import OD3D_Visuals
+from omegaconf import DictConfig
 
 logger = logging.getLogger(__name__)
 import torch
-from od3d.cv.geometry.metrics.dist import batch_chamfer_distance, batch_point_face_distance, batch_point_face_distance_v2
+from od3d.cv.geometry.metrics.dist import (
+    batch_chamfer_distance,
+    batch_point_face_distance,
+    batch_point_face_distance_v2,
+)
 from od3d.cv.geometry.transform import transf3d_broadcast
 from od3d.datasets.frame import OD3D_FRAME_MODALITIES
 from od3d.cv.geometry.transform import se3_exp_map, proj3d2d_broadcast
@@ -130,8 +134,11 @@ class NeMo_Rec(OD3D_Method):
         self.use_pbr_rendering = True
         if self.use_pbr_rendering:
             from od3d.cv.render.utils.util import latlong_to_cubemap, dot
+
             # latlong_img = torch.tensor(load_image("data/light_envs/neutral.hdr"), dtype=torch.float32, device='cuda')
-            latlong_img = torch.randn((512, 1024, 3)).to(dtype=torch.float32, device='cuda') * 0.
+            latlong_img = (
+                torch.randn((512, 1024, 3)).to(dtype=torch.float32, device="cuda") * 0.0
+            )
             # latlong_img = latlong_img.clamp(0.2, 1.)
             # 6 x H x W x 3
             cubemap = latlong_to_cubemap(latlong_img, [512, 512])
@@ -143,34 +150,42 @@ class NeMo_Rec(OD3D_Method):
             self._rgb_light_env = None
 
         from od3d.cv.geometry.objects3d.objects3d import FEATS_ACTIVATION
-        self.config.objects3d.update({
-            #"verts_requires_grad": False,
-            "feats_requires_grad": True,
-            "feat_dim": 3 if not self.use_pbr_rendering else 6,
-            "fpaths_meshes": self.fpaths_meshes,
-            "fpaths_meshes_tforms": self.fpaths_meshes_tform_obj,
-            "feats_objects": True,
-            "feat_clutter": True,
-            "feats_activation": FEATS_ACTIVATION.SIGMOID,
-        }
+
+        self.config.objects3d.update(
+            {
+                # "verts_requires_grad": False,
+                "feats_requires_grad": True,
+                "feat_dim": 3 if not self.use_pbr_rendering else 6,
+                "fpaths_meshes": self.fpaths_meshes,
+                "fpaths_meshes_tforms": self.fpaths_meshes_tform_obj,
+                "feats_objects": True,
+                "feat_clutter": True,
+                "feats_activation": FEATS_ACTIVATION.SIGMOID,
+            },
         )
 
         config_objects3d_without_class_name = self.config.objects3d.copy()
         del config_objects3d_without_class_name.class_name
 
-        self.meshes = OD3D_Objects3D.subclasses[self.config.objects3d.class_name].read_from_ply_files(
+        self.meshes = OD3D_Objects3D.subclasses[
+            self.config.objects3d.class_name
+        ].read_from_ply_files(
             **config_objects3d_without_class_name,
         )
 
-        self.task = Reconstruction(metrics={OD3D_Metrics.REC_RGB_MSE: 1.,
-                                            OD3D_Metrics.REC_MASK_MSE: 1.,
-                                            OD3D_Metrics.REC_MASK_DT_DOT: 1.,
-                                            OD3D_Metrics.REC_RGB_PSNR: 1.},
-                                   visuals=[OD3D_Visuals.PRED_VS_GT_RGB],
-                                   apply_mask_rgb_pred=False,
-                                   apply_mask_rgb_gt=True)
+        self.task = Reconstruction(
+            metrics={
+                OD3D_Metrics.REC_RGB_MSE: 1.0,
+                OD3D_Metrics.REC_MASK_MSE: 1.0,
+                OD3D_Metrics.REC_MASK_DT_DOT: 1.0,
+                OD3D_Metrics.REC_RGB_PSNR: 1.0,
+            },
+            visuals=[OD3D_Visuals.PRED_VS_GT_RGB],
+            apply_mask_rgb_pred=False,
+            apply_mask_rgb_gt=True,
+        )
 
-        self.down_sample_rate = 4.
+        self.down_sample_rate = 4.0
 
         logger.info(f"loading meshes from following fpaths: {self.fpaths_meshes}...")
         # self.meshes.show()
@@ -217,7 +232,7 @@ class NeMo_Rec(OD3D_Method):
             config=self.config.train.scheduler,
         )
 
-        #import wandb
+        # import wandb
         # wandb.watch(self.meshes, log="all", log_freq=1)
         # wandb.watch(self.net, log="all", log_freq=1)
 
@@ -226,7 +241,7 @@ class NeMo_Rec(OD3D_Method):
         if self._rgb_light_env is None:
             return self._rgb_light_env
         else:
-            return torch.sigmoid(self._rgb_light_env * 100.)
+            return torch.sigmoid(self._rgb_light_env * 100.0)
 
     def train(
         self,
@@ -234,11 +249,13 @@ class NeMo_Rec(OD3D_Method):
         datasets_val: Dict[str, OD3D_Dataset],
     ):
         # prevents inheriting broken CUDA context for each worker
-        #import torch.multiprocessing as mp
-        #mp.set_start_method('spawn', force=True)
+        # import torch.multiprocessing as mp
+        # mp.set_start_method('spawn', force=True)
 
-        score_metric_neg = self.config.train.early_stopping_score.startswith('-')
-        score_metric_name = self.config.train.early_stopping_score  # "pose/acc_pi18"  # 'pose/acc_pi18' 'pose/acc_pi6'
+        score_metric_neg = self.config.train.early_stopping_score.startswith("-")
+        score_metric_name = (
+            self.config.train.early_stopping_score
+        )  # "pose/acc_pi18"  # 'pose/acc_pi18' 'pose/acc_pi6'
         if score_metric_neg:
             score_metric_name = score_metric_name[1:]
 
@@ -272,9 +289,9 @@ class NeMo_Rec(OD3D_Method):
             results_epoch = self.train_epoch(dataset=dataset_train_sub)
             results_epoch.log_with_prefix("train")
             if (
-                    self.config.train.val
-                    and self.config.train.epochs_to_next_test > 0
-                    and epoch % self.config.train.epochs_to_next_test == 0
+                self.config.train.val
+                and self.config.train.epochs_to_next_test > 0
+                and epoch % self.config.train.epochs_to_next_test == 0
             ):
                 for dataset_val_key, dataset_val in datasets_val.items():
                     results_val = self.test(dataset_val, val=True)
@@ -285,11 +302,10 @@ class NeMo_Rec(OD3D_Method):
                             score_latest = -score_latest
 
                 if (
-                        not self.config.train.early_stopping
-                        or score_latest >= score_ckpt_val
+                    not self.config.train.early_stopping
+                    or score_latest >= score_ckpt_val
                 ):
                     score_ckpt_val = score_latest
-
 
     # objects3d: basic:
     #   a) render
@@ -304,7 +320,6 @@ class NeMo_Rec(OD3D_Method):
     # 1. render modalities: rgb, mask, surface_probability
     # 2. define losses/tasks: rgb, mask, mask_dt, mask_inv_dt
     # 3. visualize modalities: rgb, mask, surface_probability
-
 
     def test(self, dataset: OD3D_Dataset, val=False, return_results_epoch=False):
         logger.info(f"test dataset {dataset.name}")
@@ -395,51 +410,74 @@ class NeMo_Rec(OD3D_Method):
         batch.to(device=self.device)
 
         if not self.use_pbr_rendering:
-
-
-            mods = self.meshes.update_and_render_with_batch_and_imgs_feats(batch,
-                                                                           modalities=[PROJECT_MODALITIES.FEATS,
-                                                                                       PROJECT_MODALITIES.MASK],
-                                                                           add_clutter=True,
-                                                                           down_sample_rate=self.down_sample_rate,
-                                                                           broadcast_batch_and_cams=True)
+            mods = self.meshes.update_and_render_with_batch_and_imgs_feats(
+                batch,
+                modalities=[
+                    PROJECT_MODALITIES.FEATS,
+                    PROJECT_MODALITIES.MASK,
+                ],
+                add_clutter=True,
+                down_sample_rate=self.down_sample_rate,
+                broadcast_batch_and_cams=True,
+            )
             rgb_pred = mods[PROJECT_MODALITIES.FEATS][0]
 
-
         else:
-            mods = self.meshes.update_and_render_with_batch_and_imgs_feats(batch,
-                                                                           modalities=[PROJECT_MODALITIES.FEATS_PBR,
-                                                                                       PROJECT_MODALITIES.MASK],
-                                                                           down_sample_rate=self.down_sample_rate,
-                                                                           add_clutter=True,
-                                                                           broadcast_batch_and_cams=True,
-                                                                           rgb_light_env=self.rgb_light_env)
-
+            mods = self.meshes.update_and_render_with_batch_and_imgs_feats(
+                batch,
+                modalities=[
+                    PROJECT_MODALITIES.FEATS_PBR,
+                    PROJECT_MODALITIES.MASK,
+                ],
+                down_sample_rate=self.down_sample_rate,
+                add_clutter=True,
+                broadcast_batch_and_cams=True,
+                rgb_light_env=self.rgb_light_env,
+            )
 
             rgb_pred = mods[PROJECT_MODALITIES.FEATS_PBR][0]
 
-        #from od3d.cv.visual.show import show_imgs
-        #show_imgs(rgb_pred)
+        # from od3d.cv.visual.show import show_imgs
+        # show_imgs(rgb_pred)
 
         mask_pred = mods[PROJECT_MODALITIES.MASK][0]
-        frames_pred = OD3D_Frames(rgb=rgb_pred, mask=mask_pred,
-                                  modalities=[OD3D_FRAME_MODALITIES.RGB, OD3D_FRAME_MODALITIES.MASK], length=len(batch),
-                                  name=batch.name, name_unique=batch.name_unique, item_id=batch.item_id)
+        frames_pred = OD3D_Frames(
+            rgb=rgb_pred,
+            mask=mask_pred,
+            modalities=[OD3D_FRAME_MODALITIES.RGB, OD3D_FRAME_MODALITIES.MASK],
+            length=len(batch),
+            name=batch.name,
+            name_unique=batch.name_unique,
+            item_id=batch.item_id,
+        )
 
         task_metrics = self.task.eval(frames_gt=batch, frames_pred=frames_pred)
 
-        loss_geo_sdf_reg = self.meshes.get_geo_sdf_reg_loss(objects_ids=batch.category_id)
+        loss_geo_sdf_reg = self.meshes.get_geo_sdf_reg_loss(
+            objects_ids=batch.category_id
+        )
 
-        losses_names = ['rec_rgb_mse', 'rec_mask_mse', 'rec_mask_dt_dot', 'sdf_reg']
-        loss_batch = task_metrics.rec_rgb_mse + task_metrics.rec_mask_mse  + task_metrics.rec_mask_dt_dot + loss_geo_sdf_reg
-        losses = [task_metrics.rec_rgb_mse.mean() * 1., task_metrics.rec_mask_mse.mean() * 10.,
-                  -task_metrics.rec_mask_dt_dot.mean() * 100., loss_geo_sdf_reg.mean() * 0.01]
+        losses_names = ["rec_rgb_mse", "rec_mask_mse", "rec_mask_dt_dot", "sdf_reg"]
+        loss_batch = (
+            task_metrics.rec_rgb_mse
+            + task_metrics.rec_mask_mse
+            + task_metrics.rec_mask_dt_dot
+            + loss_geo_sdf_reg
+        )
+        losses = [
+            task_metrics.rec_rgb_mse.mean() * 1.0,
+            task_metrics.rec_mask_mse.mean() * 10.0,
+            -task_metrics.rec_mask_dt_dot.mean() * 100.0,
+            loss_geo_sdf_reg.mean() * 0.01,
+        ]
 
         if len(losses) > 0:
             for l in range(len(losses)):
                 if losses[l].isnan().any():
-                    logger.warning(f'Loss {losses_names[l]} contains NaNs. Setting it to zero.')
-                    losses[l][:] = 0.
+                    logger.warning(
+                        f"Loss {losses_names[l]} contains NaNs. Setting it to zero."
+                    )
+                    losses[l][:] = 0.0
                 results_batch[losses_names[l]] = losses[l].detach()
 
             loss = torch.stack(losses).sum(dim=0)
@@ -456,7 +494,9 @@ class NeMo_Rec(OD3D_Method):
 
         results_batch["loss"] = loss[None,].detach()
         results_batch["loss_batch"] = loss_batch.detach()
-        results_batch["rgb"] = frames_pred.rgb.detach() # note: this needs to be detached
+        results_batch[
+            "rgb"
+        ] = frames_pred.rgb.detach()  # note: this needs to be detached
         results_batch["item_id"] = batch.item_id
         results_batch["name_unique"] = batch.name_unique
 
@@ -514,9 +554,14 @@ class NeMo_Rec(OD3D_Method):
                     ),
                 )
 
-            frames_pred = OD3D_Frames(rgb=results_batch["rgb"].to(self.device)[batch_result_ids],
-                                      modalities=[OD3D_FRAME_MODALITIES.RGB], length=len(batch),
-                                      name=batch.name, name_unique=batch.name_unique, item_id=batch.item_id)
+            frames_pred = OD3D_Frames(
+                rgb=results_batch["rgb"].to(self.device)[batch_result_ids],
+                modalities=[OD3D_FRAME_MODALITIES.RGB],
+                length=len(batch),
+                name=batch.name,
+                name_unique=batch.name_unique,
+                item_id=batch.item_id,
+            )
 
             self.task.visualize(frames_gt=batch, frames_pred=frames_pred)
             B = len(frames_pred.pred_vs_gt_rgb)
@@ -529,9 +574,12 @@ class NeMo_Rec(OD3D_Method):
                     caption=f"{batch_sel_names[b]}, {batch_names[b]}, {batch_sel_scores[b]}",
                 )
 
-            if self.rgb_light_env is not None: # 6 x H x W x 3
+            if self.rgb_light_env is not None:  # 6 x H x W x 3
                 results_batch_visual["visual/rgb_light_env"] = image_as_wandb_image(
-                    resize(imgs_to_img(self.rgb_light_env.detach().permute(0, 3, 1, 2)), scale_factor=1. / config_visualize.down_sample_rate),
+                    resize(
+                        imgs_to_img(self.rgb_light_env.detach().permute(0, 3, 1, 2)),
+                        scale_factor=1.0 / config_visualize.down_sample_rate,
+                    ),
                     caption=f"rgb light env",
                 )
 
@@ -633,7 +681,9 @@ class NeMo_Rec(OD3D_Method):
             dim=0,
         )
         sel_item_ids = results_epoch["item_id"][sel_rank_ids]
-        sel_names = epoch_best_names + epoch_worst_names + epoch_rand_names + epoch_sel_names
+        sel_names = (
+            epoch_best_names + epoch_worst_names + epoch_rand_names + epoch_sel_names
+        )
         sel_name_unique = [results_epoch["name_unique"][id] for id in sel_rank_ids]
         dict_name_unique_to_result_id = dict(zip(sel_name_unique, sel_rank_ids))
         dict_name_unique_to_sel_name = dict(zip(sel_name_unique, sel_names))
@@ -693,7 +743,6 @@ class NeMo_Rec(OD3D_Method):
 
         return nearest_verts3d, nearest_verts2d, prob_corresp2d3d
 
-
     def get_samples(
         self,
         config_sample: DictConfig,
@@ -725,7 +774,7 @@ class NeMo_Rec(OD3D_Method):
                 categories_ids=categories_ids[:1],
                 feats2d_net_mask=feats2d_net_mask[:1],
                 instance_deform=instance_deform_first,
-                pred_cam_tform4x4_objs=pred_cam_tform4x4_objs_first
+                pred_cam_tform4x4_objs=pred_cam_tform4x4_objs_first,
             )
             # scale = (
             #     b_cams_multiview_tform4x4_obj[..., 2, 3]
@@ -761,7 +810,10 @@ class NeMo_Rec(OD3D_Method):
 
             b_cams_multiview_tform4x4_obj = tform4x4_broadcast(
                 cam_tform4x4_obj[:, None].clone(),
-                tform4x4_broadcast(inv_tform4x4(cam_tform4x4_obj[:1, None]), b_cams_multiview_tform4x4_obj),
+                tform4x4_broadcast(
+                    inv_tform4x4(cam_tform4x4_obj[:1, None]),
+                    b_cams_multiview_tform4x4_obj,
+                ),
             )
 
             b_cams_multiview_intr4x4 = cam_intr4x4[:, None].expand(
@@ -777,10 +829,10 @@ class NeMo_Rec(OD3D_Method):
                 # b_cams_multiview_tform4x4_obj[:, :, 2, 3] = cam_tform4x4_obj[:, None].repeat(1, C, 1, 1)[:, :, 2, 3]
                 # logger.info(f'dist {batch.cam_tform4x4_obj[:, 2, 3]}')
                 # assumption 2: translation to object is known
-                #b_cams_multiview_tform4x4_obj[:, :, :4, 3] = cam_tform4x4_obj[
+                # b_cams_multiview_tform4x4_obj[:, :, :4, 3] = cam_tform4x4_obj[
                 #    :,
                 #    None,
-                #].repeat(1, C, 1, 1)[:, :, :4, 3]
+                # ].repeat(1, C, 1, 1)[:, :, :4, 3]
 
                 b_cams_multiview_intr4x4 = cam_intr4x4[:, None].repeat(1, C, 1, 1)
 
@@ -864,28 +916,44 @@ class NeMo_Rec(OD3D_Method):
                     clutter_pxl2d=0,
                     return_feats=False,
                     instance_deform=None,
-                    coarse_labels=coarse_labels
+                    coarse_labels=coarse_labels,
                 )
 
                 H, W = feats2d_net.shape[-2:]
                 # sim_feats[sim_feats == 0.] = -torch.inf
-                sim_feats_top_vals, sim_feats_top_ids = sim_feats[:, :].sort(dim=1, descending=True)
+                sim_feats_top_vals, sim_feats_top_ids = sim_feats[:, :].sort(
+                    dim=1, descending=True
+                )
                 sim_feats_selected = torch.ones_like(sim_feats)
-                sim_feats_selected[:] = - torch.inf
+                sim_feats_selected[:] = -torch.inf
 
                 # add top
                 pt_nn_top_k = config_sample.epnp3d2d.pt_nn_top_k
-                sim_feats_selected = torch.scatter(input=sim_feats_selected, dim=1, index=sim_feats_top_ids[:, :pt_nn_top_k], src=sim_feats_top_vals[:, :pt_nn_top_k])
+                sim_feats_selected = torch.scatter(
+                    input=sim_feats_selected,
+                    dim=1,
+                    index=sim_feats_top_ids[:, :pt_nn_top_k],
+                    src=sim_feats_top_vals[:, :pt_nn_top_k],
+                )
                 # add clutter
                 sim_feats_selected[:, -1:] = sim_feats[:, -1:]
 
-                modality_pt3d = PROJECT_MODALITIES.PT3D if not coarse_labels else PROJECT_MODALITIES.PT3D_COARSE
-                pts3d = self.meshes.sample(objects_ids=categories_ids, modalities=modality_pt3d, add_clutter=False,
-                                           add_other_objects=False, instance_deform=instance_deform)
+                modality_pt3d = (
+                    PROJECT_MODALITIES.PT3D
+                    if not coarse_labels
+                    else PROJECT_MODALITIES.PT3D_COARSE
+                )
+                pts3d = self.meshes.sample(
+                    objects_ids=categories_ids,
+                    modalities=modality_pt3d,
+                    add_clutter=False,
+                    add_other_objects=False,
+                    instance_deform=instance_deform,
+                )
                 pts3d_prob = torch.softmax(sim_feats_selected, dim=1)[:, :-1].flatten(2)
 
-                #from od3d.cv.visual.show import show_imgs
-                #show_imgs(feats2d_net_mask)
+                # from od3d.cv.visual.show import show_imgs
+                # show_imgs(feats2d_net_mask)
 
                 # from od3d.cv.visual.show import show_imgs
                 # show_imgs(pts3d_prob.sum(dim=1).reshape(B, 1, H, W))
@@ -893,16 +961,14 @@ class NeMo_Rec(OD3D_Method):
                 if feats2d_net_mask is not None:
                     pts3d_prob = pts3d_prob * feats2d_net_mask.flatten(2)
 
-
                 # B x F x N
-                pts3d_prob[pts3d_prob.sum(dim=-1).sum(dim=-1) == 0.] = 1.
+                pts3d_prob[pts3d_prob.sum(dim=-1).sum(dim=-1) == 0.0] = 1.0
                 K = config_sample.epnp3d2d.count_cams
                 N = config_sample.epnp3d2d.count_pts
                 if N == -1:
-                    pts3d_prob[(pts3d_prob.sum(dim=-1) > 0).sum(dim=-1) < 4] = 1.
+                    pts3d_prob[(pts3d_prob.sum(dim=-1) > 0).sum(dim=-1) < 4] = 1.0
                 else:
-                    pts3d_prob[(pts3d_prob.sum(dim=-1) > 0).sum(dim=-1) < N] = 1.
-
+                    pts3d_prob[(pts3d_prob.sum(dim=-1) > 0).sum(dim=-1) < N] = 1.0
 
                 # rgb = torch.zeros_like(feats2d_net)[:, :3]
                 # from od3d.cv.select import batched_indexMD_fill, batched_index_select
@@ -914,13 +980,16 @@ class NeMo_Rec(OD3D_Method):
                 # from od3d.cv.visual.show import show_imgs
                 # show_imgs(rgb)
 
-                pxl2d = get_pxl2d_like(sim_feats.permute(0, 2, 3, 1)).permute(
-                    0,
-                    3,
-                    1,
-                    2,
-                ).flatten(2)
-
+                pxl2d = (
+                    get_pxl2d_like(sim_feats.permute(0, 2, 3, 1))
+                    .permute(
+                        0,
+                        3,
+                        1,
+                        2,
+                    )
+                    .flatten(2)
+                )
 
                 count_pts3d = pts3d_prob.shape[-2]
                 count_pxl2d = pts3d_prob.shape[-1]
@@ -942,8 +1011,8 @@ class NeMo_Rec(OD3D_Method):
                 # pts3d_ids = torch.multinomial(pts3d_prob_3d.reshape(-1, count_pts3d), num_samples=1, replacement=False)
                 # pts3d_ids = pts3d_ids.reshape(pts3d_prob.shape[0], K, N)
 
-                #SAMPLING SEQUENTIAL: First 3D
-                #sample 1st 3D
+                # SAMPLING SEQUENTIAL: First 3D
+                # sample 1st 3D
                 # N x K (where N never has includes the same pxl id)
                 # pts3d_ids = torch.multinomial(
                 #     pts3d_prob.sum(dim=-1)[:, None].expand(pts3d_prob.shape[0], K, count_pts3d).reshape(-1, count_pts3d),
@@ -968,8 +1037,8 @@ class NeMo_Rec(OD3D_Method):
                 # grid_pxl2d_dist = torch.cdist(grid_pxl2d, grid_pxl2d)
                 # grid_pxl2d_prob = 1. - torch.exp(- grid_pxl2d_dist / ( W / 10 )) # , dim=-1)
 
-                #from od3d.cv.visual.show import show_imgs
-                #show_imgs(255 * grid_pxl2d_prob[:3].reshape(3, 1, H, W))
+                # from od3d.cv.visual.show import show_imgs
+                # show_imgs(255 * grid_pxl2d_prob[:3].reshape(3, 1, H, W))
 
                 # pts3d2d_ids = []
                 # for n in range(N):
@@ -988,27 +1057,39 @@ class NeMo_Rec(OD3D_Method):
 
                 if N != -1:
                     pts3d2d_ids = torch.multinomial(
-                        #pts3d_prob.flatten(1),
-                        pts3d_prob[:, None].expand(pts3d_prob.shape[0], K, *pts3d_prob.shape[1:]).reshape(pts3d_prob.shape[0] * K, -1), # BxVxH*W
+                        # pts3d_prob.flatten(1),
+                        pts3d_prob[:, None]
+                        .expand(pts3d_prob.shape[0], K, *pts3d_prob.shape[1:])
+                        .reshape(pts3d_prob.shape[0] * K, -1),  # BxVxH*W
                         num_samples=N,
                         replacement=False,
                     ).reshape(pts3d_prob.shape[0], K, N)
 
-                    pts3d_ids = pts3d2d_ids // count_pxl2d # BxKxN
-                    pxl2d_ids = pts3d2d_ids % count_pxl2d # BxKxN
+                    pts3d_ids = pts3d2d_ids // count_pxl2d  # BxKxN
+                    pxl2d_ids = pts3d2d_ids % count_pxl2d  # BxKxN
                     device = pts3d.device
                     dtype = pts3d.dtype
                     pts3d_pairs = torch.zeros(B, 3, K, N).to(device=device, dtype=dtype)
-                    pts3d_pairs_prob = torch.zeros(B, K, K, N).to(device=device, dtype=dtype)
+                    pts3d_pairs_prob = torch.zeros(B, K, K, N).to(
+                        device=device, dtype=dtype
+                    )
                     pxl2d_pairs = torch.zeros(B, 2, K, N).to(device=device, dtype=dtype)
-                    pts3d2d_pairs_mask = torch.eye(K).to(device=device, dtype=bool)[None, :, :, None].expand(B, K, K, N) # (B, K, K*N)
-                    pts3d2d_pairs_mask = pts3d2d_pairs_mask.reshape(B, K, K*N)
+                    pts3d2d_pairs_mask = (
+                        torch.eye(K)
+                        .to(device=device, dtype=bool)[None, :, :, None]
+                        .expand(B, K, K, N)
+                    )  # (B, K, K*N)
+                    pts3d2d_pairs_mask = pts3d2d_pairs_mask.reshape(B, K, K * N)
                     for b in range(B):
                         pts3d_pairs[b] = pts3d[b, pts3d_ids[b], :].permute(2, 0, 1)
                         pxl2d_pairs[b] = pxl2d[b, :, pxl2d_ids[b]]
-                        pts3d_pairs_prob[b] = pts3d_prob[b].flatten()[pts3d2d_ids[b]][None,].expand(K, K, N)
+                        pts3d_pairs_prob[b] = (
+                            pts3d_prob[b]
+                            .flatten()[pts3d2d_ids[b]][None,]
+                            .expand(K, K, N)
+                        )
 
-                    pts3d_pairs_prob = pts3d_pairs_prob.reshape(B, K, K*N)
+                    pts3d_pairs_prob = pts3d_pairs_prob.reshape(B, K, K * N)
                     pts3d_pairs = pts3d_pairs.reshape(B, 3, -1)
                     pxl2d_pairs = pxl2d_pairs.reshape(B, 2, -1)
 
@@ -1025,10 +1106,14 @@ class NeMo_Rec(OD3D_Method):
                 else:
                     pxl2d_pairs = pxl2d.reshape(*pxl2d.shape[:2], H, W)
                     pts3d_pairs_prob, pts3d_pairs_ids = pts3d_prob.max(dim=1)
-                    pts3d_pairs = batched_index_select(input=pts3d, index=pts3d_pairs_ids, dim=1)
+                    pts3d_pairs = batched_index_select(
+                        input=pts3d, index=pts3d_pairs_ids, dim=1
+                    )
                     pts3d_pairs = pts3d_pairs.permute(0, 2, 1)
                     pts3d_pairs = pts3d_pairs.reshape(*pts3d_pairs.shape[:2], H, W)
-                    pts3d_pairs_prob = pts3d_pairs_prob.reshape(*pts3d_pairs_prob.shape[:1], 1, H, W)
+                    pts3d_pairs_prob = pts3d_pairs_prob.reshape(
+                        *pts3d_pairs_prob.shape[:1], 1, H, W
+                    )
                     pts3d2d_pairs_mask = pts3d_pairs_prob > 0
                     if not config_sample.epnp3d2d.pt_nn_weights:
                         pts3d_pairs_prob = None
@@ -1050,13 +1135,21 @@ class NeMo_Rec(OD3D_Method):
                 )
 
                 if b_cams_multiview_tform4x4_obj.isnan().any():
-                    logger.info(f'NaNs in cam_tform_obj')
-                    b_nans = b_cams_multiview_tform4x4_obj.flatten(2).isnan().any(dim=-1)
-                    b_cams_multiview_tform4x4_obj[b_nans] = torch.eye(4).to(device=b_nans.device)[None]
-                if b_cams_multiview_tform4x4_obj.abs().max() > 1e+5:
-                    logger.info(f'Too large values in cam_tform_obj')
-                    b_too_largs = (b_cams_multiview_tform4x4_obj.flatten(2).abs() > 1e+5).any(dim=-1)
-                    b_cams_multiview_tform4x4_obj[b_too_largs] = torch.eye(4).to(device=b_too_largs.device)[None]
+                    logger.info(f"NaNs in cam_tform_obj")
+                    b_nans = (
+                        b_cams_multiview_tform4x4_obj.flatten(2).isnan().any(dim=-1)
+                    )
+                    b_cams_multiview_tform4x4_obj[b_nans] = torch.eye(4).to(
+                        device=b_nans.device
+                    )[None]
+                if b_cams_multiview_tform4x4_obj.abs().max() > 1e5:
+                    logger.info(f"Too large values in cam_tform_obj")
+                    b_too_largs = (
+                        b_cams_multiview_tform4x4_obj.flatten(2).abs() > 1e5
+                    ).any(dim=-1)
+                    b_cams_multiview_tform4x4_obj[b_too_largs] = torch.eye(4).to(
+                        device=b_too_largs.device
+                    )[None]
 
                 b_cams_multiview_intr4x4 = cam_intr4x4[:, None].repeat(1, K, 1, 1)
                 b_cams_multiview_tform4x4_obj[

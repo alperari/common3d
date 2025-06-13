@@ -21,7 +21,7 @@ from od3d.datasets.object import (
     OD3D_MESH_FEATS_TYPES,
     OD3D_MESH_FEATS_DIST_REDUCE_TYPES,
     OD3D_TFROM_OBJ_TYPES,
-    OD3D_SCALE_TYPES
+    OD3D_SCALE_TYPES,
 )
 
 
@@ -47,7 +47,7 @@ class Pascal3D_OccFrame(Pascal3DFrame):
         mesh_type: OD3D_MESH_TYPES,
         mesh_feats_type: OD3D_MESH_FEATS_TYPES,
         mesh_feats_dist_reduce_type: OD3D_MESH_FEATS_DIST_REDUCE_TYPES,
-        scale_type: OD3D_SCALE_TYPES
+        scale_type: OD3D_SCALE_TYPES,
     ):
         super().__init__(
             path_raw=path_raw,
@@ -63,7 +63,7 @@ class Pascal3D_OccFrame(Pascal3DFrame):
             mesh_type=mesh_type,
             mesh_feats_type=mesh_feats_type,
             mesh_feats_dist_reduce_type=mesh_feats_dist_reduce_type,
-            scale_type=scale_type
+            scale_type=scale_type,
         )
         self.path_meshes = path_meshes
 

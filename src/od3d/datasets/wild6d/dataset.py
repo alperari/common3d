@@ -3,12 +3,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 from od3d.datasets.frame import OD3D_FRAME_MODALITIES
-#from od3d.datasets.co3d.enum import CO3D_CATEGORIES
-#from od3d.datasets.co3d.frame import CO3D_Frame, CO3D_FrameMeta
-#from od3d.datasets.co3d.sequence import CO3D_Sequence
+
+# from od3d.datasets.co3d.enum import CO3D_CATEGORIES
+# from od3d.datasets.co3d.frame import CO3D_Frame, CO3D_FrameMeta
+# from od3d.datasets.co3d.sequence import CO3D_Sequence
 from od3d.datasets.wild6d.enum import (
     WILD6D_CATEGORIES,
-    MAP_CATEGORIES_OD3D_TO_WILD6D
+    MAP_CATEGORIES_OD3D_TO_WILD6D,
 )
 
 from od3d.datasets.dataset import OD3D_SequenceDataset
@@ -132,7 +133,9 @@ class WILD6D(OD3D_SequenceDataset):
 
     @staticmethod
     def setup(config: DictConfig):
-        logger.info("Download WILD6D from Google Drive and put it in your datasets directory under WILD6D ")
+        logger.info(
+            "Download WILD6D from Google Drive and put it in your datasets directory under WILD6D "
+        )
 
     @staticmethod
     def extract_meta(config: DictConfig):
@@ -188,7 +191,12 @@ class WILD6D(OD3D_SequenceDataset):
                     and dict_nested_frames[category] is None
                 )
             ):
-                sequences_names = [ p.stem[len(category) + 1:] for p in list(path.joinpath(f"test_set/pkl_annotations/{category}").iterdir()) ]
+                sequences_names = [
+                    p.stem[len(category) + 1 :]
+                    for p in list(
+                        path.joinpath(f"test_set/pkl_annotations/{category}").iterdir()
+                    )
+                ]
 
             if (
                 dict_nested_frames_banned is not None
@@ -209,9 +217,15 @@ class WILD6D(OD3D_SequenceDataset):
             read_sequences_ann_fpath = []
             for sequence_name in sequences_names:
                 read_sequences.append(sequence_name)
-                read_sequences_ann_fpath.append(path.joinpath(f"test_set/pkl_annotations/{category}", f"{category}-{sequence_name}.pkl"))
+                read_sequences_ann_fpath.append(
+                    path.joinpath(
+                        f"test_set/pkl_annotations/{category}",
+                        f"{category}-{sequence_name}.pkl",
+                    )
+                )
                 seq_count_per_class += 1
                 import pickle as pkl
+
                 sequence_meta_fpath = (
                     WILD6D_SequenceMeta.get_fpath_sequence_meta_with_category_and_name(
                         path_meta=path_meta,
@@ -236,10 +250,13 @@ class WILD6D(OD3D_SequenceDataset):
 
             for s, sequence_name in enumerate(read_sequences):
                 import pickle as pkl
-                sequence_ann = pkl.load(open(read_sequences_ann_fpath[s], 'rb'))
 
-                for frame_annotation in sequence_ann['annotations']:
-                    cls_n, seq_idx, obj_idx, frame_idx = frame_annotation['name'].split('/')
+                sequence_ann = pkl.load(open(read_sequences_ann_fpath[s], "rb"))
+
+                for frame_annotation in sequence_ann["annotations"]:
+                    cls_n, seq_idx, obj_idx, frame_idx = frame_annotation["name"].split(
+                        "/"
+                    )
                     frame_name = str(frame_idx)
 
                     frame_meta_fpath = WILD6D_FrameMeta.get_fpath_frame_meta_with_category_sequence_and_frame_name(
@@ -252,7 +269,8 @@ class WILD6D(OD3D_SequenceDataset):
                         continue
 
                     frame_meta = WILD6D_FrameMeta.load_from_raw(
-                        frame_annotation=frame_annotation, path_raw=path
+                        frame_annotation=frame_annotation,
+                        path_raw=path,
                     )
                     frame_meta.save(path_meta=path_meta)
 

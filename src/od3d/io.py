@@ -20,17 +20,22 @@ import subprocess
 import importlib
 import datetime
 
+
 def dt_to_str(dt):
     return dt.strftime("%Y-%m-%d %H:%M:%S")
+
 
 def dt_from_str(dt_str):
     return datetime.datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
 
+
 def td_to_hours(td):
     return td.seconds // 3600
 
+
 def td_to_mins(td):
     return td.seconds // 60
+
 
 def is_fpath_video(fpath: Path):
     if fpath is None:
@@ -130,7 +135,9 @@ def load_single_hierarchical_config(
         cfg = compose(config_name=benchmark, overrides=overrides)
 
         with open_dict(cfg):
-            cfg.ablation_name = "_".join([Path(ablation).stem for ablation in ablations])
+            cfg.ablation_name = "_".join(
+                [Path(ablation).stem for ablation in ablations]
+            )
 
         logger.info(cfg.ablation_name)
         return_dict[procnum] = cfg
@@ -140,7 +147,7 @@ def load_multiple_hierarchical_configs(
     benchmark="defaults",
     platform="local",
     multiple_ablations=[],
-    mp=True
+    mp=True,
 ):
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
@@ -201,7 +208,7 @@ def load_hierarchical_config(
 
 
 def read_config_intern(
-    rfpath: Path=None,
+    rfpath: Path = None,
     benchmark="defaults",
     platform="local",
     overrides=[],
@@ -227,9 +234,9 @@ def read_config_intern(
                 cfg = compose(
                     config_name=benchmark,
                     overrides=[
-                                  "platform=" + platform,
-                              ]
-                              + overrides,
+                        "platform=" + platform,
+                    ]
+                    + overrides,
                 )
 
         cfg = cfg
@@ -443,6 +450,7 @@ def get_obj_from_config(*args, config: DictConfig, **kwargs):
     class_ = getattr(module, class_name)
     config_kwargs = config.get("kwargs", {})
     return class_(*args, **{**kwargs, **config_kwargs})
+
 
 def dict_depth(d):
     if isinstance(d, dict) or isinstance(d, DictConfig):

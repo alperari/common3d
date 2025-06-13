@@ -10,6 +10,7 @@ from od3d.models.backbones.backbone import OD3D_Backbone
 from od3d.models.heads.head import OD3D_Head
 from pathlib import Path
 
+
 class OD3D_Model(nn.Module):
     def __init__(self, config: DictConfig):
         super().__init__()
@@ -22,23 +23,25 @@ class OD3D_Model(nn.Module):
         else:
             self.backbone = None
             self.transform = None
-            
+
         if self.config.head is not None:
             if self.backbone is not None:
                 with open_dict(self.config):
                     self.config.head.in_dims = self.backbone.out_dims
-                    self.config.head.in_upsample_scales = self.backbone.out_downsample_scales
+                    self.config.head.in_upsample_scales = (
+                        self.backbone.out_downsample_scales
+                    )
 
             self.head: OD3D_Head = OD3D_Head.subclasses[self.config.head.class_name](
                 config=self.config.head,
-                in_dims=self.config.head.get('in_dims', None),
-                in_upsample_scales=self.config.head.get('in_upsample_scales', None),
+                in_dims=self.config.head.get("in_dims", None),
+                in_upsample_scales=self.config.head.get("in_upsample_scales", None),
             )
-            
+
             self.out_dim = self.head.out_dim
             if self.backbone is not None:
                 self.downsample_rate = (
-                        self.backbone.downsample_rate * self.head.downsample_rate
+                    self.backbone.downsample_rate * self.head.downsample_rate
                 )
             else:
                 self.downsample_rate = self.head.downsample_rate

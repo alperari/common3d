@@ -48,6 +48,7 @@ from od3d.datasets.enum import OD3D_CATEGORIES
 # v2: 55 categories
 # R2N2: 13 categories
 
+
 # from v2
 class SHAPENET_SUBSETS(StrEnum):
     R2N2 = "r2n2"
@@ -62,15 +63,25 @@ class SHAPENET_SUBSETS(StrEnum):
     R2N2NOTXT_V2_ICO_RAND32_THETA_RAND1 = "r2n2notxt_v2_ico_rand32_theta_rand1"
     R2N2NOTXT_V2_ICO_RAND64_THETA_RAND1 = "r2n2notxt_v2_ico_rand64_theta_rand1"
 
-    R2N2NOTXT_V2_ICOTRAJ100_UNI64_THETA_UNI1 = "r2n2notxt_v2_icotraj100_uni64_theta_uni1"
+    R2N2NOTXT_V2_ICOTRAJ100_UNI64_THETA_UNI1 = (
+        "r2n2notxt_v2_icotraj100_uni64_theta_uni1"
+    )
     R2N2NOTXT_V2_ICOTRAJ50_UNI32_THETA_UNI1 = "r2n2notxt_v2_icotraj50_uni32_theta_uni1"
     R2N2NOTXT_V2_ICOTRAJ25_UNI16_THETA_UNI1 = "r2n2notxt_v2_icotraj25_uni16_theta_uni1"
     R2N2NOTXT_V2_ICOTRAJ10_UNI8_THETA_UNI1 = "r2n2notxt_v2_icotraj10_uni8_theta_uni1"
 
-    R2N2NOTXT_V2_ICOREALTRAJ100_UNI64_THETA_UNI1 = "r2n2notxt_v2_icorealtraj100_uni64_theta_uni1"
-    R2N2NOTXT_V2_ICOREALTRAJ50_UNI32_THETA_UNI1 = "r2n2notxt_v2_icorealtraj50_uni32_theta_uni1"
-    R2N2NOTXT_V2_ICOREALTRAJ25_UNI16_THETA_UNI1 = "r2n2notxt_v2_icorealtraj25_uni16_theta_uni1"
-    R2N2NOTXT_V2_ICOREALTRAJ10_UNI8_THETA_UNI1 = "r2n2notxt_v2_icorealtraj10_uni8_theta_uni1"
+    R2N2NOTXT_V2_ICOREALTRAJ100_UNI64_THETA_UNI1 = (
+        "r2n2notxt_v2_icorealtraj100_uni64_theta_uni1"
+    )
+    R2N2NOTXT_V2_ICOREALTRAJ50_UNI32_THETA_UNI1 = (
+        "r2n2notxt_v2_icorealtraj50_uni32_theta_uni1"
+    )
+    R2N2NOTXT_V2_ICOREALTRAJ25_UNI16_THETA_UNI1 = (
+        "r2n2notxt_v2_icorealtraj25_uni16_theta_uni1"
+    )
+    R2N2NOTXT_V2_ICOREALTRAJ10_UNI8_THETA_UNI1 = (
+        "r2n2notxt_v2_icorealtraj10_uni8_theta_uni1"
+    )
 
     R2N2_V2_ICOREALTRAJ100_UNI64_THETA_UNI1 = "r2n2_v2_icorealtraj100_uni64_theta_uni1"
     R2N2_V2_ICOREALTRAJ50_UNI32_THETA_UNI1 = "r2n2_v2_icorealtraj50_uni32_theta_uni1"
@@ -86,6 +97,7 @@ class SHAPENET_SUBSETS(StrEnum):
     R2N2_V2_ICO_THETA = "r2n2_v2_ico_theta"
     V1 = "v1"
     V2 = "v2"
+
 
 # from v2
 class SHAPENET_CATEGORIES(StrEnum):
@@ -145,60 +157,61 @@ class SHAPENET_CATEGORIES(StrEnum):
     WATERCRAFT = "watercraft"
     WASHER = "washer"
 
+
 class SHAPENET_R2N2_CATEGORIES(StrEnum):
-    PLANE = "plane",  # airplane
-    BENCH = "bench",
-    CABINET = "cabinet",
-    CAR = "car",
-    CHAIR = "chair",
-    MONITOR = "monitor",  # display
-    LAMP = "lamp",
-    SPEAKER = "speaker",  # loudspeaker
-    FIREARM = "firearm",  # rifle
-    COUCH = "couch",  # sofa
-    TABLE = "table",
-    CELLPHONE = "cellphone",  # telephone
-    WATERCRAFT = "watercraft",
+    PLANE = ("plane",)  # airplane
+    BENCH = ("bench",)
+    CABINET = ("cabinet",)
+    CAR = ("car",)
+    CHAIR = ("chair",)
+    MONITOR = ("monitor",)  # display
+    LAMP = ("lamp",)
+    SPEAKER = ("speaker",)  # loudspeaker
+    FIREARM = ("firearm",)  # rifle
+    COUCH = ("couch",)  # sofa
+    TABLE = ("table",)
+    CELLPHONE = ("cellphone",)  # telephone
+    WATERCRAFT = ("watercraft",)
+
 
 class SHAPENET_CANOC_CATEGORIES(StrEnum):
+    PLANE = ("plane",)  # airplane
+    BENCH = ("bench",)
+    CABINET = ("cabinet",)
+    CAR = ("car",)
+    CHAIR = ("chair",)
+    MONITOR = ("monitor",)  # display
+    LAMP = ("lamp",)
+    SPEAKER = ("speaker",)  # loudspeaker
+    FIREARM = ("firearm",)  # rifle
+    COUCH = ("couch",)  # sofa
+    TABLE = ("table",)
+    CELLPHONE = ("cellphone",)  # telephone
+    WATERCRAFT = ("watercraft",)
 
-    PLANE = "plane",  # airplane
-    BENCH = "bench",
-    CABINET = "cabinet",
-    CAR = "car",
-    CHAIR = "chair",
-    MONITOR = "monitor",  # display
-    LAMP = "lamp",
-    SPEAKER = "speaker",  # loudspeaker
-    FIREARM = "firearm",  # rifle
-    COUCH = "couch",  # sofa
-    TABLE = "table",
-    CELLPHONE = "cellphone",  # telephone
-    WATERCRAFT = "watercraft",
 
 LIST_CATEGORIES_SHAPENET_CANOC = [
-                    SHAPENET_CATEGORIES.AIRPLANE,
-                    SHAPENET_CATEGORIES.BENCH,
-                    SHAPENET_CATEGORIES.CABINET,
-                    SHAPENET_CATEGORIES.CAR,
-                    SHAPENET_CATEGORIES.CHAIR,
-                    SHAPENET_CATEGORIES.DISPLAY,
-                    SHAPENET_CATEGORIES.LAMP,
-                    SHAPENET_CATEGORIES.LOUDSPEAKER,
-                    SHAPENET_CATEGORIES.RIFLE,
-                    SHAPENET_CATEGORIES.SOFA,
-                    SHAPENET_CATEGORIES.TABLE,
-                    SHAPENET_CATEGORIES.TELEPHONE,
-                    SHAPENET_CATEGORIES.WATERCRAFT,
-
-                    SHAPENET_CATEGORIES.TRAIN,
-                    SHAPENET_CATEGORIES.BUS,
-                    SHAPENET_CATEGORIES.MOTORBIKE,
-                    SHAPENET_CATEGORIES.KEYBOARD,
-                    SHAPENET_CATEGORIES.BAG,
-                    SHAPENET_CATEGORIES.REMOTE,
-                    SHAPENET_CATEGORIES.LAPTOP,
-                ]
+    SHAPENET_CATEGORIES.AIRPLANE,
+    SHAPENET_CATEGORIES.BENCH,
+    SHAPENET_CATEGORIES.CABINET,
+    SHAPENET_CATEGORIES.CAR,
+    SHAPENET_CATEGORIES.CHAIR,
+    SHAPENET_CATEGORIES.DISPLAY,
+    SHAPENET_CATEGORIES.LAMP,
+    SHAPENET_CATEGORIES.LOUDSPEAKER,
+    SHAPENET_CATEGORIES.RIFLE,
+    SHAPENET_CATEGORIES.SOFA,
+    SHAPENET_CATEGORIES.TABLE,
+    SHAPENET_CATEGORIES.TELEPHONE,
+    SHAPENET_CATEGORIES.WATERCRAFT,
+    SHAPENET_CATEGORIES.TRAIN,
+    SHAPENET_CATEGORIES.BUS,
+    SHAPENET_CATEGORIES.MOTORBIKE,
+    SHAPENET_CATEGORIES.KEYBOARD,
+    SHAPENET_CATEGORIES.BAG,
+    SHAPENET_CATEGORIES.REMOTE,
+    SHAPENET_CATEGORIES.LAPTOP,
+]
 
 MAP_CATEGORIES_SHAPENET_R2N2_TO_SHAPENET = {
     SHAPENET_R2N2_CATEGORIES.PLANE: SHAPENET_CATEGORIES.AIRPLANE,
@@ -475,65 +488,65 @@ MAP_CATEGORIES_SHAPENET_V2_ID_TO_CATEGORY = {
     "04460130": "tower",
     "04468005": "train",
     "04530566": "watercraft",
-    "04554684": "washer"
+    "04554684": "washer",
 }
 
 MAP_CATEGORIES_SHAPENET_V2_CATEGORY_TO_ID = {
-    'airplane': '02691156',
-    'trash bin': '02747177',
-    'bag': '02773838',
-    'basket': '02801938',
-    'bathtub': '02808440',
-    'bed': '02818832',
-    'bench': '02828884',
-    'birdhouse': '02843684',
-    'bookshelf': '02871439',
-    'bottle': '02876657',
-    'bowl': '02880940',
-    'bus': '02924116',
-    'cabinet': '02933112',
-    'camera': '02942699',
-    'can': '02946921',
-    'cap': '02954340',
-    'car': '02958343',
-    'cellphone': '02992529',
-    'chair': '03001627',
-    'clock': '03046257',
-    'keyboard': '03085013',
-    'dishwasher': '03207941',
-    'display': '03211117',
-    'earphone': '03261776',
-    'faucet': '03325088',
-    'file cabinet': '03337140',
-    'guitar': '03467517',
-    'helmet': '03513137',
-    'jar': '03593526',
-    'knife': '03624134',
-    'lamp': '03636649',
-    'laptop': '03642806',
-    'loudspeaker': '03691459',
-    'mailbox': '03710193',
-    'microphone': '03759954',
-    'microwaves': '03761084',
-    'motorbike': '03790512',
-    'mug': '03797390',
-    'piano': '03928116',
-    'pillow': '03938244',
-    'pistol': '03948459',
-    'flowerpot': '03991062',
-    'printer': '04004475',
-    'remote': '04074963',
-    'rifle': '04090263',
-    'rocket': '04099429',
-    'skateboard': '04225987',
-    'sofa': '04256520',
-    'stove': '04330267',
-    'table': '04379243',
-    'telephone': '04401088',
-    'tower': '04460130',
-    'train': '04468005',
-    'watercraft': '04530566',
-    'washer': '04554684'
+    "airplane": "02691156",
+    "trash bin": "02747177",
+    "bag": "02773838",
+    "basket": "02801938",
+    "bathtub": "02808440",
+    "bed": "02818832",
+    "bench": "02828884",
+    "birdhouse": "02843684",
+    "bookshelf": "02871439",
+    "bottle": "02876657",
+    "bowl": "02880940",
+    "bus": "02924116",
+    "cabinet": "02933112",
+    "camera": "02942699",
+    "can": "02946921",
+    "cap": "02954340",
+    "car": "02958343",
+    "cellphone": "02992529",
+    "chair": "03001627",
+    "clock": "03046257",
+    "keyboard": "03085013",
+    "dishwasher": "03207941",
+    "display": "03211117",
+    "earphone": "03261776",
+    "faucet": "03325088",
+    "file cabinet": "03337140",
+    "guitar": "03467517",
+    "helmet": "03513137",
+    "jar": "03593526",
+    "knife": "03624134",
+    "lamp": "03636649",
+    "laptop": "03642806",
+    "loudspeaker": "03691459",
+    "mailbox": "03710193",
+    "microphone": "03759954",
+    "microwaves": "03761084",
+    "motorbike": "03790512",
+    "mug": "03797390",
+    "piano": "03928116",
+    "pillow": "03938244",
+    "pistol": "03948459",
+    "flowerpot": "03991062",
+    "printer": "04004475",
+    "remote": "04074963",
+    "rifle": "04090263",
+    "rocket": "04099429",
+    "skateboard": "04225987",
+    "sofa": "04256520",
+    "stove": "04330267",
+    "table": "04379243",
+    "telephone": "04401088",
+    "tower": "04460130",
+    "train": "04468005",
+    "watercraft": "04530566",
+    "washer": "04554684",
 }
 
 MAP_CATEGORIES_SHAPENET_ID_TO_CATEGORY = MAP_CATEGORIES_SHAPENET_V2_ID_TO_CATEGORY

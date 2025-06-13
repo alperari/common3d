@@ -70,9 +70,11 @@ class OD3D_FrameMetaKpts2DSMixin:
 class OD3D_FrameMetaSubsetMixin:
     subset: str
 
+
 @dataclass
 class OD3D_FrameMetaMeshMixin:
     rfpath_mesh: Path
+
 
 @dataclass
 class OD3D_FrameMetaMeshsMixin:
@@ -126,6 +128,7 @@ class OD3D_FrameMetaCamIntr4x4Mixin:
     def cam_intr4x4(self):
         return torch.Tensor(self.l_cam_intr4x4)
 
+
 @dataclass
 class OD3D_FrameMetaCamIntr4x4sMixin:
     l_cam_intr4x4s: List[List[List[float]]]  # torch.Tensor
@@ -133,6 +136,7 @@ class OD3D_FrameMetaCamIntr4x4sMixin:
     @property
     def cam_intr4x4s(self):
         return torch.Tensor(self.l_cam_intr4x4s)
+
 
 @dataclass
 class OD3D_FrameMetaCamTform4x4ObjMixin:
@@ -155,6 +159,7 @@ class OD3D_FrameMetaCamTform4x4ObjsMixin:
     def cam_tform4x4_obj(self):
         return self.cam_tform4x4_objs[0]
 
+
 @dataclass
 class OD3D_FrameMetaObjTform4x4ObjsMixin:
     l_obj_tform4x4_objs: List[List[List[float]]]  # torch.Tensor
@@ -162,6 +167,7 @@ class OD3D_FrameMetaObjTform4x4ObjsMixin:
     @property
     def obj_tform4x4_objs(self):
         return torch.Tensor(self.l_obj_tform4x4_objs)
+
 
 @dataclass
 class OD3D_FrameMetaObjsValidMixin:
@@ -171,12 +177,15 @@ class OD3D_FrameMetaObjsValidMixin:
     def objs_valid(self):
         return torch.BoolTensor(self.l_objs_valid)
 
+
 @dataclass
 class OD3D_FrameMetaObjsNameMixin:
     l_objs_name: List[str]  # torch.Tensor
+
     @property
     def objs_valid(self):
         return self.l_objs_name
+
 
 @dataclass
 class OD3D_FrameMetaSizeMixin:
@@ -194,6 +203,7 @@ class OD3D_FrameMetaSizeMixin:
     def W(self):
         return self.size[1]
 
+
 @dataclass
 class OD3D_FrameMetaSizesMixin:
     l_sizes: List[List[float]]  # torch.Tensor
@@ -204,16 +214,18 @@ class OD3D_FrameMetaSizesMixin:
 
     @property
     def Hs(self):
-        return self.sizes[0] if self.sizes.dim() == 1 else self.sizes[:,0]
+        return self.sizes[0] if self.sizes.dim() == 1 else self.sizes[:, 0]
         # need to change W*H to H*W in preprocessing
 
     @property
     def Ws(self):
-        return self.sizes[1] if self.sizes.dim() == 1 else self.sizes[:,1]
+        return self.sizes[1] if self.sizes.dim() == 1 else self.sizes[:, 1]
+
 
 @dataclass
 class OD3D_FrameMetaRGBMixin:
     rfpath_rgb: Path
+
 
 @dataclass
 class OD3D_FrameMetaRGBSMixin:
@@ -233,13 +245,16 @@ class OD3D_FrameMetaMasksMixin:
     def rfpaths_mask(self):
         return self.rfpaths_masks[0]
 
+
 @dataclass
 class OD3D_FrameMetaPxlCatIdMixin:
     rfpath_pxl_cat_id: Path
 
+
 @dataclass
 class OD3D_FrameMetaDepthMixin:
     rfpath_depth: Path
+
 
 @dataclass
 class OD3D_FrameMetaDepthMaskMixin:

@@ -1,5 +1,7 @@
-import torch
 import logging
+
+import torch
+
 logger = logging.getLogger(__name__)
 
 # gather: input, dim, index -> return tensor with source indices (on right side)
@@ -32,6 +34,7 @@ def append_const_front(pts, dim, value=1.0):
     )
     return torch.cat([ones1d, pts], dim=dim)
 
+
 def append_const_back(pts, dim, value=1.0):
     device = pts.device
     dtype = pts.dtype
@@ -46,12 +49,14 @@ def append_const_back(pts, dim, value=1.0):
     )
     return torch.cat([pts, ones1d], dim=dim)
 
+
 def cumsum_w0(input, dim):
     index = torch.arange(input.shape[dim]).to(device=input.device)
     input_cumsum = torch.cumsum(input=input, dim=dim)
     input_cumsum = append_const_front(pts=input_cumsum, dim=dim, value=0)
     input_cumsum = torch.index_select(input=input_cumsum, dim=dim, index=index)
     return input_cumsum
+
 
 def batched_index_fill(input, value, index, dim=None):
     """
@@ -192,14 +197,20 @@ def index_MD_to_1D(indexMD, inputMD, dims):
         index1D += indexMD[..., m]
     return index1D
 
+
 def batched_argminMD_select(inputMD, dims):
     inputMD_sub = inputMD.clone()
     dims_sorted_inds = []
-    dims_sorted_decending, dims_sorted_decending_id = torch.LongTensor(dims).sort(descending=True)
+    dims_sorted_decending, dims_sorted_decending_id = torch.LongTensor(dims).sort(
+        descending=True
+    )
     _, dims_sorted_decending_id = dims_sorted_decending_id.sort()
     for dim in dims_sorted_decending:
         inputMD_sub, inds_sub = inputMD_sub.min(dim=dim)
-        dims_sorted_inds = [batched_index_select(input=inds, index=inds_sub[..., None], dim=dim)[..., 0] for inds in dims_sorted_inds]
+        dims_sorted_inds = [
+            batched_index_select(input=inds, index=inds_sub[..., None], dim=dim)[..., 0]
+            for inds in dims_sorted_inds
+        ]
         dims_sorted_inds.append(inds_sub)
     dims_sorted_inds = [dims_sorted_inds[id] for id in dims_sorted_decending_id]
     dims_sorted_inds = torch.stack(dims_sorted_inds, dim=-1)
@@ -214,17 +225,20 @@ def batched_index_in_bounds(indexMD, bounds):
     if bounds.dim() == 1:
         assert len(bounds) == M
         if (indexMD < 0).any():
-            logger.info(f'indices smaller than 0 for {indexMD[indexMD < 0].unique()}')
+            logger.info(f"indices smaller than 0 for {indexMD[indexMD < 0].unique()}")
         indexMD[indexMD < 0] = 0
-        bounds = bounds[(None,)*(indexMD.dim()-1)].expand_as(indexMD).clone()
+        bounds = bounds[(None,) * (indexMD.dim() - 1)].expand_as(indexMD).clone()
         if (indexMD > bounds).any():
-            logger.info(f'indices greater than bounds for {indexMD[indexMD > bounds].unique()} > {bounds[indexMD > bounds].unique()}')
+            logger.info(
+                f"indices greater than bounds for {indexMD[indexMD > bounds].unique()} > {bounds[indexMD > bounds].unique()}"
+            )
         indexMD[indexMD > bounds] = bounds[indexMD > bounds]
 
     else:
         raise NotImplementedError
 
     return indexMD
+
 
 def batched_indexMD_select(inputMD, indexMD, dims=None):
     """

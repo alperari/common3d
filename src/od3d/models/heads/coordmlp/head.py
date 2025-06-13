@@ -2,7 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 import torch.nn as nn
-#from od3d.models.heads.head import OD3D_Head
+
+# from od3d.models.heads.head import OD3D_Head
 from typing import List
 from omegaconf import DictConfig
 import torch
@@ -36,6 +37,7 @@ class HarmonicEmbedding(nn.Module):
         super().__init__()
         self.frequencies = scalar * (2.0 ** torch.arange(n_harmonic_functions))
         self.dim = dim
+
     def forward(self, x):
         """
         Args:
@@ -57,7 +59,6 @@ class HarmonicEmbedding(nn.Module):
 
 
 class CoordMLP(MLP):
-
     def __init__(
         self,
         in_dims: List,
@@ -68,17 +69,17 @@ class CoordMLP(MLP):
         embedder_scalar=2.8274,  # 2 * np.pi / 2 * 0.9  # originally (-0.5*s, 0.5*s) rescale to (-pi, pi) * 0.9
         embed_concat_pts=True,
     ):
-
         self.encoder_featmap_vae = config.get("encoder_featmap_vae", False)
 
-        if config.get('resnet', None) is not None:
+        if config.get("resnet", None) is not None:
             if in_dims is None:
-                resnet_in_dims = [config.in_dim, ]
-                resnet_in_upsample_scales = [ ]
+                resnet_in_dims = [config.in_dim]
+                resnet_in_upsample_scales = []
             else:
                 resnet_in_dims = in_dims
                 resnet_in_upsample_scales = in_upsample_scales
             from od3d.models.heads.resnet import ResNet
+
             resnet = ResNet(
                 in_dims=resnet_in_dims,
                 in_upsample_scales=resnet_in_upsample_scales,
@@ -86,14 +87,15 @@ class CoordMLP(MLP):
             )
             feat_dim = resnet.out_dim
             vit = None
-        elif config.get('vit', None) is not None:
+        elif config.get("vit", None) is not None:
             if in_dims is None:
-                vit_in_dims = [config.in_dim, ]
-                vit_in_upsample_scales = [ ]
+                vit_in_dims = [config.in_dim]
+                vit_in_upsample_scales = []
             else:
                 vit_in_dims = in_dims
                 vit_in_upsample_scales = in_upsample_scales
             from od3d.models.heads.vit import ViT
+
             vit = ViT(
                 in_dims=vit_in_dims,
                 in_upsample_scales=vit_in_upsample_scales,
@@ -127,9 +129,9 @@ class CoordMLP(MLP):
             config.update({"in_dim": self.mlp_in_dim})
             # config.in_dim = self.mlp_in_dim
 
-        if config.get('resnet', None) is not None:
+        if config.get("resnet", None) is not None:
             config.update({"resnet": None})
-        if config.get('vit', None) is not None:
+        if config.get("vit", None) is not None:
             config.update({"vit": None})
 
         super().__init__(
@@ -147,20 +149,21 @@ class CoordMLP(MLP):
         else:
             self.embedder = None
 
-        #if config.get('min_max', None) is not None:
+        # if config.get('min_max', None) is not None:
         #    self.register_buffer('min_max', config.min_max)  # Cx2
-        #else:
+        # else:
         #    self.min_max = None
-        #self.bsdf = None
+        # self.bsdf = None
 
     def forward(self, x: OD3D_ModelData):
-
-        pts3d = x.pts3d # BxNx3
+        pts3d = x.pts3d  # BxNx3
         B, N = pts3d.shape[0], pts3d.shape[1]
         if self.symmetrize:
             # pts3d[:, :, 0] = pts3d[:, :, 0].abs() # mirror -x to +x
             pts3d_x, pts3d_y, pts3d_z = pts3d.unbind(-1)
-            pts3d = torch.stack([pts3d_x.abs(), pts3d_y, pts3d_z], -1) # mirror -x to +x
+            pts3d = torch.stack(
+                [pts3d_x.abs(), pts3d_y, pts3d_z], -1
+            )  # mirror -x to +x
 
         if self.embedder is not None:
             pts3d_embed = self.embedder(pts3d)
@@ -185,31 +188,38 @@ class CoordMLP(MLP):
                 x_latent_mu = None
                 x_latent_logvar = None
             else:
-                x_latent = x.feat # [-1].flatten(1)  # BxF
+                x_latent = x.feat  # [-1].flatten(1)  # BxF
                 x_latent_mu = x.feat_mu
                 x_latent_logvar = x.feat_logvar
 
         if x_latent is not None:
-            feats = torch.cat([pts3d_embed, x_latent[:, None,].expand(*pts3d_embed.shape[:2], x_latent.shape[-1])], dim=-1) # BxNxE+F
+            feats = torch.cat(
+                [
+                    pts3d_embed,
+                    x_latent[:, None].expand(
+                        *pts3d_embed.shape[:2], x_latent.shape[-1]
+                    ),
+                ],
+                dim=-1,
+            )  # BxNxE+F
         else:
-            feats = pts3d_embed # BxNxE+F
+            feats = pts3d_embed  # BxNxE+F
 
         x_in = OD3D_ModelData(feat=feats.reshape(-1, feats.shape[-1]))
-        x_out = super(CoordMLP, self).forward(x_in)
+        x_out = super().forward(x_in)
         x_out.feat = x_out.feat.reshape(B, N, -1)
 
         if x_latent is not None:
-            x_out.latent = x_latent # .reshape(B, -1)
-            x_out.latent_mu = x_latent_mu # .reshape(B, -1)
-            x_out.latent_logvar = x_latent_logvar # .reshape(B, -1)
+            x_out.latent = x_latent  # .reshape(B, -1)
+            x_out.latent_mu = x_latent_mu  # .reshape(B, -1)
+            x_out.latent_logvar = x_latent_logvar  # .reshape(B, -1)
         return x_out
 
-        #pts3d_embed = self.in_layer(pts3d_embed)
-        #x_in = torch.concat([pts3d_embed, x.feat], dim=-1)
-        #out = self.mlp(self.relu(x_in))  # (B, ..., C)
+        # pts3d_embed = self.in_layer(pts3d_embed)
+        # x_in = torch.concat([pts3d_embed, x.feat], dim=-1)
+        # out = self.mlp(self.relu(x_in))  # (B, ..., C)
 
         # if self.min_max is not None:
         #     out = out * (self.min_max[:, 1] - self.min_max[:, 0]) + self.min_max[:, 0]
         #
         # return out
-

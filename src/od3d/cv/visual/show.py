@@ -47,10 +47,10 @@ OPEN3D_DEFAULT_CAM_TFORM_OPEN3D_OBJ = torch.Tensor(
 )
 OPEN3D_OBJ_TFORM_OBJ = torch.Tensor(
     [
-        [-1.0,  0.0, 0.0, 0.0],
-        [ 0.0, -1.0, 0.0, 0.0],
-        [ 0.0,  0.0, 1.0, 0.0],
-        [ 0.0,  0.0, 0.0, 1.0],
+        [-1.0, 0.0, 0.0, 0.0],
+        [0.0, -1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
     ],
 )
 
@@ -94,9 +94,12 @@ DEFAULT_TFORM_OPEN3D_DEFAULT = torch.Tensor(
 # OPEN3D_DEFAULT_TFORM_DEFAULT = tform4x4(OPEN3D_DEFAULT_CAM_TFORM_OBJ, inv_tform4x4(DEFAULT_CAM_TFORM_OBJ))
 # DEFAULT_TFORM_OPEN3D_DEFAULT = inv_tform4x4(OPEN3D_DEFAULT_TFORM_DEFAULT)
 
-def get_default_camera_intrinsics_from_img_size(W, H, fov_x=25, fov_y=None, dtype=None, device=None):
 
+def get_default_camera_intrinsics_from_img_size(
+    W, H, fov_x=25, fov_y=None, dtype=None, device=None
+):
     import math
+
     fov_x_rad = fov_x / 180 * math.pi
 
     fx = (W / 2) / math.tan(fov_x_rad / 2)
@@ -106,14 +109,14 @@ def get_default_camera_intrinsics_from_img_size(W, H, fov_x=25, fov_y=None, dtyp
         fov_y_rad = fov_y / 180 * math.pi
         fy = (H / 2) / torch.tan(fov_y_rad / 2)
 
-    cam_intr4x4 = torch.eye(4).to(dtype=dtype, device=device) # * (W + H) / 2
+    cam_intr4x4 = torch.eye(4).to(dtype=dtype, device=device)  # * (W + H) / 2
     cam_intr4x4[0, 0] = fx
     cam_intr4x4[1, 1] = fy
     cam_intr4x4[0, 2] = W / 2
     cam_intr4x4[1, 2] = H / 2
 
-    cam_intr4x4[..., -1, -1] = 1.
-    cam_intr4x4[..., -2, -2] = 1.
+    cam_intr4x4[..., -1, -1] = 1.0
+    cam_intr4x4[..., -2, -2] = 1.0
     return cam_intr4x4
 
 
@@ -123,6 +126,7 @@ def pt3d_camera_from_tform4x4_intr4x4_imgs_size(
     img_size: torch.Tensor,
 ):
     from pytorch3d.renderer.cameras import PerspectiveCameras
+
     if cam_tform4x4_obj.dim() == 2:
         cam_tform4x4_obj = cam_tform4x4_obj[None,]
     if cam_intr4x4.dim() == 2:
@@ -327,7 +331,16 @@ def plotly_fig_2_tensor(fig, width=None, height=None):
     return img
 
 
-def render_trimesh_to_tensor(mesh_trimesh, cam_intr4x4, cam_tform4x4_obj, H=512, W=512, rgb_bg=[0., 0., 0.], znear=0.01, zfar=100.0):
+def render_trimesh_to_tensor(
+    mesh_trimesh,
+    cam_intr4x4,
+    cam_tform4x4_obj,
+    H=512,
+    W=512,
+    rgb_bg=[0.0, 0.0, 0.0],
+    znear=0.01,
+    zfar=100.0,
+):
     """
     Render a trimesh mesh using given camera intrinsics and extrinsics, and return the RGB image as a torch tensor.
 
@@ -350,13 +363,16 @@ def render_trimesh_to_tensor(mesh_trimesh, cam_intr4x4, cam_tform4x4_obj, H=512,
     import torch
     from pyrender import DirectionalLight, SpotLight
     from PIL import Image
+
     # mesh_trimesh.show()
 
     # Convert trimesh mesh to pyrender mesh
     pyrender_mesh = pyrender.Mesh.from_trimesh(mesh_trimesh)
 
     # Create scene and add mesh
-    scene = pyrender.Scene(ambient_light=np.array([1., 1., 1., 1.]), bg_color=rgb_bg)
+    scene = pyrender.Scene(
+        ambient_light=np.array([1.0, 1.0, 1.0, 1.0]), bg_color=rgb_bg
+    )
     scene.add(pyrender_mesh)
 
     # Create pyrender camera from intrinsic matrix
@@ -364,12 +380,18 @@ def render_trimesh_to_tensor(mesh_trimesh, cam_intr4x4, cam_tform4x4_obj, H=512,
     cx, cy = cam_intr4x4[0, 2], cam_intr4x4[1, 2]
     height = H
     width = W
-    camera = pyrender.IntrinsicsCamera(float(fx), float(fy), float(cx), float(cy), znear=znear, zfar=zfar)
+    camera = pyrender.IntrinsicsCamera(
+        float(fx), float(fy), float(cx), float(cy), znear=znear, zfar=zfar
+    )
 
     # FOLLOWING OPENGL convention
-    pyrender_cam_tform4x4_obj = tform4x4(OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device), cam_tform4x4_obj,)
+    pyrender_cam_tform4x4_obj = tform4x4(
+        OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device),
+        cam_tform4x4_obj,
+    )
 
     from od3d.cv.geometry.transform import inv_tform4x4
+
     obj_tform4x4_pyrender_cam = inv_tform4x4(pyrender_cam_tform4x4_obj)
     obj_tform4x4_pyrender_cam_np = obj_tform4x4_pyrender_cam.detach().cpu().numpy()
     scene.add(camera, pose=obj_tform4x4_pyrender_cam_np)
@@ -383,18 +405,22 @@ def render_trimesh_to_tensor(mesh_trimesh, cam_intr4x4, cam_tform4x4_obj, H=512,
 
     # Create an offscreen renderer
     import os
-    if 'DISPLAY' not in os.environ:
-        os.environ['PYOPENGL_PLATFORM'] = 'egl'
+
+    if "DISPLAY" not in os.environ:
+        os.environ["PYOPENGL_PLATFORM"] = "egl"
     renderer = pyrender.OffscreenRenderer(width, height)
 
     # Render the scene
     color, depth = renderer.render(scene)
 
     # Convert to torch tensor (C, H, W) format
-    rgb_tensor = torch.from_numpy(color.copy()).to(dtype=torch.float32).permute(2, 0, 1) / 255.0
+    rgb_tensor = (
+        torch.from_numpy(color.copy()).to(dtype=torch.float32).permute(2, 0, 1) / 255.0
+    )
     depth_tensor = torch.from_numpy(depth.copy()).to(dtype=torch.float32)[None,]
 
     return rgb_tensor, depth_tensor
+
 
 def show_scene(
     cams_tform4x4_world: Union[torch.Tensor, List[torch.Tensor]] = None,
@@ -550,6 +576,7 @@ def show_scene(
 
             elif renderer == OD3D_RENDERER.PYRENDER:
                 import pyrender
+
                 mesh_engine = meshes.to_pyrender(meshes_ids=[i])
 
             elif renderer == OD3D_RENDERER.PYTORCH3D:
@@ -571,7 +598,10 @@ def show_scene(
                 raise NotImplementedError
 
             geometries.append(
-                {"name": mesh_name, "geometry": mesh_engine}, # , "material": mesh_material},
+                {
+                    "name": mesh_name,
+                    "geometry": mesh_engine,
+                },  # , "material": mesh_material},
             )
             # vertices: open3d.cpu.pybind.utility.Vector3dVector,
             # triangles: open3d.cpu.pybind.utility.Vector3iVector
@@ -619,11 +649,12 @@ def show_scene(
                     )
             elif renderer == OD3D_RENDERER.PYRENDER:
                 import pyrender
+
                 pass
                 #  0: POINTS, 1: LINES, 2: LINE_LOOP, 3: LINE_STRIP,
                 #  4: TRIANGLES, 5: TRIANGLES_STRIP, 6: TRIANGLES_FAN
-                #pyrender.Primitive.POINTS
-                #pyrender.Primitive(positions=, normals=None, tangents=None, mode=)
+                # pyrender.Primitive.POINTS
+                # pyrender.Primitive(positions=, normals=None, tangents=None, mode=)
                 line3d_engine = None
 
             elif renderer == OD3D_RENDERER.PYTORCH3D:
@@ -709,12 +740,15 @@ def show_scene(
                     _pts3d_i_color[..., 2] = pts3d_i_color[2]
                 else:
                     _pts3d_i_color = pts3d_i_color
-                pts3d_engine = pyrender.Primitive(positions=_pts3d_i.detach().cpu().numpy(),
-                                                  color_0=_pts3d_i_color.detach().cpu().numpy(),
-                                                  mode=0)
+                pts3d_engine = pyrender.Primitive(
+                    positions=_pts3d_i.detach().cpu().numpy(),
+                    color_0=_pts3d_i_color.detach().cpu().numpy(),
+                    mode=0,
+                )
 
             elif renderer == OD3D_RENDERER.PYTORCH3D:
                 from pytorch3d.structures import Pointclouds as PT3D_Pointclouds
+
                 if isinstance(pts3d_i_color, list) or pts3d_i_color.dim() == 1:
                     _pts3d_i_rgb = _pts3d_i.clone().to(device=device)
                     _pts3d_i_rgb[:, 0] = pts3d_i_color[0]
@@ -783,39 +817,48 @@ def show_scene(
                 # )
 
                 # advantage: normals shown
-                open3d.visualization.draw_geometries( [geometry['geometry'] for geometry in geometries])
+                open3d.visualization.draw_geometries(
+                    [geometry["geometry"] for geometry in geometries]
+                )
 
             elif renderer == OD3D_RENDERER.PYRENDER:
                 import pyrender
                 from pyrender import DirectionalLight
+
                 # Create scene and add mesh
-                scene = pyrender.Scene(ambient_light=np.array([1., 1., 1., 1.]),
-                                       bg_color=background_color)
+                scene = pyrender.Scene(
+                    ambient_light=np.array([1.0, 1.0, 1.0, 1.0]),
+                    bg_color=background_color,
+                )
                 # 'f': fullscreen, 'w': wireframe, 'a': rotation
                 # m = pyrender.Mesh.from_points(pts, colors=colors)
                 for geometry in geometries:
-                    if isinstance(geometry['geometry'], pyrender.mesh.Mesh):
-                        scene.add(geometry['geometry'])
-                    elif isinstance(geometry['geometry'], pyrender.camera.Camera):
-                        scene.add(geometry['geometry'], pose=geometry['obj_tform4x4_cam'])
-                    elif isinstance(geometry['geometry'], pyrender.mesh.Primitive):
-                        scene.add(pyrender.Mesh([geometry['geometry']]))
-
+                    if isinstance(geometry["geometry"], pyrender.mesh.Mesh):
+                        scene.add(geometry["geometry"])
+                    elif isinstance(geometry["geometry"], pyrender.camera.Camera):
+                        scene.add(
+                            geometry["geometry"], pose=geometry["obj_tform4x4_cam"]
+                        )
+                    elif isinstance(geometry["geometry"], pyrender.mesh.Primitive):
+                        scene.add(pyrender.Mesh([geometry["geometry"]]))
 
                 # Create pyrender camera from intrinsic matrix
-                #fx, fy = cam_intr4x4[0, 0], cam_intr4x4[1, 1]
-                #cx, cy = cam_intr4x4[0, 2], cam_intr4x4[1, 2]
-                #height = H
-                #width = W
-                #camera = pyrender.IntrinsicsCamera(float(fx), float(fy), float(cx), float(cy), znear=znear, zfar=zfar)
+                # fx, fy = cam_intr4x4[0, 0], cam_intr4x4[1, 1]
+                # cx, cy = cam_intr4x4[0, 2], cam_intr4x4[1, 2]
+                # height = H
+                # width = W
+                # camera = pyrender.IntrinsicsCamera(float(fx), float(fy), float(cx), float(cy), znear=znear, zfar=zfar)
                 # FOLLOWING OPENGL convention
                 pyrender_cam_tform4x4_obj = OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone()
-                #pyrender_cam_tform4x4_obj = tform4x4(
+                # pyrender_cam_tform4x4_obj = tform4x4(
                 #    OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device), cam_tform4x4_obj, )
                 from od3d.cv.geometry.transform import inv_tform4x4
+
                 obj_tform4x4_pyrender_cam = inv_tform4x4(pyrender_cam_tform4x4_obj)
-                obj_tform4x4_pyrender_cam_np = obj_tform4x4_pyrender_cam.detach().cpu().numpy()
-                #scene.add(camera, pose=obj_tform4x4_pyrender_cam_np)
+                obj_tform4x4_pyrender_cam_np = (
+                    obj_tform4x4_pyrender_cam.detach().cpu().numpy()
+                )
+                # scene.add(camera, pose=obj_tform4x4_pyrender_cam_np)
                 direc_l = DirectionalLight(color=np.ones(3), intensity=2.0)
 
                 direc_l_node = scene.add(direc_l, pose=obj_tform4x4_pyrender_cam_np)
@@ -824,15 +867,16 @@ def show_scene(
                 # pyrender.Viewer(scene, shadows=True)
 
                 # Create an offscreen renderer
-                #import os
-                #if 'DISPLAY' not in os.environ:
+                # import os
+                # if 'DISPLAY' not in os.environ:
                 #    os.environ['PYOPENGL_PLATFORM'] = 'egl'
-                #renderer = pyrender.OffscreenRenderer(width, height)
+                # renderer = pyrender.OffscreenRenderer(width, height)
                 # Render the scene
-                #color, depth = renderer.render(scene)
+                # color, depth = renderer.render(scene)
 
             elif renderer == OD3D_RENDERER.PYTORCH3D:
                 from pytorch3d.vis.plotly_vis import plot_scene, AxisArgs
+
                 cam_tform4x4_obj = DEFAULT_CAM_TFORM_OBJ.clone().to(
                     dtype=dtype,
                     device=device,
@@ -1005,6 +1049,7 @@ def show_scene(
             )
             from pytorch3d.structures import Pointclouds as PT3D_Pointclouds
             from pytorch3d.renderer.cameras import PerspectiveCameras
+
             pts3d = []  # [for g, geometry in enumerate(geometries)]
             for g, geometry in enumerate(geometries):
                 if isinstance(geometry["geometry"], PT3D_Pointclouds):
@@ -1254,7 +1299,8 @@ def get_engine_geometries_for_cams(
                                 view_height_px=height,
                                 intrinsic=cam_intr4x4[:3, :3].detach().cpu().numpy(),
                                 extrinsic=cams_tform4x4_world[i].detach().cpu().numpy(),
-                                scale=cams_imgs_depth_scale * cams_tform4x4_world[i].detach().cpu().numpy()[2, 3],
+                                scale=cams_imgs_depth_scale
+                                * cams_tform4x4_world[i].detach().cpu().numpy()[2, 3],
                             )
                         )
                     if cams_show_image_encoder:
@@ -1315,20 +1361,22 @@ def get_engine_geometries_for_cams(
                     fy = cam_intr4x4_res[1, 1].item()
                     cx = cam_intr4x4_res[0, 2].item()
                     cy = cam_intr4x4_res[1, 2].item()
-                    z_far = 1. * cams_imgs_depth_scale
+                    z_far = 1.0 * cams_imgs_depth_scale
 
-                    #fx, fy = K[0, 0], K[1, 1]
-                    #cx, cy = K[0, 2], K[1, 2]
+                    # fx, fy = K[0, 0], K[1, 1]
+                    # cx, cy = K[0, 2], K[1, 2]
 
                     # Image corners in pixel coordinates
                     # w_resize, width
                     # h_resize, height
-                    img_corners = np.array([
-                        [0, 0],
-                        [width * w_resize-1, 0],
-                        [width * w_resize-1, height * h_resize-1],
-                        [0, height * h_resize-1]
-                    ])
+                    img_corners = np.array(
+                        [
+                            [0, 0],
+                            [width * w_resize - 1, 0],
+                            [width * w_resize - 1, height * h_resize - 1],
+                            [0, height * h_resize - 1],
+                        ]
+                    )
 
                     # Backproject to 3D at depth z_far
                     corners_3d = []
@@ -1353,6 +1401,7 @@ def get_engine_geometries_for_cams(
 
                     # Create mesh
                     import trimesh
+
                     # colors = np.tile(color, (len(lines), 1))
                     # frustum = trimesh.load_path(np.array(lines).reshape(-1, 2, 3))
 
@@ -1362,73 +1411,90 @@ def get_engine_geometries_for_cams(
                         cylinder = trimesh.creation.cylinder(
                             radius=0.002,
                             segment=[start, end],
-                            sections=4
+                            sections=4,
                         )
                         cylinders.append(cylinder)
                     frustum_mesh = trimesh.util.concatenate(cylinders)
 
-                    #texture =  cam_img.permute(1, 2, 0).contiguous().cpu().detach().numpy().astype(np.uint8)
-                    #texture = cam_img.contiguous().cpu().detach().numpy()  # / 255.
+                    # texture =  cam_img.permute(1, 2, 0).contiguous().cpu().detach().numpy().astype(np.uint8)
+                    # texture = cam_img.contiguous().cpu().detach().numpy()  # / 255.
 
                     from torchvision.transforms.functional import to_pil_image
+
                     texture = to_pil_image(cam_img.clone().flip(dims=(1,)))
 
                     # Define 4 vertices (rectangle in X-Y plane, Z=0)
-                    vertices = np.array([
-                        corners_3d[0], # Bottom-left
-                        corners_3d[1], # Bottom-right
-                        corners_3d[2], # Top-right
-                        corners_3d[3], # Top-left
-                        #[-1, -1, 0],  # Bottom-left
-                        #[1, -1, 0],  # Bottom-right
-                        #[1, 1, 0],  # Top-right
-                        #[-1, 1, 0],  # Top-left
-                    ])
+                    vertices = np.array(
+                        [
+                            corners_3d[0],  # Bottom-left
+                            corners_3d[1],  # Bottom-right
+                            corners_3d[2],  # Top-right
+                            corners_3d[3],  # Top-left
+                            # [-1, -1, 0],  # Bottom-left
+                            # [1, -1, 0],  # Bottom-right
+                            # [1, 1, 0],  # Top-right
+                            # [-1, 1, 0],  # Top-left
+                        ]
+                    )
 
                     # Define two triangular faces (using the 4 vertices)
-                    faces = np.array([
-                        [0, 1, 2],
-                        [0, 2, 3],
-                        [2, 1, 0],  # Back face 1 (reversed)
-                        [3, 2, 0],  # Back face 2 (reversed)
-                    ])
+                    faces = np.array(
+                        [
+                            [0, 1, 2],
+                            [0, 2, 3],
+                            [2, 1, 0],  # Back face 1 (reversed)
+                            [3, 2, 0],  # Back face 2 (reversed)
+                        ]
+                    )
 
                     # Define UV coordinates (match image corners)
-                    uv = np.array([
-                        [0.0, 0.0],  # Bottom-left
-                        [1.0, 0.0],  # Bottom-right
-                        [1.0, 1.0],  # Top-right
-                        [0.0, 1.0],  # Top-left
-                    ])
+                    uv = np.array(
+                        [
+                            [0.0, 0.0],  # Bottom-left
+                            [1.0, 0.0],  # Bottom-right
+                            [1.0, 1.0],  # Top-right
+                            [0.0, 1.0],  # Top-left
+                        ]
+                    )
 
                     # Create the texture visual
-                    #material = trimesh.visual.texture.SimpleMaterial(image=texture)
-                    #visual = trimesh.visual.texture.TextureVisuals(uv=uv, image=texture, material=material)
-                    #frustum_mesh = trimesh.Trimesh(vertices=vertices, faces=faces, visual=visual)
-                    #frustum_mesh.show()
+                    # material = trimesh.visual.texture.SimpleMaterial(image=texture)
+                    # visual = trimesh.visual.texture.TextureVisuals(uv=uv, image=texture, material=material)
+                    # frustum_mesh = trimesh.Trimesh(vertices=vertices, faces=faces, visual=visual)
+                    # frustum_mesh.show()
                     # Create the mesh
                     vertices = np.concatenate([vertices, frustum_mesh.vertices])
                     faces = np.concatenate([faces, frustum_mesh.faces + len(faces)])
 
-                    uv = np.concatenate([uv, frustum_mesh.vertices.copy()[:, :2] * 0.])
+                    uv = np.concatenate([uv, frustum_mesh.vertices.copy()[:, :2] * 0.0])
                     material = trimesh.visual.texture.SimpleMaterial(image=texture)
-                    visual = trimesh.visual.texture.TextureVisuals(uv=uv, image=texture, material=material)
+                    visual = trimesh.visual.texture.TextureVisuals(
+                        uv=uv, image=texture, material=material
+                    )
 
-                    frustum_mesh = trimesh.Trimesh(vertices=vertices, faces=faces, visual=visual)
+                    frustum_mesh = trimesh.Trimesh(
+                        vertices=vertices, faces=faces, visual=visual
+                    )
                     # frustum_mesh.show()
 
                     # # FOLLOWING OPENGL convention
                     pyrender_cam_tform4x4_obj = OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone()
                     # pyrender_cam_tform4x4_obj = tform4x4(OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device), cam_tform4x4_obj, )
                     from od3d.cv.geometry.transform import inv_tform4x4
+
                     obj_tform4x4_pyrender_cam = inv_tform4x4(pyrender_cam_tform4x4_obj)
-                    obj_tform4x4_pyrender_cam_np = obj_tform4x4_pyrender_cam.detach().cpu().numpy()
+                    obj_tform4x4_pyrender_cam_np = (
+                        obj_tform4x4_pyrender_cam.detach().cpu().numpy()
+                    )
                     obj_tform4x4_cam = obj_tform4x4_pyrender_cam_np
 
                     frustum_mesh = frustum_mesh
                     # inv_tform4x4(cams_tform4x4_world[i]).to(device=device, dtype=dtype)
                     dtype = cams_tform4x4_world[i].dtype
-                    frustum_mesh.vertices = transf3d_broadcast(torch.from_numpy(frustum_mesh.vertices).to(dtype=dtype), transf4x4=inv_tform4x4(cams_tform4x4_world[i]))
+                    frustum_mesh.vertices = transf3d_broadcast(
+                        torch.from_numpy(frustum_mesh.vertices).to(dtype=dtype),
+                        transf4x4=inv_tform4x4(cams_tform4x4_world[i]),
+                    )
 
                     pts3d_engine = pyrender.Mesh.from_trimesh(frustum_mesh)
 
@@ -1509,7 +1575,11 @@ def get_engine_geometries_for_cams(
                     raise NotImplementedError
 
                 geometries.append(
-                    {"name": f"{cam_name}_img", "geometry": pts3d_engine, "obj_tform4x4_cam": obj_tform4x4_cam},
+                    {
+                        "name": f"{cam_name}_img",
+                        "geometry": pts3d_engine,
+                        "obj_tform4x4_cam": obj_tform4x4_cam,
+                    },
                 )
 
             else:
@@ -1521,14 +1591,23 @@ def get_engine_geometries_for_cams(
                                 view_height_px=height,
                                 intrinsic=cam_intr4x4[:3, :3].detach().cpu().numpy(),
                                 extrinsic=cams_tform4x4_world[i].detach().cpu().numpy(),
-                                scale=cams_imgs_depth_scale * cams_tform4x4_world[i][2, 3],
+                                scale=cams_imgs_depth_scale
+                                * cams_tform4x4_world[i][2, 3],
                             )
                         )
-                        cam_wireframe_engine_colors = get_colors(len(cams_tform4x4_world))[i][None,].repeat(8, 1).detach().cpu().numpy()
+                        cam_wireframe_engine_colors = (
+                            get_colors(len(cams_tform4x4_world))[i][None,]
+                            .repeat(8, 1)
+                            .detach()
+                            .cpu()
+                            .numpy()
+                        )
                         cam_wireframe_engine_colors[3, 0] = 0.0
                         cam_wireframe_engine_colors[3, 1] = 1.0
                         cam_wireframe_engine_colors[3, 2] = 0.0
-                        cam_wireframe_engine.colors = o3d.utility.Vector3dVector(cam_wireframe_engine_colors)  # shape: (num_lines, 3)
+                        cam_wireframe_engine.colors = o3d.utility.Vector3dVector(
+                            cam_wireframe_engine_colors
+                        )  # shape: (num_lines, 3)
                 elif renderer == OD3D_RENDERER.PYTORCH3D:
                     if cams_show_wireframe:
                         cam_wireframe_engine = (
@@ -1539,12 +1618,12 @@ def get_engine_geometries_for_cams(
                             )
                         )
 
-
-            if (cams_show_wireframe or cams_show_image_encoder) and (cam_wireframe_engine is not None):
+            if (cams_show_wireframe or cams_show_image_encoder) and (
+                cam_wireframe_engine is not None
+            ):
                 geometries.append(
                     {"name": cam_name, "geometry": cam_wireframe_engine},
                 )
-
 
     return geometries
 
@@ -1642,6 +1721,7 @@ def show_pcl(
     """
     from pytorch3d.structures import Pointclouds as PT3D_Pointclouds
     from pytorch3d.vis.plotly_vis import plot_scene, AxisArgs
+
     point_cloud = PT3D_Pointclouds(points=verts, features=rgb)
     fig = plot_scene(
         {
@@ -1736,8 +1816,10 @@ def fpaths_to_rgb(fpaths: List[Path], H: int, W: int, pad=1):
     rgb = imgs_to_img(rgbs, pad=pad)
     return rgb
 
-def img_to_mesh(img, cam_tform4x4_obj=None, cam_intr4x4=None, cams_imgs_resize=True, depth=1.):
 
+def img_to_mesh(
+    img, cam_tform4x4_obj=None, cam_intr4x4=None, cams_imgs_resize=True, depth=1.0
+):
     import pyrender
 
     width = int(cam_intr4x4[0, 2] * 2)
@@ -1753,7 +1835,7 @@ def img_to_mesh(img, cam_tform4x4_obj=None, cam_intr4x4=None, cams_imgs_resize=T
     #     height = img.shape[-2]
     # elif isinstance(height, torch.Tensor):
     #     height = height.item()
-    #h, w = height, width
+    # h, w = height, width
 
     if cams_imgs_resize:
         img = resize(img, H_out=256, W_out=256)
@@ -1768,15 +1850,15 @@ def img_to_mesh(img, cam_tform4x4_obj=None, cam_intr4x4=None, cams_imgs_resize=T
     width = int(width * w_resize)
 
     if img.dtype == torch.float:
-         img = (img.clone() * 255).to(dtype=torch.uint8)
+        img = (img.clone() * 255).to(dtype=torch.uint8)
 
-    #if img.dtype == torch.uint8:
+    # if img.dtype == torch.uint8:
     #     img = (img.clone() / 255.).to(dtype=torch.float)
 
-
     from torchvision.transforms.functional import to_pil_image
+
     # .permute(1, 2, 0) * 255).cpu().contiguous()
-    #texture = to_pil_image(img.contiguous().clone().detach().permute(1, 2, 0) * 255).cpu().contiguous()
+    # texture = to_pil_image(img.contiguous().clone().detach().permute(1, 2, 0) * 255).cpu().contiguous()
     texture = to_pil_image(img.clone().flip(dims=(1,)).clone().contiguous())
 
     if cam_intr4x4 is not None:
@@ -1799,12 +1881,14 @@ def img_to_mesh(img, cam_tform4x4_obj=None, cam_intr4x4=None, cams_imgs_resize=T
         # Image corners in pixel coordinates
         # w_resize, width
         # h_resize, height
-        img_corners = np.array([
-            [0, 0],
-            [width - 1, 0],
-            [width - 1, height - 1],
-            [0, height - 1]
-        ])
+        img_corners = np.array(
+            [
+                [0, 0],
+                [width - 1, 0],
+                [width - 1, height - 1],
+                [0, height - 1],
+            ]
+        )
 
         # Backproject to 3D at depth z_far
         corners_3d = []
@@ -1814,54 +1898,65 @@ def img_to_mesh(img, cam_tform4x4_obj=None, cam_intr4x4=None, cams_imgs_resize=T
             corners_3d.append([x, y, z_far])
         corners_3d = np.array(corners_3d)
         # Define 4 vertices (rectangle in X-Y plane, Z=0)
-        vertices = np.array([
-            corners_3d[0],  # Bottom-left
-            corners_3d[1],  # Bottom-right
-            corners_3d[2],  # Top-right
-            corners_3d[3],  # Top-left
-            # [-1, -1, 0],  # Bottom-left
-            # [1, -1, 0],  # Bottom-right
-            # [1, 1, 0],  # Top-right
-            # [-1, 1, 0],  # Top-left
-        ])
+        vertices = np.array(
+            [
+                corners_3d[0],  # Bottom-left
+                corners_3d[1],  # Bottom-right
+                corners_3d[2],  # Top-right
+                corners_3d[3],  # Top-left
+                # [-1, -1, 0],  # Bottom-left
+                # [1, -1, 0],  # Bottom-right
+                # [1, 1, 0],  # Top-right
+                # [-1, 1, 0],  # Top-left
+            ]
+        )
     else:
-        height_half = height//2
-        width_half = width//2
-        vertices = np.array([
-            [-width_half, -height_half, 0],  # Bottom-left
-            [width_half, -height_half, 0],  # Bottom-right
-            [width_half, height_half, 0],  # Top-right
-            [-width_half, height_half, 0],  # Top-left
-        ])
+        height_half = height // 2
+        width_half = width // 2
+        vertices = np.array(
+            [
+                [-width_half, -height_half, 0],  # Bottom-left
+                [width_half, -height_half, 0],  # Bottom-right
+                [width_half, height_half, 0],  # Top-right
+                [-width_half, height_half, 0],  # Top-left
+            ]
+        )
 
     # Define two triangular faces (using the 4 vertices)
-    faces = np.array([
-        [0, 1, 2],
-        [0, 2, 3],
-        [2, 1, 0],  # Back face 1 (reversed)
-        [3, 2, 0],  # Back face 2 (reversed)
-    ])
+    faces = np.array(
+        [
+            [0, 1, 2],
+            [0, 2, 3],
+            [2, 1, 0],  # Back face 1 (reversed)
+            [3, 2, 0],  # Back face 2 (reversed)
+        ]
+    )
 
     # Define UV coordinates (match image corners)
-    uv = np.array([
-        [0.0, 0.0],  # Bottom-left
-        [1.0, 0.0],  # Bottom-right
-        [1.0, 1.0],  # Top-right
-        [0.0, 1.0],  # Top-left
-    ])
+    uv = np.array(
+        [
+            [0.0, 0.0],  # Bottom-left
+            [1.0, 0.0],  # Bottom-right
+            [1.0, 1.0],  # Top-right
+            [0.0, 1.0],  # Top-left
+        ]
+    )
 
     import trimesh
+
     # Create the texture visual
     # material = trimesh.visual.texture.SimpleMaterial(image=texture)
     # visual = trimesh.visual.texture.TextureVisuals(uv=uv, image=texture, material=material)
 
     # Create the mesh
-    #vertices = np.concatenate([vertices, frustum_mesh.vertices])
-    #faces = np.concatenate([faces, frustum_mesh.faces + len(faces)])
-    #uv = np.concatenate([uv, frustum_mesh.vertices.copy()[:, :2] * 0.])
+    # vertices = np.concatenate([vertices, frustum_mesh.vertices])
+    # faces = np.concatenate([faces, frustum_mesh.faces + len(faces)])
+    # uv = np.concatenate([uv, frustum_mesh.vertices.copy()[:, :2] * 0.])
 
     # material = trimesh.visual.texture.SimpleMaterial(image=texture)
-    visual = trimesh.visual.texture.TextureVisuals(uv=uv, image=texture) #, material=material)
+    visual = trimesh.visual.texture.TextureVisuals(
+        uv=uv, image=texture
+    )  # , material=material)
 
     frustum_mesh = trimesh.Trimesh(vertices=vertices, faces=faces, visual=visual)
     # frustum_mesh.show()
@@ -1871,6 +1966,7 @@ def img_to_mesh(img, cam_tform4x4_obj=None, cam_intr4x4=None, cams_imgs_resize=T
         pyrender_cam_tform4x4_obj = OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone()
         # pyrender_cam_tform4x4_obj = tform4x4(OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device), cam_tform4x4_obj, )
         from od3d.cv.geometry.transform import inv_tform4x4
+
         obj_tform4x4_pyrender_cam = inv_tform4x4(pyrender_cam_tform4x4_obj)
         obj_tform4x4_pyrender_cam_np = obj_tform4x4_pyrender_cam.detach().cpu().numpy()
         obj_tform4x4_cam = obj_tform4x4_pyrender_cam_np
@@ -1878,10 +1974,13 @@ def img_to_mesh(img, cam_tform4x4_obj=None, cam_intr4x4=None, cams_imgs_resize=T
         frustum_mesh = frustum_mesh
         # inv_tform4x4(cams_tform4x4_world[i]).to(device=device, dtype=dtype)
         dtype = cam_tform4x4_obj.dtype
-        frustum_mesh.vertices = transf3d_broadcast(torch.from_numpy(frustum_mesh.vertices).to(dtype=dtype),
-                                                   transf4x4=inv_tform4x4(cam_tform4x4_obj).to(device='cpu'))
+        frustum_mesh.vertices = transf3d_broadcast(
+            torch.from_numpy(frustum_mesh.vertices).to(dtype=dtype),
+            transf4x4=inv_tform4x4(cam_tform4x4_obj).to(device="cpu"),
+        )
     # from od3d.cv.visual.objectsmesh import Meshes
     return Meshes.from_trimesh(mesh_trimesh=frustum_mesh)
+
 
 def show_imgs(
     rgbs,
@@ -1891,7 +1990,7 @@ def show_imgs(
     height=None,
     width=None,
     pad=1,
-    pad_value=0.,
+    pad_value=0.0,
 ):
     rgb = imgs_to_img(rgbs, pad=pad, pad_value=pad_value)
     return show_img(rgb, duration, vwriter, fpath, height, width)
@@ -1907,7 +2006,7 @@ def show_img(
     normalize=False,
 ):
     if rgb.dim() == 3 and rgb.shape[0] != 3 and rgb.shape[0] != 1:
-        colors = get_colors(K = rgb.shape[0], device=rgb.device, last_white=True)
+        colors = get_colors(K=rgb.shape[0], device=rgb.device, last_white=True)
         rgb = (rgb.clone()[:, None] * colors[:, :, None, None]).sum(dim=0)
     # img: 3xHxW
     rgb = rgb.clone()
@@ -1980,6 +2079,6 @@ def get_img_from_plot(ax, fig, axis_off=True, margins=1, pad=1):
             fig.canvas.get_width_height()[::-1] + (3,),
         )
     except:
-        image_from_plot = np.asarray(fig.canvas.renderer.buffer_rgba())[:,:,:3]
+        image_from_plot = np.asarray(fig.canvas.renderer.buffer_rgba())[:, :, :3]
 
     return torch.from_numpy(image_from_plot.copy()).permute(2, 0, 1)

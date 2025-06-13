@@ -1,8 +1,7 @@
 import logging
 
-import trimesh
-
 import od3d.io
+import trimesh
 
 logger = logging.getLogger(__name__)
 from od3d.datasets.dataset import OD3D_Dataset
@@ -100,31 +99,34 @@ class Objaverse(OD3D_Dataset):
             logger.info(f"Removing previous ObjaVerse")
             shutil.rmtree(path_raw)
 
-        #import objaverse
-        #objaverse.__version__
-        #import objaverse.xl as oxl
+        # import objaverse
+        # objaverse.__version__
+        # import objaverse.xl as oxl
         # 10M
-        #annotations = oxl.get_annotations(download_dir=str(path_raw)) # pd.DataFrame
-        #annotations["source"].value_counts()
-        #annotations["fileType"].value_counts()
+        # annotations = oxl.get_annotations(download_dir=str(path_raw)) # pd.DataFrame
+        # annotations["source"].value_counts()
+        # annotations["fileType"].value_counts()
 
         # 1M: Annotations Alignment
-        #annotations = oxl.get_alignment_annotations(download_dir=str(path_raw))
+        # annotations = oxl.get_alignment_annotations(download_dir=str(path_raw))
 
         #
 
         # 47K: Annotations LVIS
-        #annotations = oxl.get_alignment_annotations(download_dir=str(path_raw))
+        # annotations = oxl.get_alignment_annotations(download_dir=str(path_raw))
 
         import objaverse
+
         # annotations = objaverse.load_annotations() # keys: UID, values: annotation
         # uids = objaverse.load_uids()
         # uids = [uid for uid, annotation in annotations.items()]
 
-        lvis_annotations = objaverse.load_lvis_annotations() # keys: category (1156), values: List[UID]
+        lvis_annotations = (
+            objaverse.load_lvis_annotations()
+        )  # keys: category (1156), values: List[UID]
         lvis_uids = []
 
-        category = 'airplane' # 'car_(automobile)' 'airplane'
+        category = "airplane"  # 'car_(automobile)' 'airplane'
         category_counts = 20
 
         for lvis_cat, lvis_cat_uids in lvis_annotations.items():
@@ -140,6 +142,7 @@ class Objaverse(OD3D_Dataset):
 
         import random
         import multiprocessing
+
         processes = multiprocessing.cpu_count()
 
         random.seed(42)
@@ -149,9 +152,9 @@ class Objaverse(OD3D_Dataset):
 
         objects = objaverse.load_objects(
             uids=random_object_uids,
-            download_processes=processes
+            download_processes=processes,
         )
-        #objects
+        # objects
 
         from od3d.cv.geometry.objects3d.meshes import Meshes
         import torch
@@ -160,18 +163,21 @@ class Objaverse(OD3D_Dataset):
         from od3d.cv.visual.show import get_default_camera_intrinsics_from_img_size
 
         dtype = torch.float
-        device = 'cuda:0'
+        device = "cuda:0"
 
         from od3d.io import read_json
 
-        canon = read_json(fpath ="src/od3d/datasets/objaverse/canon.json")
+        canon = read_json(fpath="src/od3d/datasets/objaverse/canon.json")
         # from https://github.com/JinLi998/CanonObjaverseDataset/blob/master/data/CanonicalObjaverseDataset.json
         # - category (lower case): ->
         canon_airplane = {el[0]: el[1] for el in canon[category]}
 
-        logger.info(f"found {len(canon_airplane)}:{len(lvis_uids)} labels for category {category}")
+        logger.info(
+            f"found {len(canon_airplane)}:{len(lvis_uids)} labels for category {category}"
+        )
         from od3d.cv.visual.show import render_trimesh_to_tensor
         import trimesh
+
         for i in range(len(list(objects.values()))):
             uid = str(random_object_uids[i])
             fpath = list(objects.values())[i]
@@ -182,7 +188,9 @@ class Objaverse(OD3D_Dataset):
                 _mesh.vertices = (tform[None,] @ _mesh.vertices[..., None])[..., 0]
                 _mesh.show()
 
-        a = Meshes.read_from_ply_file(fpath=Path(list(objects.values())[0], device=device))
+        a = Meshes.read_from_ply_file(
+            fpath=Path(list(objects.values())[0], device=device)
+        )
 
         H = 512
         W = 512
@@ -194,17 +202,28 @@ class Objaverse(OD3D_Dataset):
             device=device,
         )
         img_size = torch.Tensor([H, W]).to(dtype=dtype, device=device)
-        cam_tform4x4_obj = get_cam_tform4x4_obj_for_viewpoints_count(viewpoints_count=3, dist=120).to(dtype=dtype, device=device)
-        imgs = a.render(cams_intr4x4=cam_intr4x4, cams_tform4x4_obj=cam_tform4x4_obj,
-                        imgs_sizes=img_size, broadcast_batch_and_cams=True, modalities=['rgb'], )
-        show_imgs(imgs['rgb'])
+        cam_tform4x4_obj = get_cam_tform4x4_obj_for_viewpoints_count(
+            viewpoints_count=3, dist=120
+        ).to(dtype=dtype, device=device)
+        imgs = a.render(
+            cams_intr4x4=cam_intr4x4,
+            cams_tform4x4_obj=cam_tform4x4_obj,
+            imgs_sizes=img_size,
+            broadcast_batch_and_cams=True,
+            modalities=["rgb"],
+        )
+        show_imgs(imgs["rgb"])
         # show_scene(meshes=a)
-        #import trimesh
-        #trimesh.load(list(objects.values())[0]).show()
+        # import trimesh
+        # trimesh.load(list(objects.values())[0]).show()
 
         # DOWNLOAD
         # sample a single object from each source
-        sampled_df = annotations.groupby('source').apply(lambda x: x.sample(1)).reset_index(drop=True)
+        sampled_df = (
+            annotations.groupby("source")
+            .apply(lambda x: x.sample(1))
+            .reset_index(drop=True)
+        )
         oxl.download_objects(objects=sampled_df)
 
         # git config --global credential.helper store

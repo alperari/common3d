@@ -73,25 +73,40 @@ def crop_white_border_from_img(
     return cropped_img
 
 
-def crop_with_bbox(img, bbox, H_out=None, W_out=None, ctx=None, mode="bilinear", align_corners=False):
+def crop_with_bbox(
+    img, bbox, H_out=None, W_out=None, ctx=None, mode="bilinear", align_corners=False
+):
     # bbox: x0, y0, x1, y1
     # center: x, y
     # scale: sx, sy
-    bbox_H = (bbox[3] - bbox[1])
-    bbox_W = (bbox[2] - bbox[0])
-    bbox_center = torch.Tensor([(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2]).to(img.device)
+    bbox_H = bbox[3] - bbox[1]
+    bbox_W = bbox[2] - bbox[0]
+    bbox_center = torch.Tensor([(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2]).to(
+        img.device
+    )
 
     if H_out is not None and W_out is not None:
-        scale = torch.FloatTensor([W_out / bbox_W, H_out / bbox_H]).to(device=img.device)
+        scale = torch.FloatTensor([W_out / bbox_W, H_out / bbox_H]).to(
+            device=img.device
+        )
     else:
         H_out = bbox_H
         W_out = bbox_W
-        scale = 1.
+        scale = 1.0
 
-    if H_out <= 10. or W_out <= 10.:
+    if H_out <= 10.0 or W_out <= 10.0:
         raise ValueError
 
-    return crop(img, H_out, W_out, center=bbox_center, scale=scale, ctx=ctx, mode=mode, align_corners=align_corners)
+    return crop(
+        img,
+        H_out,
+        W_out,
+        center=bbox_center,
+        scale=scale,
+        ctx=ctx,
+        mode=mode,
+        align_corners=align_corners,
+    )
 
 
 def crop(
@@ -176,9 +191,13 @@ def crop(
             bbox_in[1] + pad_in[2] : bbox_in[3] + pad_in[2],
             bbox_in[0] + pad_in[0] : bbox_in[2] + pad_in[0],
         ]
-        if (img_cropped.shape[-2] == 0 or img_cropped.shape[-1] == 0):
-            logger.warning(f'Bounding box has size zero. Replace with black image.')
-            img_cropped = torch.zeros(size=(img_cropped.shape[0], 1, 1), dtype=img_cropped.dtype, device=img_cropped.device)
+        if img_cropped.shape[-2] == 0 or img_cropped.shape[-1] == 0:
+            logger.warning(f"Bounding box has size zero. Replace with black image.")
+            img_cropped = torch.zeros(
+                size=(img_cropped.shape[0], 1, 1),
+                dtype=img_cropped.dtype,
+                device=img_cropped.device,
+            )
 
         img_out = resize(
             img_cropped,

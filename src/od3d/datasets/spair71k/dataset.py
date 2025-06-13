@@ -17,7 +17,6 @@ from od3d.cv.geometry.objects3d.meshes import Meshes
 from od3d.datasets.spair71k.frame import SPair71KFrame, SPair71KFrameMeta
 from od3d.datasets.pascal3d.enum import (
     PASCAL3D_CATEGORIES,
-
     MAP_CATEGORIES_PASCAL3D_TO_OD3D,
     MAP_CATEGORIES_OD3D_TO_PASCAL3D,
 )
@@ -31,18 +30,18 @@ class SPair71K(OD3D_Dataset):
     frame_type = SPair71KFrame
 
     def __init__(
-            self,
-            name: str,
-            modalities: List[OD3D_FRAME_MODALITIES],
-            path_raw: Path,
-            path_preprocess: Path,
-            path_pascal3d_raw: Path,
-            categories: List[str] = None,
-            transform=None,
-            index_shift=0,
-            subset_fraction=1.0,
-            dict_nested_frames: Dict = None,
-            dict_nested_frames_ban: Dict = None,
+        self,
+        name: str,
+        modalities: List[OD3D_FRAME_MODALITIES],
+        path_raw: Path,
+        path_preprocess: Path,
+        path_pascal3d_raw: Path,
+        categories: List[str] = None,
+        transform=None,
+        index_shift=0,
+        subset_fraction=1.0,
+        dict_nested_frames: Dict = None,
+        dict_nested_frames_ban: Dict = None,
     ):
         # if categories is not None:
         #     if self.map_od3d_categories is not None:
@@ -74,7 +73,6 @@ class SPair71K(OD3D_Dataset):
             index_shift=index_shift,
             dict_nested_frames=dict_nested_frames,
             dict_nested_frames_ban=dict_nested_frames_ban,
-
         )
 
         self.path_pascal3d_raw = Path(path_pascal3d_raw)
@@ -138,16 +136,27 @@ class SPair71K(OD3D_Dataset):
         pair_subsets = []
         for subset in subsets:
             fpath_pair_names_partial = path_raw.joinpath(
-                "Layout", "large",
+                "Layout",
+                "large",
                 f"{subset}.txt",
             )
 
             with fpath_pair_names_partial.open() as f:
-                pair_names_partial = f.read().splitlines()  # duplication for large and small todo : handle with subset
-            pair_names_partial = list(filter(lambda x: x.split(':', 1)[1] in categories, pair_names_partial))
+                pair_names_partial = (
+                    f.read().splitlines()
+                )  # duplication for large and small todo : handle with subset
+            pair_names_partial = list(
+                filter(lambda x: x.split(":", 1)[1] in categories, pair_names_partial)
+            )
 
-            pair_names += [pair_partial_name.split(':', 1)[0] for pair_partial_name in pair_names_partial]
-            pair_categories += [pair_partial_name.split(':', 1)[1] for pair_partial_name in pair_names_partial]
+            pair_names += [
+                pair_partial_name.split(":", 1)[0]
+                for pair_partial_name in pair_names_partial
+            ]
+            pair_categories += [
+                pair_partial_name.split(":", 1)[1]
+                for pair_partial_name in pair_names_partial
+            ]
             pair_subsets += [subset] * len(pair_names_partial)
 
         # frames_subsets, frames_categories, frames_names = Pascal3DFrameMeta.get_frames_names_from_subsets_and_cateogories_from_raw(path_pascal3d_raw=path_raw, subsets=subsets, categories=categories)
@@ -198,4 +207,3 @@ class SPair71K(OD3D_Dataset):
             cam_tform4x4_obj_type=OD3D_CAM_TFORM_OBJ_TYPES.META,
             tform_obj_type=OD3D_TFROM_OBJ_TYPES.RAW,
         )
-

@@ -251,9 +251,10 @@ def names(
     age_in_hours_lt: int = typer.Option(1000, "-l", "--age-in-hours-lt"),
     configs: str = typer.Option(None, "-c", "--configs"),
 ):
-    #checkpoints_refs_cats_run_name:
-    #r0: airplane: 11 - 07_00 - 28 - 03
+    # checkpoints_refs_cats_run_name:
+    # r0: airplane: 11 - 07_00 - 28 - 03
     from od3d.cli.benchmark import get_dataframe_multiple
+
     metrics = ["test/pascal3d_test/pose/acc_pi6"]
 
     # configs = ['categories', 'co3d_refs.ref_name']
@@ -277,7 +278,7 @@ def names(
     abls_cols.remove(abl_col_ref)
 
     cols = list(df.keys())
-    cols.remove('name')
+    cols.remove("name")
     cols.remove(metrics[0])
     logger.info(cols)
     df = df.drop_duplicates(subset=cols, keep="last")
@@ -289,7 +290,9 @@ def names(
         df_partial = df.copy()
         for key in abl_col_unique.keys():
             df_partial = df_partial[df_partial[key].isin([abl_col_unique[key]])]
-        df_partial = df_partial.sort_values([abl_col_ref, abl_col_cat]).reset_index(drop=True)
+        df_partial = df_partial.sort_values([abl_col_ref, abl_col_cat]).reset_index(
+            drop=True
+        )
 
         unique_cats = df_partial[abl_col_cat].unique()
         unique_refs = df_partial[abl_col_ref].unique()
@@ -301,8 +304,15 @@ def names(
             if df_partial[abl_col_ref][r] != ref:
                 ref = df_partial[abl_col_ref][r]
                 dict_names += "\t" + ref + ":\n"
-            dict_names += "\t\t" + df_partial[abl_col_cat][r] + ": " + df_partial["name"][r] + "\n"
+            dict_names += (
+                "\t\t"
+                + df_partial[abl_col_cat][r]
+                + ": "
+                + df_partial["name"][r]
+                + "\n"
+            )
         logger.info(dict_names)
+
 
 @app.command()
 def multiple(
@@ -363,10 +373,13 @@ def multiple(
                 .agg(["mean", "std"])
                 .reset_index(drop=df_metrics is not None)
             )
-            df_metric.rename(columns={
-                "mean": metric,
-                "std": f"{metric}_std",
-            }, inplace=True)
+            df_metric.rename(
+                columns={
+                    "mean": metric,
+                    "std": f"{metric}_std",
+                },
+                inplace=True,
+            )
             if df_metrics is None:
                 df_metrics = df_metric
             else:
@@ -387,8 +400,8 @@ def multiple(
             #     ),
             # )  # latex
 
-        df_metrics.loc['mean'] = df_metrics.select_dtypes(include='number').mean()
-        df_metrics.loc['std'] = df_metrics.select_dtypes(include='number').std()
+        df_metrics.loc["mean"] = df_metrics.select_dtypes(include="number").mean()
+        df_metrics.loc["std"] = df_metrics.select_dtypes(include="number").std()
         logger.info(
             re.sub(
                 r"[^\S\r\n]+",
@@ -403,7 +416,7 @@ def multiple(
                 ),
             ),
         )  # latex
-            # logger.info(df_metric)
+        # logger.info(df_metric)
 
     else:
         # logger.info(tabulate(df, headers='keys', tablefmt='csv', floatfmt=f".{digits}f")) # latex csv tsv

@@ -14,14 +14,14 @@ def show_sphere():
 
     resolution = 10
     o3d_mesh = o3d.geometry.TriangleMesh.create_sphere(
-        radius=1.0, resolution=resolution, create_uv_map=True
+        radius=1.0,
+        resolution=resolution,
+        create_uv_map=True,
     )
     from pytorch3d.renderer import TexturesUV
     import torch
     from od3d.cv.geometry.objects3d.meshes import Meshes
     import numpy as np
-
-
 
     meshes = Meshes.from_o3d(o3d_mesh)
     meshes.show_texture_map()
@@ -30,7 +30,7 @@ def show_sphere():
     show.show_scene(meshes=meshes)
 
     triangle_uvs = torch.from_numpy(np.asarray(o3d_mesh.triangle_uvs)).to(
-        dtype=torch.float
+        dtype=torch.float,
     )
     o3d_mesh = meshes.to_o3d()
 

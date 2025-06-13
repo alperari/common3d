@@ -16,7 +16,10 @@ Mostly copy-paste from timm library.
 https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/vision_transformer.py
 """
 
-def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: bool = True):
+
+def drop_path(
+    x, drop_prob: float = 0.0, training: bool = False, scale_by_keep: bool = True
+):
     """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
 
     This is the same as the DropConnect impl I created for EfficientNet, etc networks, however,
@@ -26,10 +29,12 @@ def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: b
     'survival rate' as the argument.
 
     """
-    if drop_prob == 0. or not training:
+    if drop_prob == 0.0 or not training:
         return x
     keep_prob = 1 - drop_prob
-    shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
+    shape = (x.shape[0],) + (1,) * (
+        x.ndim - 1
+    )  # work with diff dim tensors, not just 2D ConvNets
     random_tensor = x.new_empty(shape).bernoulli_(keep_prob)
     if keep_prob > 0.0 and scale_by_keep:
         random_tensor.div_(keep_prob)
@@ -37,10 +42,10 @@ def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: b
 
 
 class DropPath(nn.Module):
-    """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks).
-    """
-    def __init__(self, drop_prob: float = 0., scale_by_keep: bool = True):
-        super(DropPath, self).__init__()
+    """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks)."""
+
+    def __init__(self, drop_prob: float = 0.0, scale_by_keep: bool = True):
+        super().__init__()
         self.drop_prob = drop_prob
         self.scale_by_keep = scale_by_keep
 
@@ -48,10 +53,18 @@ class DropPath(nn.Module):
         return drop_path(x, self.drop_prob, self.training, self.scale_by_keep)
 
     def extra_repr(self):
-        return f'drop_prob={round(self.drop_prob,3):0.3f}'
+        return f"drop_prob={round(self.drop_prob,3):0.3f}"
+
 
 class Mlp(nn.Module):
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+    def __init__(
+        self,
+        in_features,
+        hidden_features=None,
+        out_features=None,
+        act_layer=nn.GELU,
+        drop=0.0,
+    ):
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
@@ -70,11 +83,19 @@ class Mlp(nn.Module):
 
 
 class Attention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0.):
+    def __init__(
+        self,
+        dim,
+        num_heads=8,
+        qkv_bias=False,
+        qk_scale=None,
+        attn_drop=0.0,
+        proj_drop=0.0,
+    ):
         super().__init__()
         self.num_heads = num_heads
         head_dim = dim // num_heads
-        self.scale = qk_scale or head_dim ** -0.5
+        self.scale = qk_scale or head_dim**-0.5
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.attn_drop = nn.Dropout(attn_drop)
@@ -83,7 +104,11 @@ class Attention(nn.Module):
 
     def forward(self, x):
         B, N, C = x.shape
-        qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+        qkv = (
+            self.qkv(x)
+            .reshape(B, N, 3, self.num_heads, C // self.num_heads)
+            .permute(2, 0, 3, 1, 4)
+        )
         q, k, v = qkv[0], qkv[1], qkv[2]
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
@@ -97,12 +122,23 @@ class Attention(nn.Module):
 
 
 class CrossAttention(nn.Module):
-    def __init__(self, kv_in_dim, q_in_dim, atten_dim, value_dim, out_dim, num_heads=8, qkv_bias=False,
-                 qk_scale=None, attn_drop=0., proj_drop=0.):
+    def __init__(
+        self,
+        kv_in_dim,
+        q_in_dim,
+        atten_dim,
+        value_dim,
+        out_dim,
+        num_heads=8,
+        qkv_bias=False,
+        qk_scale=None,
+        attn_drop=0.0,
+        proj_drop=0.0,
+    ):
         super().__init__()
         self.num_heads = num_heads
         head_dim = atten_dim // num_heads
-        self.scale = qk_scale or head_dim ** -0.5
+        self.scale = qk_scale or head_dim**-0.5
 
         self.atten_dim = atten_dim
         self.value_dim = value_dim
@@ -118,9 +154,21 @@ class CrossAttention(nn.Module):
         Bx, Nx, Cx = x.shape
         Bc, Nc, Cc = cond.shape
 
-        q = self.q(x).reshape(Bx, Nx, self.num_heads, self.atten_dim  // self.num_heads).permute(0, 2, 1, 3)
-        k = self.k(cond).reshape(Bc, Nc, self.num_heads, self.atten_dim  // self.num_heads).permute(0, 2, 1, 3)
-        v = self.v(cond).reshape(Bc, Nc, self.num_heads, self.value_dim  // self.num_heads).permute(0, 2, 1, 3)
+        q = (
+            self.q(x)
+            .reshape(Bx, Nx, self.num_heads, self.atten_dim // self.num_heads)
+            .permute(0, 2, 1, 3)
+        )
+        k = (
+            self.k(cond)
+            .reshape(Bc, Nc, self.num_heads, self.atten_dim // self.num_heads)
+            .permute(0, 2, 1, 3)
+        )
+        v = (
+            self.v(cond)
+            .reshape(Bc, Nc, self.num_heads, self.value_dim // self.num_heads)
+            .permute(0, 2, 1, 3)
+        )
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
@@ -133,16 +181,38 @@ class CrossAttention(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, dim, num_heads, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
-                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm):
+    def __init__(
+        self,
+        dim,
+        num_heads,
+        mlp_ratio=4.0,
+        qkv_bias=False,
+        qk_scale=None,
+        drop=0.0,
+        attn_drop=0.0,
+        drop_path=0.0,
+        act_layer=nn.GELU,
+        norm_layer=nn.LayerNorm,
+    ):
         super().__init__()
         self.norm1 = norm_layer(dim)
         self.attn = Attention(
-            dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop)
-        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+            dim,
+            num_heads=num_heads,
+            qkv_bias=qkv_bias,
+            qk_scale=qk_scale,
+            attn_drop=attn_drop,
+            proj_drop=drop,
+        )
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
-        self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+        self.mlp = Mlp(
+            in_features=dim,
+            hidden_features=mlp_hidden_dim,
+            act_layer=act_layer,
+            drop=drop,
+        )
 
     def forward(self, x, return_attention=False):
         y, attn = self.attn(self.norm1(x))
@@ -153,20 +223,45 @@ class Block(nn.Module):
         return x
 
 
-
 class CABlock(nn.Module):
-    def __init__(self, bloc_dim, cond_dim, atten_dim, num_heads, mlp_ratio=4., qkv_bias=False,
-                 qk_scale=None, drop=0., attn_drop=0.,
-                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm):
+    def __init__(
+        self,
+        bloc_dim,
+        cond_dim,
+        atten_dim,
+        num_heads,
+        mlp_ratio=4.0,
+        qkv_bias=False,
+        qk_scale=None,
+        drop=0.0,
+        attn_drop=0.0,
+        drop_path=0.0,
+        act_layer=nn.GELU,
+        norm_layer=nn.LayerNorm,
+    ):
         super().__init__()
         self.norm1 = norm_layer(bloc_dim)
         self.attn = CrossAttention(
-            kv_in_dim=cond_dim, q_in_dim=bloc_dim, atten_dim=atten_dim, value_dim=bloc_dim, out_dim=bloc_dim,
-            num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop)
-        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+            kv_in_dim=cond_dim,
+            q_in_dim=bloc_dim,
+            atten_dim=atten_dim,
+            value_dim=bloc_dim,
+            out_dim=bloc_dim,
+            num_heads=num_heads,
+            qkv_bias=qkv_bias,
+            qk_scale=qk_scale,
+            attn_drop=attn_drop,
+            proj_drop=drop,
+        )
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
         self.norm2 = norm_layer(bloc_dim)
         mlp_hidden_dim = int(bloc_dim * mlp_ratio)
-        self.mlp = Mlp(in_features=bloc_dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+        self.mlp = Mlp(
+            in_features=bloc_dim,
+            hidden_features=mlp_hidden_dim,
+            act_layer=act_layer,
+            drop=drop,
+        )
 
     def forward(self, x, cond, return_attention=False):
         y, attn = self.attn(self.norm1(x), cond)
@@ -178,18 +273,51 @@ class CABlock(nn.Module):
 
 
 class ConditionalPrototypes(nn.Module):
-    def __init__(self, bloc_dim, cond_dim, atten_dim, num_heads, depth, in_dim=3, mlp_ratio=4.,
-        qkv_bias=False, qk_scale=None, drop=0., attn_drop=0., drop_path=0., act_layer=nn.GELU,
-        norm_layer=nn.LayerNorm, cond_bottleneck=None):
+    def __init__(
+        self,
+        bloc_dim,
+        cond_dim,
+        atten_dim,
+        num_heads,
+        depth,
+        in_dim=3,
+        mlp_ratio=4.0,
+        qkv_bias=False,
+        qk_scale=None,
+        drop=0.0,
+        attn_drop=0.0,
+        drop_path=0.0,
+        act_layer=nn.GELU,
+        norm_layer=nn.LayerNorm,
+        cond_bottleneck=None,
+    ):
         super().__init__()
 
-
         self.proj = nn.Linear(in_dim, bloc_dim)
-        self.blocks = nn.ModuleList([CABlock(bloc_dim, cond_dim, atten_dim, num_heads, mlp_ratio, qkv_bias, qk_scale, drop, attn_drop,drop_path, act_layer, norm_layer)]*depth)
+        self.blocks = nn.ModuleList(
+            [
+                CABlock(
+                    bloc_dim,
+                    cond_dim,
+                    atten_dim,
+                    num_heads,
+                    mlp_ratio,
+                    qkv_bias,
+                    qk_scale,
+                    drop,
+                    attn_drop,
+                    drop_path,
+                    act_layer,
+                    norm_layer,
+                )
+            ]
+            * depth
+        )
         self.cond = cond_bottleneck is not None
         if self.cond:
-            self.cond_proj = Mlp(cond_dim, cond_bottleneck) if cond_bottleneck>0 else nn.Identity()
-
+            self.cond_proj = (
+                Mlp(cond_dim, cond_bottleneck) if cond_bottleneck > 0 else nn.Identity()
+            )
 
     def forward(self, x, cond):
         x = self.proj(x)
@@ -202,6 +330,7 @@ class ConditionalPrototypes(nn.Module):
 from omegaconf import DictConfig
 from od3d.models.backbones.dino import DINOv2
 
+
 class DINOv2_Sph(DINOv2):
     def __init__(
         self,
@@ -209,13 +338,15 @@ class DINOv2_Sph(DINOv2):
     ):
         super().__init__(config=config)
 
-
         self.sphere_mapper = nn.Sequential(
-            nn.Linear(self.extractor.embed_dim, self.extractor.embed_dim//2),
+            nn.Linear(self.extractor.embed_dim, self.extractor.embed_dim // 2),
             nn.GELU(),
-            Block(dim=self.extractor.embed_dim//2, num_heads=self.extractor.embed_dim//2//64),
-            nn.Linear(self.extractor.embed_dim//2, 3),
-            )
+            Block(
+                dim=self.extractor.embed_dim // 2,
+                num_heads=self.extractor.embed_dim // 2 // 64,
+            ),
+            nn.Linear(self.extractor.embed_dim // 2, 3),
+        )
 
         if config.get("sph_weights", None) is not None:
             ckpt = torch.load(config.get("sph_weights"))
@@ -237,7 +368,7 @@ class DINOv2_Sph(DINOv2):
 
         sph = self.sphere_mapper(x_out_feat)
 
-        sph = nn.functional.normalize(sph, dim=-1) # * gt_mask
+        sph = nn.functional.normalize(sph, dim=-1)  # * gt_mask
         x_out_feat = nn.functional.normalize(x_out_feat, dim=-1)
 
         sph = sph.reshape(B, H, W, 3).permute(0, 3, 1, 2)
@@ -250,6 +381,8 @@ class DINOv2_Sph(DINOv2):
 
         x_out.featmaps[-1] = x_out_feat
         return x_out
+
+
 #
 # class DINOv2_MAPPER(nn.Module):
 #     def __init__(self, backbone='dinov2_vitb14', n_cats=1):

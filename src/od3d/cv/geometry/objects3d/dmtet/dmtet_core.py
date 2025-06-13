@@ -6,11 +6,12 @@
 # disclosure or distribution of this material and related documentation
 # without an express license agreement from NVIDIA CORPORATION or
 # its affiliates is strictly prohibited.
-
 from multiprocessing.spawn import get_preparation_data
+
 import numpy as np
 import torch
 from torch import nn
+
 ###############################################################################
 # Marching tetrahedrons implementation (differentiable), adapted from
 # https://github.com/NVIDIAGameWorks/kaolin/blob/master/kaolin/ops/conversions/tetmesh.py
@@ -18,34 +19,53 @@ from torch import nn
 # Note this only supports batch size = 1.
 ###############################################################################
 
+
 class DMTet_Core(nn.Module):
-    def __init__(self, device=torch.device('cpu')):
-        super(DMTet_Core, self).__init__()
+    def __init__(self, device=torch.device("cpu")):
+        super().__init__()
         self.device = device
-        self.triangle_table = nn.Parameter(torch.tensor([
-            [-1, -1, -1, -1, -1, -1],
-            [1, 0, 2, -1, -1, -1],
-            [4, 0, 3, -1, -1, -1],
-            [1, 4, 2, 1, 3, 4],
-            [3, 1, 5, -1, -1, -1],
-            [2, 3, 0, 2, 5, 3],
-            [1, 4, 0, 1, 5, 4],
-            [4, 2, 5, -1, -1, -1],
-            [4, 5, 2, -1, -1, -1],
-            [4, 1, 0, 4, 5, 1],
-            [3, 2, 0, 3, 5, 2],
-            [1, 3, 5, -1, -1, -1],
-            [4, 1, 2, 4, 3, 1],
-            [3, 0, 4, -1, -1, -1],
-            [2, 0, 1, -1, -1, -1],
-            [-1, -1, -1, -1, -1, -1]
-        ], dtype=torch.long, device=self.device), requires_grad=False)
+        self.triangle_table = nn.Parameter(
+            torch.tensor(
+                [
+                    [-1, -1, -1, -1, -1, -1],
+                    [1, 0, 2, -1, -1, -1],
+                    [4, 0, 3, -1, -1, -1],
+                    [1, 4, 2, 1, 3, 4],
+                    [3, 1, 5, -1, -1, -1],
+                    [2, 3, 0, 2, 5, 3],
+                    [1, 4, 0, 1, 5, 4],
+                    [4, 2, 5, -1, -1, -1],
+                    [4, 5, 2, -1, -1, -1],
+                    [4, 1, 0, 4, 5, 1],
+                    [3, 2, 0, 3, 5, 2],
+                    [1, 3, 5, -1, -1, -1],
+                    [4, 1, 2, 4, 3, 1],
+                    [3, 0, 4, -1, -1, -1],
+                    [2, 0, 1, -1, -1, -1],
+                    [-1, -1, -1, -1, -1, -1],
+                ],
+                dtype=torch.long,
+                device=self.device,
+            ),
+            requires_grad=False,
+        )
 
-        self.num_triangles_table = nn.Parameter(torch.tensor([0, 1, 1, 2, 1, 2, 2, 1, 1, 2, 2, 1, 2, 1, 1, 0], dtype=torch.long,
-                                                device=self.device), requires_grad=False)
-        self.base_tet_edges = nn.Parameter(torch.tensor([0, 1, 0, 2, 0, 3, 1, 2, 1, 3, 2, 3], dtype=torch.long,
-                                                        device=self.device), requires_grad=False)
-
+        self.num_triangles_table = nn.Parameter(
+            torch.tensor(
+                [0, 1, 1, 2, 1, 2, 2, 1, 1, 2, 2, 1, 2, 1, 1, 0],
+                dtype=torch.long,
+                device=self.device,
+            ),
+            requires_grad=False,
+        )
+        self.base_tet_edges = nn.Parameter(
+            torch.tensor(
+                [0, 1, 0, 2, 0, 3, 1, 2, 1, 3, 2, 3],
+                dtype=torch.long,
+                device=self.device,
+            ),
+            requires_grad=False,
+        )
 
     def to(self, *args, **kwargs):
         super().to(*args, **kwargs)
@@ -74,29 +94,41 @@ class DMTet_Core(nn.Module):
         tex_y, tex_x = torch.meshgrid(
             torch.linspace(0, 1 - (1 / N), N, dtype=torch.float32, device=self.device),
             torch.linspace(0, 1 - (1 / N), N, dtype=torch.float32, device=self.device),
-            indexing='ij'
+            indexing="ij",
         )
 
         pad = 0.9 / N
 
-        uvs = torch.stack([
-            tex_x, tex_y,
-            tex_x + pad, tex_y,
-            tex_x + pad, tex_y + pad,
-            tex_x, tex_y + pad
-        ], dim=-1).view(-1, 2)
+        uvs = torch.stack(
+            [
+                tex_x,
+                tex_y,
+                tex_x + pad,
+                tex_y,
+                tex_x + pad,
+                tex_y + pad,
+                tex_x,
+                tex_y + pad,
+            ],
+            dim=-1,
+        ).view(-1, 2)
 
         def _idx(tet_idx, N):
             x = tet_idx % N
-            y = torch.div(tet_idx, N, rounding_mode='trunc')
+            y = torch.div(tet_idx, N, rounding_mode="trunc")
             return y * N + x
 
-        tet_idx = _idx(torch.div(face_gidx, 2, rounding_mode='trunc'), N)
+        tet_idx = _idx(torch.div(face_gidx, 2, rounding_mode="trunc"), N)
         tri_idx = face_gidx % 2
 
-        uv_idx = torch.stack((
-            tet_idx * 4, tet_idx * 4 + tri_idx + 1, tet_idx * 4 + tri_idx + 2
-        ), dim=-1).view(-1, 3)
+        uv_idx = torch.stack(
+            (
+                tet_idx * 4,
+                tet_idx * 4 + tri_idx + 1,
+                tet_idx * 4 + tri_idx + 2,
+            ),
+            dim=-1,
+        ).view(-1, 3)
 
         return uvs, uv_idx
 
@@ -119,8 +151,15 @@ class DMTet_Core(nn.Module):
 
             unique_edges = unique_edges.long()
             mask_edges = occ_n[unique_edges.reshape(-1)].reshape(-1, 2).sum(-1) == 1
-            mapping = torch.ones((unique_edges.shape[0]), dtype=torch.long, device=self.device) * -1
-            mapping[mask_edges] = torch.arange(mask_edges.sum(), dtype=torch.long, device=self.device)
+            mapping = (
+                torch.ones(
+                    (unique_edges.shape[0]), dtype=torch.long, device=self.device
+                )
+                * -1
+            )
+            mapping[mask_edges] = torch.arange(
+                mask_edges.sum(), dtype=torch.long, device=self.device
+            )
             idx_map = mapping[idx_map]  # map edges to verts
 
             interp_v = unique_edges[mask_edges]
@@ -140,20 +179,40 @@ class DMTet_Core(nn.Module):
         num_triangles = self.num_triangles_table[tetindex]
 
         # Generate triangle indices
-        faces = torch.cat((
-            torch.gather(input=idx_map[num_triangles == 1], dim=1,
-                         index=self.triangle_table[tetindex[num_triangles == 1]][:, :3]).reshape(-1, 3),
-            torch.gather(input=idx_map[num_triangles == 2], dim=1,
-                         index=self.triangle_table[tetindex[num_triangles == 2]][:, :6]).reshape(-1, 3),
-        ), dim=0)
+        faces = torch.cat(
+            (
+                torch.gather(
+                    input=idx_map[num_triangles == 1],
+                    dim=1,
+                    index=self.triangle_table[tetindex[num_triangles == 1]][:, :3],
+                ).reshape(-1, 3),
+                torch.gather(
+                    input=idx_map[num_triangles == 2],
+                    dim=1,
+                    index=self.triangle_table[tetindex[num_triangles == 2]][:, :6],
+                ).reshape(-1, 3),
+            ),
+            dim=0,
+        )
 
         # Get global face index (static, does not depend on topology)
         num_tets = tet_fx4.shape[0]
-        tet_gidx = torch.arange(num_tets, dtype=torch.long, device=self.device)[valid_tets]
-        face_gidx = torch.cat((
-            tet_gidx[num_triangles == 1] * 2,
-            torch.stack((tet_gidx[num_triangles == 2] * 2, tet_gidx[num_triangles == 2] * 2 + 1), dim=-1).view(-1)
-        ), dim=0)
+        tet_gidx = torch.arange(num_tets, dtype=torch.long, device=self.device)[
+            valid_tets
+        ]
+        face_gidx = torch.cat(
+            (
+                tet_gidx[num_triangles == 1] * 2,
+                torch.stack(
+                    (
+                        tet_gidx[num_triangles == 2] * 2,
+                        tet_gidx[num_triangles == 2] * 2 + 1,
+                    ),
+                    dim=-1,
+                ).view(-1),
+            ),
+            dim=0,
+        )
 
         uvs, uv_idx = self.map_uv(faces, face_gidx, num_tets * 2)
 

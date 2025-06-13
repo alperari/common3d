@@ -9,7 +9,6 @@ from omegaconf import DictConfig
 
 
 class OD3D_Norm_Detach(nn.Module):
-
     def __init__(self):
         super().__init__()
 
@@ -20,7 +19,6 @@ class OD3D_Norm_Detach(nn.Module):
 
 
 class OD3D_Norm(nn.Module):
-
     def __init__(self):
         super().__init__()
 
@@ -29,26 +27,27 @@ class OD3D_Norm(nn.Module):
         x = x / (x.norm(dim=-1, keepdim=True) + 1e-10)
         return x
 
+
 def get_activation(name, inplace=True, lrelu_param=0.2):
-    if name == 'tanh':
+    if name == "tanh":
         return nn.Tanh()
-    elif name == 'sigmoid':
+    elif name == "sigmoid":
         return nn.Sigmoid()
-    elif name == 'norm':
+    elif name == "norm":
         return OD3D_Norm()
-    elif name == 'norm_detach':
+    elif name == "norm_detach":
         return OD3D_Norm_Detach()
-    elif name == 'relu':
+    elif name == "relu":
         return nn.ReLU(inplace=inplace)
-    elif name == 'lrelu':
+    elif name == "lrelu":
         return nn.LeakyReLU(lrelu_param, inplace=inplace)
-    elif name == 'none':
+    elif name == "none":
         return nn.Identity()
     else:
         raise NotImplementedError
 
-class MLP(OD3D_Head):
 
+class MLP(OD3D_Head):
     def __init__(
         self,
         in_dims: List,
@@ -61,11 +60,12 @@ class MLP(OD3D_Head):
             config=config,
         )
 
-        if self.config.get('resnet', None) is not None:
+        if self.config.get("resnet", None) is not None:
             from od3d.models.heads.resnet import ResNet
+
             if in_dims is None:
-                in_dims = [config.in_dim, ]
-                in_upsample_scales = [ ]
+                in_dims = [config.in_dim]
+                in_upsample_scales = []
             self.resnet = ResNet(
                 in_dims=in_dims,
                 in_upsample_scales=in_upsample_scales,
@@ -87,21 +87,22 @@ class MLP(OD3D_Head):
         dropout = config.dropout
         activation = config.activation
 
-
         assert num_layers >= 1
         if num_layers == 1:
             network = [nn.Linear(self.in_dim, self.out_dim, bias=False)]
         else:
             network = [nn.Linear(self.in_dim, hidden_dim, bias=False)]
-            for _ in range(num_layers-2):
+            for _ in range(num_layers - 2):
                 network += [
                     nn.ReLU(inplace=True),
-                    nn.Linear(hidden_dim, hidden_dim, bias=False)]
+                    nn.Linear(hidden_dim, hidden_dim, bias=False),
+                ]
                 if dropout:
                     network += [nn.Dropout(dropout)]
             network += [
                 nn.ReLU(inplace=True),
-                nn.Linear(hidden_dim, self.out_dim, bias=False)]
+                nn.Linear(hidden_dim, self.out_dim, bias=False),
+            ]
         if activation is not None:
             network += [get_activation(activation)]
         self.network = nn.Sequential(*network)
@@ -114,7 +115,7 @@ class MLP(OD3D_Head):
             x_resnet = self.resnet(x)
             x_res = x_resnet.feat
         else:
-            x_res = x.feat # [-1].flatten(1)  # BxF
+            x_res = x.feat  # [-1].flatten(1)  # BxF
 
         x_out = OD3D_ModelData(feat=self.network(x_res))
         return x_out

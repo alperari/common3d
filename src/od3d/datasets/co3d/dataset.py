@@ -70,7 +70,7 @@ class CO3D(OD3D_SequenceDataset):
         transform=None,
         index_shift=0,
         subset_fraction=1.0,
-        mesh_type: OD3D_MESH_TYPES=OD3D_MESH_TYPES.CUBOID500,
+        mesh_type: OD3D_MESH_TYPES = OD3D_MESH_TYPES.CUBOID500,
         mesh_feats_type=OD3D_MESH_FEATS_TYPES.M_DINOV2_VITB14_FROZEN_BASE_NO_NORM_T_CENTERZOOM512_R_ACC,
         mesh_feats_dist_reduce_type=OD3D_MESH_FEATS_DIST_REDUCE_TYPES.MIN_AVG,
         tform_obj_type=OD3D_TFROM_OBJ_TYPES.LABEL3D_CUBOID,

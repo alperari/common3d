@@ -1,8 +1,9 @@
 from typing import List
 
+from od3d.data.batch_datatypes import OD3D_ModelData
 from omegaconf import DictConfig
 from torch import nn
-from od3d.data.batch_datatypes import OD3D_ModelData
+
 
 class OD3D_Head(nn.Module):
     subclasses = {}

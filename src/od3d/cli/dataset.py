@@ -13,6 +13,7 @@ import torch
 from od3d.cv.transforms.sequential import SequentialTransform
 from od3d.cv.transforms.rgb_uint8_to_float import RGB_UInt8ToFloat
 from od3d.cv.transforms.rgb_normalize import RGB_Normalize
+
 app = typer.Typer()
 
 
@@ -48,19 +49,21 @@ def visualize_selfsup(
     pca_dim = 10
     center = True
     model_use_feat_up = False
-    feats_pca_dims = [0, 1, 2 ] # pascal3d_debug [0, 1, 2, ] monolmb [0, 1, 2, ]
-    pca_frames_ids = [0, 1, 2, 3 ] # pascal3d_debug [0, 1, 2, 3] , monolmb [0,]
-    res_low = 64 # pascal3d_ddebug 256  monolmb 256
+    feats_pca_dims = [0, 1, 2]  # pascal3d_debug [0, 1, 2, ] monolmb [0, 1, 2, ]
+    pca_frames_ids = [0, 1, 2, 3]  # pascal3d_debug [0, 1, 2, 3] , monolmb [0,]
+    res_low = 64  # pascal3d_ddebug 256  monolmb 256
     feats_rgb_mask_first_pca = False
     outside_mask_scale = 0.98
-    unmasked_noise = 0.
+    unmasked_noise = 0.0
     # feats_pca_dims = [1, 2, 3,]
     # feats_pca_dims = [3, 4, 5,]
 
     device = get_default_device()
 
     if model_use_feat_up:
-        model = torch.hub.load("mhamilton723/FeatUp", 'dinov2', use_norm=True).to(device)
+        model = torch.hub.load("mhamilton723/FeatUp", "dinov2", use_norm=True).to(
+            device
+        )
         model_out_dim = model.dim
         res_high = res_low
         multiplicator = res_high // 14
@@ -111,13 +114,19 @@ def visualize_selfsup(
         if batch.mask is not None:
             mask = resize(batch.mask, H_out=res_low, W_out=res_low)
         else:
-            mask = resize(batch.rgb_mask, H_out=res_low, W_out=res_low )
+            mask = resize(batch.rgb_mask, H_out=res_low, W_out=res_low)
         # mask[:] = 1.
         model_out = model(batch.rgb)
         featmap = model_out.featmap
         all_feats.append(featmap)
-        logger.info(f'{batch.name_unique}  mean: {featmap.norm(dim=1).mean()} median: {featmap.norm(dim=1).median()}')
-        _pca_feats = featmap.clone().permute(0, 2, 3, 1).reshape(-1, model_out_dim)[mask.flatten() > 0.5]
+        logger.info(
+            f"{batch.name_unique}  mean: {featmap.norm(dim=1).mean()} median: {featmap.norm(dim=1).median()}"
+        )
+        _pca_feats = (
+            featmap.clone()
+            .permute(0, 2, 3, 1)
+            .reshape(-1, model_out_dim)[mask.flatten() > 0.5]
+        )
         pca_feats.append(_pca_feats)
 
         _, pca_S, pca_V = torch.pca_lowrank(_pca_feats, center=center, q=pca_dim)
@@ -128,16 +137,30 @@ def visualize_selfsup(
                 featmap_pca.permute(0, 2, 3, 1).reshape(-1, model_out_dim),
                 pca_V[:, 0:pca_dim],
             )
-            .reshape(featmap_pca.shape[0], featmap_pca.shape[2], featmap_pca.shape[3], pca_dim)
+            .reshape(
+                featmap_pca.shape[0],
+                featmap_pca.shape[2],
+                featmap_pca.shape[3],
+                pca_dim,
+            )
             .permute(0, 3, 1, 2)
         )
 
         from od3d.cv.visual.show import show_imgs
-        show_imgs(resize(featmap_pca[0, :pca_dim // 3 * 3].reshape( pca_dim//3, 3, featmap_pca.shape[-2], featmap_pca.shape[-1]), scale_factor=4.))
+
+        show_imgs(
+            resize(
+                featmap_pca[0, : pca_dim // 3 * 3].reshape(
+                    pca_dim // 3, 3, featmap_pca.shape[-2], featmap_pca.shape[-1]
+                ),
+                scale_factor=4.0,
+            )
+        )
 
     all_feats = torch.stack(all_feats, dim=0)
-    pca_feats = torch.cat([pca_feats[pca_frame_id] for pca_frame_id in pca_frames_ids] , dim=0)
-
+    pca_feats = torch.cat(
+        [pca_feats[pca_frame_id] for pca_frame_id in pca_frames_ids], dim=0
+    )
 
     # _, _, pca_V = torch.pca_lowrank(all_feats.flatten(2).permute(0, 2, 1).reshape(-1, model_out_dim), center=True, q=10)
     _, pca_S, pca_V = torch.pca_lowrank(pca_feats, center=center, q=pca_dim)
@@ -148,7 +171,7 @@ def visualize_selfsup(
         logger.info(f"{batch.name_unique[0]}")  # sequence_name[0]}')
         batch.to(device=device)
 
-        #feats = model(batch.rgb)
+        # feats = model(batch.rgb)
         feats = all_feats[b]
 
         if center:
@@ -172,25 +195,32 @@ def visualize_selfsup(
         feats_rgb = feats_pca[0, feats_pca_dims]
 
         if feats_rgb_mask_first_pca:
-            feats_rgb[feats_pca[0, 0:1].expand(*feats_rgb.shape).abs() > 0.5] = feats_rgb.min()
+            feats_rgb[
+                feats_pca[0, 0:1].expand(*feats_rgb.shape).abs() > 0.5
+            ] = feats_rgb.min()
 
         feats_rgb = (feats_rgb - feats_rgb.min()) / (feats_rgb.max() - feats_rgb.min())
 
         if batch.mask is not None:
-            feats_rgb = (batch.mask[0] + (1 - batch.mask[0]) * outside_mask_scale) * feats_rgb
+            feats_rgb = (
+                batch.mask[0] + (1 - batch.mask[0]) * outside_mask_scale
+            ) * feats_rgb
 
         # feats_pca_mask = (feats_pca[:, 0:1] < 0.02).expand(*feats_pca.shape)
         # feats_rgb *= feats_pca_mask[0, 0:3]
         show_img(batch.rgb[0], fpath=f"{batch.name_unique[0]}_rgb.png")
-
 
         if batch.mask is not None:
             feats_rgb *= batch.mask[0]
 
         show_img(feats_rgb, fpath=f"{batch.name_unique[0]}_mask.png")
 
-        img_unmasked_noise = (2 * (torch.rand((3, res_low, res_low), device=device) - 0.5)) * unmasked_noise
-        img_unmasked_noise = resize(img_unmasked_noise, H_out=res_high, W_out=res_high, mode="nearest_v2")
+        img_unmasked_noise = (
+            2 * (torch.rand((3, res_low, res_low), device=device) - 0.5)
+        ) * unmasked_noise
+        img_unmasked_noise = resize(
+            img_unmasked_noise, H_out=res_high, W_out=res_high, mode="nearest_v2"
+        )
         show_img(feats_rgb + img_unmasked_noise, fpath=f"{batch.name_unique[0]}.png")
 
         # logger.info(feats_pca.min().item(), feats_pca.max().item())
@@ -250,6 +280,7 @@ def visualize_category_pcls(
         W=width,
     )
 
+
 @app.command()
 def visualize_meshes_per_category(
     dataset: str = typer.Option("omni6dpose_objcentric", "-d", "--dataset"),
@@ -258,7 +289,7 @@ def visualize_meshes_per_category(
     width: int = typer.Option(1080, "-w", "--width"),
     platform: str = typer.Option("local", "-p", "--platform"),
     modalities: str = typer.Option(
-        "pt3d_ncds", #
+        "pt3d_ncds",  #
         "-m",
         "--modalities",
     ),
@@ -277,6 +308,7 @@ def visualize_meshes_per_category(
         W=width,
         modalities=modalities.split(","),
     )
+
 
 @app.command()
 def visualize_category_meshes(
@@ -457,6 +489,7 @@ def rsync(
         platform_target=platform_target,
         rpath="",
     )
+
 
 @app.command()
 def rsync_raw(
@@ -677,7 +710,7 @@ def visualize(
     dataset: str = typer.Option("pascal3d", "-d", "--dataset"),
     platform: str = typer.Option("local", "-p", "--platform"),
     transform_name: str = typer.Option("centerzoom512", "-t", "--transform"),
-):# render3dcenterzoom512
+):  # render3dcenterzoom512
     # render3dcenterzoom512, centerzoom512
     import torch.utils.data
 
@@ -754,7 +787,9 @@ def visualize(
         fpath=Path(config.platform.path_exps).joinpath("videos", dataset.name + ".mkv"),
     )
 
+
 from od3d.io import run_cmd
+
 
 @app.command()
 def label_add_local(

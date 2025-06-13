@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 from od3d.cv.transforms.transform import OD3D_Transform
 from od3d.datasets.frame import OD3D_FRAME_MODALITIES
 
+
 class RGB_UInt8ToFloat(OD3D_Transform):
     def __init__(self):
         super().__init__()

@@ -41,7 +41,6 @@ class DINOv2(OD3D_Backbone):
 
         self.normalize = self.config.get("normalize", False)
 
-
         self.layers_returned = (
             config.layers_returned
         )  # choose from [0, 1] start with deepest (1)
@@ -93,7 +92,9 @@ class DINOv2(OD3D_Backbone):
             self.pca_enabled = False
             pca_dim = config.pca.get("out_dim", 64)
             self.pca_layer = nn.Linear(self.out_dims[-1], pca_dim, bias=False)
-            self.mean_features = nn.Parameter(torch.zeros(1, self.out_dims[-1]), requires_grad=False)
+            self.mean_features = nn.Parameter(
+                torch.zeros(1, self.out_dims[-1]), requires_grad=False
+            )
             for param in self.pca_layer.parameters():
                 param.requires_grad = False
             nn.init.eye_(self.pca_layer.weight)
@@ -106,10 +107,10 @@ class DINOv2(OD3D_Backbone):
         from tqdm import tqdm
         from od3d.datasets.frame import OD3D_FRAME_MODALITIES
         from od3d.cv.geometry.objects3d.objects3d import PROJECT_MODALITIES
+
         self.pca_enabled = False
         self.eval()
         logger.info(f"Dataset contains {len(dataset)} frames.")
-
 
         if OD3D_FRAME_MODALITIES.PCL in dataset.modalities:
             dataset.modalities.remove(OD3D_FRAME_MODALITIES.PCL)
@@ -141,12 +142,18 @@ class DINOv2(OD3D_Backbone):
                 net_out = self(batch.rgb)
 
                 feats2d_net = net_out.featmaps[-1]
-                feats2d_net_mask = 1.0 * resize(
-                    batch.mask,
-                    H_out=feats2d_net.shape[2],
-                    W_out=feats2d_net.shape[3],
-                ) > 0.5
-                net_feats_all.append(feats2d_net.permute(0, 2, 3, 1)[feats2d_net_mask[:, 0]])
+                feats2d_net_mask = (
+                    1.0
+                    * resize(
+                        batch.mask,
+                        H_out=feats2d_net.shape[2],
+                        W_out=feats2d_net.shape[3],
+                    )
+                    > 0.5
+                )
+                net_feats_all.append(
+                    feats2d_net.permute(0, 2, 3, 1)[feats2d_net_mask[:, 0]]
+                )
 
                 net_feats_all_count += net_feats_all[-1].shape[0]
 
@@ -154,14 +161,15 @@ class DINOv2(OD3D_Backbone):
                     break
         net_feats_all = torch.cat(net_feats_all, dim=0)
 
-        #feature_vector_mean = net_feats_all.mean(dim=0)
-        #logger.info(f"shape of mean feature vectors:{feature_vector_mean.shape}")
-        #self.mean_features = feature_vector_mean
+        # feature_vector_mean = net_feats_all.mean(dim=0)
+        # logger.info(f"shape of mean feature vectors:{feature_vector_mean.shape}")
+        # self.mean_features = feature_vector_mean
 
-        #logger.info(
+        # logger.info(
         #    f"shape of accumulated feature vectors:{net_feats_all.shape}",
-        #)
+        # )
         from od3d.cv.cluster.embed import pca
+
         pca_V = pca(net_feats_all, C=self.out_dims[-1], return_V=True)
         self.pca_layer.weight.copy_(pca_V.T)
         self.pca_enabled = True
@@ -203,12 +211,10 @@ class DINOv2(OD3D_Backbone):
             # x_feat_cls = x_dict["x_norm_clstoken"]
 
             # note: without layer normalization
-            x_feat_map = x_dict[
-                "x_prenorm"
-            ][:, 1:] # 'x_norm_patchtokens', 'x_prenorm'[:, 1:]
-            x_feat_cls = x_dict[
-                "x_prenorm"
-            ][:, 0]
+            x_feat_map = x_dict["x_prenorm"][
+                :, 1:
+            ]  # 'x_norm_patchtokens', 'x_prenorm'[:, 1:]
+            x_feat_cls = x_dict["x_prenorm"][:, 0]
 
         else:
             # x = self.extractor.get_intermediate_layers(x, n=12)[9]  # maximum 12 layers, zsp uses 9
@@ -248,21 +254,29 @@ class DINOv2(OD3D_Backbone):
         if self.pca_enabled:
             x_feat_map = torch.flatten(x_feat_map, 2)
             x_feat_map = x_feat_map.permute(0, 2, 1)
-            x_feat_map = x_feat_map - self.mean_features[(None,) * (x_feat_map.dim()-2)]
+            x_feat_map = (
+                x_feat_map - self.mean_features[(None,) * (x_feat_map.dim() - 2)]
+            )
             x_feat_map = self.pca_layer(x_feat_map)
             x_feat_map = x_feat_map.permute(0, 2, 1)
             x_feat_map = x_feat_map.view(B, self.out_dims[-1], H, W)
 
             x_feat_cls = torch.flatten(x_feat_cls, 2)
             x_feat_cls = x_feat_cls.permute(0, 2, 1)
-            x_feat_cls = x_feat_cls - self.mean_features[(None,) * (x_feat_cls.dim()-2)]
+            x_feat_cls = (
+                x_feat_cls - self.mean_features[(None,) * (x_feat_cls.dim() - 2)]
+            )
             x_feat_cls = self.pca_layer(x_feat_cls)
             x_feat_cls = x_feat_cls.permute(0, 2, 1)
             x_feat_cls = x_feat_cls.view(B, self.out_dims[-1], 1, 1)
 
             if self.normalize:
-                x_feat_cls = x_feat_cls / (x_feat_cls.norm(dim=-3, keepdim=True) + 1e-10)
-                x_feat_map = x_feat_map / (x_feat_map.norm(dim=-3, keepdim=True) + 1e-10)
+                x_feat_cls = x_feat_cls / (
+                    x_feat_cls.norm(dim=-3, keepdim=True) + 1e-10
+                )
+                x_feat_map = x_feat_map / (
+                    x_feat_map.norm(dim=-3, keepdim=True) + 1e-10
+                )
 
         x_layers = []
 

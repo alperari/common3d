@@ -319,9 +319,15 @@ class CenterZoom3D(OD3D_Transform):
 
         if OD3D_FRAME_MODALITIES.BBOXS in frame.modalities:
             # x_min, y_min, x_max, y_max
-            frame.bboxs = (frame.get_bboxs().reshape(-1, 2, 2) * scale[None, None,]).flatten(1)
-            frame.bboxs[:, [0, 2]] = frame.bboxs[:, [0, 2]] + cam_crop_tform_cam[0, 2][None,]
-            frame.bboxs[:, [1, 3]] = frame.bboxs[:, [1, 3]] + cam_crop_tform_cam[1, 2][None,]
+            frame.bboxs = (
+                frame.get_bboxs().reshape(-1, 2, 2) * scale[None, None]
+            ).flatten(1)
+            frame.bboxs[:, [0, 2]] = (
+                frame.bboxs[:, [0, 2]] + cam_crop_tform_cam[0, 2][None,]
+            )
+            frame.bboxs[:, [1, 3]] = (
+                frame.bboxs[:, [1, 3]] + cam_crop_tform_cam[1, 2][None,]
+            )
 
         if OD3D_FRAME_MODALITIES.KPTS2D_ANNOT in frame.modalities:
             frame.kpts2d_annot = frame.get_kpts2d_annot() * scale[None,]

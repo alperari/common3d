@@ -52,7 +52,7 @@ class Pascal3D_Occ(OD3D_Dataset):
         transform=None,
         subset_fraction=1.0,
         index_shift=0,
-        mesh_type: OD3D_MESH_TYPES=OD3D_MESH_TYPES.META,
+        mesh_type: OD3D_MESH_TYPES = OD3D_MESH_TYPES.META,
         scale_type: OD3D_SCALE_TYPES = OD3D_SCALE_TYPES.NORM,
     ):
         if categories is not None:
@@ -79,11 +79,10 @@ class Pascal3D_Occ(OD3D_Dataset):
             index_shift=index_shift,
             dict_nested_frames=dict_nested_frames,
             dict_nested_frames_ban=dict_nested_frames_ban,
-            scale_type=scale_type
+            scale_type=scale_type,
         )
         self.mesh_type = mesh_type
         self.path_pascal3d_raw = Path(path_pascal3d_raw)
-
 
     def filter_dict_nested_frames(self, dict_nested_frames):
         dict_nested_frames = super().filter_dict_nested_frames(dict_nested_frames)
@@ -158,7 +157,6 @@ class Pascal3D_Occ(OD3D_Dataset):
                     remove_previous=remove_previous,
                 )
 
-
     def preprocess_cuboid(self, override=False, remove_previous=False, quantile=0.95):
         logger.info("preprocess cuboid...")
 
@@ -212,7 +210,10 @@ class Pascal3D_Occ(OD3D_Dataset):
                 meshes.verts.data = meshes.verts
                 pts3d = meshes.verts
 
-                from od3d.cv.geometry.fit.cuboid import fit_cuboid_to_pts3d, fit_sphere_to_pts3d
+                from od3d.cv.geometry.fit.cuboid import (
+                    fit_cuboid_to_pts3d,
+                    fit_sphere_to_pts3d,
+                )
                 from od3d.datasets.enum import OD3D_CATEGORIES_SIZES_IN_M
 
                 if "cuboid" in mesh_type:
@@ -223,14 +224,14 @@ class Pascal3D_Occ(OD3D_Dataset):
                         vertices_max_count=mesh_vertices_count,
                         optimize_steps=0,
                         q=0.95,
-                        #size=OD3D_CATEGORIES_SIZES_IN_M[
+                        # size=OD3D_CATEGORIES_SIZES_IN_M[
                         #    MAP_CATEGORIES_PASCAL3D_TO_OD3D[category]
-                        #],
+                        # ],
                     )
 
-                    #scale_pascal3d_to_od3d[category] = (
+                    # scale_pascal3d_to_od3d[category] = (
                     #    tform_obj[:3, :3].norm(dim=-1).mean()
-                    #)
+                    # )
                     # show:
                     # meshes.verts *= scale_pascal3d_to_od3d[category]
                     # Meshes.load_from_meshes([meshes.get_mesh_with_id(i) for i in range(meshes.meshes_count)] + [cuboids.get_mesh_with_id(0)]).show(meshes_add_translation=False)
@@ -245,14 +246,14 @@ class Pascal3D_Occ(OD3D_Dataset):
                         optimize_transl=False,
                         vertices_max_count=mesh_vertices_count,
                         q=0.95,
-                        #size=OD3D_CATEGORIES_SIZES_IN_M[
+                        # size=OD3D_CATEGORIES_SIZES_IN_M[
                         #    MAP_CATEGORIES_PASCAL3D_TO_OD3D[category]
-                        #],
-                        )
+                        # ],
+                    )
 
-                    #scale_pascal3d_to_od3d[category] = (
+                    # scale_pascal3d_to_od3d[category] = (
                     #    tform_obj[:3, :3].norm(dim=-1).mean()
-                    #)
+                    # )
                     # show:
                     # meshes.verts *= scale_pascal3d_to_od3d[category]
                     # Meshes.load_from_meshes([meshes.get_mesh_with_id(i) for i in range(meshes.meshes_count)] + [cuboids.get_mesh_with_id(0)]).show(meshes_add_translation=False)
@@ -417,7 +418,7 @@ class Pascal3D_Occ(OD3D_Dataset):
             tform_obj_type=OD3D_TFROM_OBJ_TYPES.RAW,
             depth_type=OD3D_FRAME_DEPTH_TYPES.MESH,
             kpts2d_annot_type=OD3D_FRAME_KPTS2D_ANNOT_TYPES.META,
-            scale_type=self.scale_type
+            scale_type=self.scale_type,
         )
 
     @property

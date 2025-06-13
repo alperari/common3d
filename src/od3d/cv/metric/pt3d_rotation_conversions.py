@@ -3,9 +3,7 @@
 #
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
-
 # pyre-unsafe
-
 from typing import Optional
 
 import torch
@@ -35,6 +33,7 @@ e.g.
     points = [[0, 1, 2]]  # (1 x 3) xyz coordinates of a point
     transformed_points = points * R.transpose(1, 0)
 """
+
 
 def quaternion_to_matrix(quaternions: torch.Tensor) -> torch.Tensor:
     """
@@ -67,6 +66,7 @@ def quaternion_to_matrix(quaternions: torch.Tensor) -> torch.Tensor:
     )
     return o.reshape(quaternions.shape[:-1] + (3, 3))
 
+
 def _copysign(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     """
     Return a tensor where each element has the absolute value taken from the,
@@ -98,6 +98,7 @@ def _sqrt_positive_part(x: torch.Tensor) -> torch.Tensor:
         ret = torch.where(positive_mask, torch.sqrt(x), ret)
     return ret
 
+
 def matrix_to_quaternion(matrix: torch.Tensor) -> torch.Tensor:
     """
     Convert rotations given as rotation matrices to quaternions.
@@ -113,7 +114,8 @@ def matrix_to_quaternion(matrix: torch.Tensor) -> torch.Tensor:
 
     batch_dim = matrix.shape[:-2]
     m00, m01, m02, m10, m11, m12, m20, m21, m22 = torch.unbind(
-        matrix.reshape(batch_dim + (9,)), dim=-1
+        matrix.reshape(batch_dim + (9,)),
+        dim=-1,
     )
 
     q_abs = _sqrt_positive_part(
@@ -125,7 +127,7 @@ def matrix_to_quaternion(matrix: torch.Tensor) -> torch.Tensor:
                 1.0 - m00 - m11 + m22,
             ],
             dim=-1,
-        )
+        ),
     )
 
     # we produce the desired quaternion multiplied by each of r, i, j, k
@@ -155,9 +157,11 @@ def matrix_to_quaternion(matrix: torch.Tensor) -> torch.Tensor:
     # if not for numerical problems, quat_candidates[i] should be same (up to a sign),
     # forall i; we pick the best-conditioned one (with the largest denominator)
     out = quat_candidates[
-        F.one_hot(q_abs.argmax(dim=-1), num_classes=4) > 0.5, :
+        F.one_hot(q_abs.argmax(dim=-1), num_classes=4) > 0.5,
+        :,
     ].reshape(batch_dim + (4,))
     return standardize_quaternion(out)
+
 
 def _axis_angle_rotation(axis: str, angle: torch.Tensor) -> torch.Tensor:
     """
@@ -188,6 +192,7 @@ def _axis_angle_rotation(axis: str, angle: torch.Tensor) -> torch.Tensor:
 
     return torch.stack(R_flat, -1).reshape(angle.shape + (3, 3))
 
+
 def euler_angles_to_matrix(euler_angles: torch.Tensor, convention: str) -> torch.Tensor:
     """
     Convert rotations given as Euler angles in radians to rotation matrices.
@@ -216,8 +221,13 @@ def euler_angles_to_matrix(euler_angles: torch.Tensor, convention: str) -> torch
     # return functools.reduce(torch.matmul, matrices)
     return torch.matmul(torch.matmul(matrices[0], matrices[1]), matrices[2])
 
+
 def _angle_from_tan(
-    axis: str, other_axis: str, data, horizontal: bool, tait_bryan: bool
+    axis: str,
+    other_axis: str,
+    data,
+    horizontal: bool,
+    tait_bryan: bool,
 ) -> torch.Tensor:
     """
     Extract the first or third Euler angle from the two members of
@@ -258,6 +268,7 @@ def _index_from_letter(letter: str) -> int:
         return 2
     raise ValueError("letter must be either X, Y or Z.")
 
+
 def matrix_to_euler_angles(matrix: torch.Tensor, convention: str) -> torch.Tensor:
     """
     Convert rotations given as rotation matrices to Euler angles in radians.
@@ -283,24 +294,35 @@ def matrix_to_euler_angles(matrix: torch.Tensor, convention: str) -> torch.Tenso
     tait_bryan = i0 != i2
     if tait_bryan:
         central_angle = torch.asin(
-            matrix[..., i0, i2] * (-1.0 if i0 - i2 in [-1, 2] else 1.0)
+            matrix[..., i0, i2] * (-1.0 if i0 - i2 in [-1, 2] else 1.0),
         )
     else:
         central_angle = torch.acos(matrix[..., i0, i0])
 
     o = (
         _angle_from_tan(
-            convention[0], convention[1], matrix[..., i2], False, tait_bryan
+            convention[0],
+            convention[1],
+            matrix[..., i2],
+            False,
+            tait_bryan,
         ),
         central_angle,
         _angle_from_tan(
-            convention[2], convention[1], matrix[..., i0, :], True, tait_bryan
+            convention[2],
+            convention[1],
+            matrix[..., i0, :],
+            True,
+            tait_bryan,
         ),
     )
     return torch.stack(o, -1)
 
+
 def random_quaternions(
-    n: int, dtype: Optional[torch.dtype] = None, device = None
+    n: int,
+    dtype: Optional[torch.dtype] = None,
+    device=None,
 ) -> torch.Tensor:
     """
     Generate random quaternions representing rotations,
@@ -322,8 +344,11 @@ def random_quaternions(
     o = o / _copysign(torch.sqrt(s), o[:, 0])[:, None]
     return o
 
+
 def random_rotations(
-    n: int, dtype: Optional[torch.dtype] = None, device = None
+    n: int,
+    dtype: Optional[torch.dtype] = None,
+    device=None,
 ) -> torch.Tensor:
     """
     Generate random rotations as 3x3 rotation matrices.
@@ -340,8 +365,10 @@ def random_rotations(
     quaternions = random_quaternions(n, dtype=dtype, device=device)
     return quaternion_to_matrix(quaternions)
 
+
 def random_rotation(
-    dtype: Optional[torch.dtype] = None, device = None
+    dtype: Optional[torch.dtype] = None,
+    device=None,
 ) -> torch.Tensor:
     """
     Generate a single random 3x3 rotation matrix.
@@ -356,6 +383,7 @@ def random_rotation(
     """
     return random_rotations(1, dtype, device)[0]
 
+
 def standardize_quaternion(quaternions: torch.Tensor) -> torch.Tensor:
     """
     Convert a unit quaternion to a standard form: one in which the real
@@ -369,6 +397,7 @@ def standardize_quaternion(quaternions: torch.Tensor) -> torch.Tensor:
         Standardized quaternions as tensor of shape (..., 4).
     """
     return torch.where(quaternions[..., 0:1] < 0, -quaternions, quaternions)
+
 
 def quaternion_raw_multiply(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     """
@@ -390,6 +419,7 @@ def quaternion_raw_multiply(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     oz = aw * bz + ax * by - ay * bx + az * bw
     return torch.stack((ow, ox, oy, oz), -1)
 
+
 def quaternion_multiply(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     """
     Multiply two quaternions representing rotations, returning the quaternion
@@ -406,6 +436,7 @@ def quaternion_multiply(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     ab = quaternion_raw_multiply(a, b)
     return standardize_quaternion(ab)
 
+
 def quaternion_invert(quaternion: torch.Tensor) -> torch.Tensor:
     """
     Given a quaternion representing rotation, get the quaternion representing
@@ -421,6 +452,7 @@ def quaternion_invert(quaternion: torch.Tensor) -> torch.Tensor:
 
     scaling = torch.tensor([1, -1, -1, -1], device=quaternion.device)
     return quaternion * scaling
+
 
 def quaternion_apply(quaternion: torch.Tensor, point: torch.Tensor) -> torch.Tensor:
     """
@@ -444,6 +476,7 @@ def quaternion_apply(quaternion: torch.Tensor, point: torch.Tensor) -> torch.Ten
     )
     return out[..., 1:]
 
+
 def axis_angle_to_matrix(axis_angle: torch.Tensor) -> torch.Tensor:
     """
     Convert rotations given as axis/angle to rotation matrices.
@@ -459,6 +492,7 @@ def axis_angle_to_matrix(axis_angle: torch.Tensor) -> torch.Tensor:
     """
     return quaternion_to_matrix(axis_angle_to_quaternion(axis_angle))
 
+
 def matrix_to_axis_angle(matrix: torch.Tensor) -> torch.Tensor:
     """
     Convert rotations given as rotation matrices to axis/angle.
@@ -473,6 +507,7 @@ def matrix_to_axis_angle(matrix: torch.Tensor) -> torch.Tensor:
             direction.
     """
     return quaternion_to_axis_angle(matrix_to_quaternion(matrix))
+
 
 def axis_angle_to_quaternion(axis_angle: torch.Tensor) -> torch.Tensor:
     """
@@ -501,9 +536,11 @@ def axis_angle_to_quaternion(axis_angle: torch.Tensor) -> torch.Tensor:
         0.5 - (angles[small_angles] * angles[small_angles]) / 48
     )
     quaternions = torch.cat(
-        [torch.cos(half_angles), axis_angle * sin_half_angles_over_angles], dim=-1
+        [torch.cos(half_angles), axis_angle * sin_half_angles_over_angles],
+        dim=-1,
     )
     return quaternions
+
 
 def quaternion_to_axis_angle(quaternions: torch.Tensor) -> torch.Tensor:
     """
@@ -535,6 +572,7 @@ def quaternion_to_axis_angle(quaternions: torch.Tensor) -> torch.Tensor:
     )
     return quaternions[..., 1:] / sin_half_angles_over_angles
 
+
 def rotation_6d_to_matrix(d6: torch.Tensor) -> torch.Tensor:
     """
     Converts 6D rotation representation by Zhou et al. [1] to rotation matrix
@@ -557,6 +595,7 @@ def rotation_6d_to_matrix(d6: torch.Tensor) -> torch.Tensor:
     b2 = F.normalize(b2, dim=-1)
     b3 = torch.cross(b1, b2, dim=-1)
     return torch.stack((b1, b2, b3), dim=-2)
+
 
 def matrix_to_rotation_6d(matrix: torch.Tensor) -> torch.Tensor:
     """

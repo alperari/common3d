@@ -1,4 +1,5 @@
 import logging
+
 logger = logging.getLogger(__name__)
 
 import numpy as np
@@ -14,7 +15,12 @@ from od3d.cv.geometry.objects3d.objects3d import (
 
 from typing import Optional
 from od3d.cv.geometry.objects3d.meshes_x_gaussians import Meshes_x_Gaussians
-from od3d.cv.geometry.objects3d.meshes.meshes import Meshes, FACE_BLEND_TYPE, OD3D_Meshes_Deform, RASTERIZER
+from od3d.cv.geometry.objects3d.meshes.meshes import (
+    Meshes,
+    FACE_BLEND_TYPE,
+    OD3D_Meshes_Deform,
+    RASTERIZER,
+)
 from omegaconf import DictConfig
 
 
@@ -25,8 +31,8 @@ class Flexicubes(Meshes):
         faces: List[torch.Tensor],
         feat_dim=128,
         objects_count=0,
-        feats_objects: Union[bool, torch.Tensor]=False,
-        verts_uvs: List[torch.Tensor]=None,
+        feats_objects: Union[bool, torch.Tensor] = False,
+        verts_uvs: List[torch.Tensor] = None,
         verts_coarse_count: int = 150,
         verts_coarse_prob_sigma: float = 0.01,
         feats_requires_grad=True,
@@ -42,15 +48,15 @@ class Flexicubes(Meshes):
         pt3d_raster_perspective_correct=False,
         device=None,
         dtype=None,
-        rasterizer = RASTERIZER.NVDIFFRAST,
-        face_blend_type = FACE_BLEND_TYPE.SOFT_SIGMOID_NORMALIZED,
-        face_blend_count = 2,
-        face_opacity=1.,
+        rasterizer=RASTERIZER.NVDIFFRAST,
+        face_blend_type=FACE_BLEND_TYPE.SOFT_SIGMOID_NORMALIZED,
+        face_blend_count=2,
+        face_opacity=1.0,
         face_opacity_face_sdf_sigma=1e-4,
         face_opacity_face_sdf_gamma=1e-4,
-        instance_deform_net_config: DictConfig=None,
+        instance_deform_net_config: DictConfig = None,
         tet_res=16,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             verts=verts,
@@ -83,29 +89,34 @@ class Flexicubes(Meshes):
             face_opacity_face_sdf_sigma=face_opacity_face_sdf_sigma,
             face_opacity_face_sdf_gamma=face_opacity_face_sdf_gamma,
             instance_deform_net_config=instance_deform_net_config,
-            **kwargs
+            **kwargs,
         )
 
         if dtype is None:
             dtype = torch.float
 
         self.init_radius = 0.9
-        #self.mesh_update_jitter_scale = 0.05
+        # self.mesh_update_jitter_scale = 0.05
 
         # https://github.com/nv-tlabs/FlexiCubes/blob/main/examples/optimization.ipynb
         self.fc_tet_res = tet_res
         import kaolin as kal
+
         self.fc = kal.non_commercial.FlexiCubes(device)
         self.fc_x_nx3, self.fc_cube_fx8 = self.fc.construct_voxel_grid(self.fc_tet_res)
         self.fc_range = 2.2
-        self.fc_x_nx3 *= self.fc_range  # scale up the grid so that it's larger than the target object
+        self.fc_x_nx3 *= (
+            self.fc_range
+        )  # scale up the grid so that it's larger than the target object
         self.fc_x_nx3 = self.fc_x_nx3.to(device, dtype)
         self.fc_cube_fx8 = self.fc_cube_fx8.to(device)
         # range: -1, 1
 
         #  Retrieve all the edges of the voxel grid; these edges will be utilized to
         #  compute the regularization loss in subsequent steps of the process.
-        self.fc_all_edges = self.fc_cube_fx8[:, self.fc.cube_edges].reshape(-1, 2).to(device)
+        self.fc_all_edges = (
+            self.fc_cube_fx8[:, self.fc.cube_edges].reshape(-1, 2).to(device)
+        )
         self.fc_grid_edges = torch.unique(self.fc_all_edges, dim=0).to(device)
 
         self.fc_sdfs = torch.nn.ParameterList()
@@ -115,38 +126,51 @@ class Flexicubes(Meshes):
 
         self.feat_coordmlps = torch.nn.ModuleList()
 
-        feat_coord_mlp_cfg = DictConfig({
-            "num_layers": 5,
-            "hidden_dim": 256,
-            "out_dim": feat_dim,
-            "dropout": 0,
-            "activation": None,
-            "symmetrize": False,
-        })
+        feat_coord_mlp_cfg = DictConfig(
+            {
+                "num_layers": 5,
+                "hidden_dim": 256,
+                "out_dim": feat_dim,
+                "dropout": 0,
+                "activation": None,
+                "symmetrize": False,
+            }
+        )
 
         # note: import on-the-fly to avoid circular import
         from od3d.models.heads.coordmlp import CoordMLP
 
         for m in range(self.meshes_count):
-            #grid_scale = self.get_ranges()[m]
-            #embedder_scalar = 2 * np.pi / grid_scale * 0.9  # originally (-0.5*s, 0.5*s) rescale to (-pi, pi) * 0.9
+            # grid_scale = self.get_ranges()[m]
+            # embedder_scalar = 2 * np.pi / grid_scale * 0.9  # originally (-0.5*s, 0.5*s) rescale to (-pi, pi) * 0.9
 
-            self.fc_deforms.append(torch.nn.Parameter(torch.zeros_like(self.fc_x_nx3), requires_grad=True))
+            self.fc_deforms.append(
+                torch.nn.Parameter(torch.zeros_like(self.fc_x_nx3), requires_grad=True)
+            )
 
             _sdf = self.fc_x_nx3.detach().norm(dim=-1, keepdim=False) - self.init_radius
             # _sdf = torch.rand_like(self.x_nx3[:, 0]) - 0.1  # randomly initialize SDF
-            self.fc_sdfs.append(torch.nn.Parameter(_sdf.clone().detach(), requires_grad=True))
+            self.fc_sdfs.append(
+                torch.nn.Parameter(_sdf.clone().detach(), requires_grad=True)
+            )
 
             # set per-cube learnable weights to zeros
-            _weight = torch.zeros((self.fc_cube_fx8.shape[0], 21), dtype=dtype, device=device)
-            self.fc_weights.append(torch.nn.Parameter(_weight.clone().detach(), requires_grad=True))
+            _weight = torch.zeros(
+                (self.fc_cube_fx8.shape[0], 21), dtype=dtype, device=device
+            )
+            self.fc_weights.append(
+                torch.nn.Parameter(_weight.clone().detach(), requires_grad=True)
+            )
 
-            self.feat_coordmlps.append(CoordMLP(
-                in_dims=[0, ],
-                in_upsample_scales=[],
-                config=feat_coord_mlp_cfg,
-                n_harmonic_functions=8,
-                embed_concat_pts=True).to(device, dtype))
+            self.feat_coordmlps.append(
+                CoordMLP(
+                    in_dims=[0],
+                    in_upsample_scales=[],
+                    config=feat_coord_mlp_cfg,
+                    n_harmonic_functions=8,
+                    embed_concat_pts=True,
+                ).to(device, dtype),
+            )
 
         self.fc_weights = self.fc_weights.to(device, dtype)
         self.fc_sdfs = self.fc_sdfs.to(device, dtype)
@@ -164,12 +188,12 @@ class Flexicubes(Meshes):
             for param in self.feat_coordmlps.parameters():
                 param.requires_grad = False
 
-        #from pathlib import Path
-        #tets = np.load(Path(__file__).parent.resolve().joinpath('./{}_tets.npz'.format(str(tet_res))))
+        # from pathlib import Path
+        # tets = np.load(Path(__file__).parent.resolve().joinpath('./{}_tets.npz'.format(str(tet_res))))
 
-        #self.tets_scale = self.init_radius * 2.2
-        #self.tets_verts = (torch.tensor(tets['vertices'], dtype=dtype, device=device)) * self.tets_scale  # verts original scale (-0.5, 0.5)
-        #self.tets_faces = torch.tensor(tets['indices'], dtype=torch.long, device=device)
+        # self.tets_scale = self.init_radius * 2.2
+        # self.tets_verts = (torch.tensor(tets['vertices'], dtype=dtype, device=device)) * self.tets_scale  # verts original scale (-0.5, 0.5)
+        # self.tets_faces = torch.tensor(tets['indices'], dtype=torch.long, device=device)
         # self.generate_edges()
 
         self.update_dmtet(device=device, dtype=dtype, require_grad=False)
@@ -189,6 +213,7 @@ class Flexicubes(Meshes):
 
         if "device" in kwargs.keys():
             import kaolin as kal
+
             self.fc = kal.non_commercial.FlexiCubes(kwargs["device"])
 
         self.fc_x_nx3 = self.fc_x_nx3.to(*args, **kwargs)
@@ -197,18 +222,19 @@ class Flexicubes(Meshes):
         self.fc_all_edges = self.fc_all_edges.to(*args, **kwargs)
         self.fc_grid_edges = self.fc_grid_edges.to(*args, **kwargs)
 
-        #self.fc_sdfs.to(*args, **kwargs)
-        #self.fc_deforms.to(*args, **kwargs)
-        #self.fc_weights.to(*args, **kwargs)
-        #self.feat_coordmlps.to(*args, **kwargs)
+        # self.fc_sdfs.to(*args, **kwargs)
+        # self.fc_deforms.to(*args, **kwargs)
+        # self.fc_weights.to(*args, **kwargs)
+        # self.feat_coordmlps.to(*args, **kwargs)
 
-        #self.marching_tets.to(*args, **kwargs)
-        #self.tets_verts = self.tets_verts.to(*args, **kwargs)
-        #self.tets_faces = self.tets_faces.to(*args, **kwargs)
+        # self.marching_tets.to(*args, **kwargs)
+        # self.tets_verts = self.tets_verts.to(*args, **kwargs)
+        # self.tets_faces = self.tets_faces.to(*args, **kwargs)
 
     def cuda(self, *args, **kwargs):
         super().cuda(*args, **kwargs)
         import kaolin as kal
+
         self.fc = kal.non_commercial.FlexiCubes(device="cuda")
 
         self.fc_x_nx3 = self.fc_x_nx3.cuda(*args, **kwargs)
@@ -217,19 +243,18 @@ class Flexicubes(Meshes):
         self.fc_all_edges = self.fc_all_edges.cuda(*args, **kwargs)
         self.fc_grid_edges = self.fc_grid_edges.cuda(*args, **kwargs)
 
-        #self.fc_sdfs.cuda(*args, **kwargs)
-        #self.fc_deforms.cuda(*args, **kwargs)
-        #self.fc_weights.cuda(*args, **kwargs)
-        #self.feat_coordmlps.cuda(*args, **kwargs)
+        # self.fc_sdfs.cuda(*args, **kwargs)
+        # self.fc_deforms.cuda(*args, **kwargs)
+        # self.fc_weights.cuda(*args, **kwargs)
+        # self.feat_coordmlps.cuda(*args, **kwargs)
 
         # self.marching_tets.cuda(*args, **kwargs)
-        #self.tets_verts = self.tets_verts.cuda(*args, **kwargs)
-        #self.tets_faces = self.tets_faces.cuda(*args, **kwargs)
+        # self.tets_verts = self.tets_verts.cuda(*args, **kwargs)
+        # self.tets_faces = self.tets_faces.cuda(*args, **kwargs)
 
     def eval(self, *args, **kwargs):
         super().eval(*args, **kwargs)
         self.update_dmtet(require_grad=False)
-
 
     def update_dmtet(self, device=None, dtype=None, require_grad=None):
         if require_grad is None:
@@ -249,18 +274,36 @@ class Flexicubes(Meshes):
         for m in range(self.meshes_count):
             if require_grad:
                 # extract and render FlexiCubes mesh
-                _grid_verts = self.fc_x_nx3 + (self.fc_range - 1e-8) / (self.fc_tet_res * 2) * torch.tanh(self.fc_deforms[m])
+                _grid_verts = self.fc_x_nx3 + (self.fc_range - 1e-8) / (
+                    self.fc_tet_res * 2
+                ) * torch.tanh(self.fc_deforms[m])
                 _verts, _faces, L_dev = self.fc(
-                    _grid_verts, self.fc_sdfs[m], self.fc_cube_fx8, self.fc_tet_res, beta=self.fc_weights[m][:, :12],
-                    alpha=self.fc_weights[m][:, 12:20], gamma_f=self.fc_weights[m][:, 20], training=True)
+                    _grid_verts,
+                    self.fc_sdfs[m],
+                    self.fc_cube_fx8,
+                    self.fc_tet_res,
+                    beta=self.fc_weights[m][:, :12],
+                    alpha=self.fc_weights[m][:, 12:20],
+                    gamma_f=self.fc_weights[m][:, 20],
+                    training=True,
+                )
                 _feats = self.get_feats(pts=_verts.detach(), object_id=m)
             else:
                 with torch.no_grad():
                     # extract and render FlexiCubes mesh
-                    _grid_verts = self.fc_x_nx3 + (self.fc_range - 1e-8) / (self.fc_tet_res * 2) * torch.tanh(self.fc_deforms[m])
+                    _grid_verts = self.fc_x_nx3 + (self.fc_range - 1e-8) / (
+                        self.fc_tet_res * 2
+                    ) * torch.tanh(self.fc_deforms[m])
                     _verts, _faces, L_dev = self.fc(
-                        _grid_verts, self.fc_sdfs[m], self.fc_cube_fx8, self.fc_tet_res, beta=self.fc_weights[m][:, :12],
-                        alpha=self.fc_weights[m][:, 12:20], gamma_f=self.fc_weights[m][:, 20], training=False)
+                        _grid_verts,
+                        self.fc_sdfs[m],
+                        self.fc_cube_fx8,
+                        self.fc_tet_res,
+                        beta=self.fc_weights[m][:, :12],
+                        alpha=self.fc_weights[m][:, 12:20],
+                        gamma_f=self.fc_weights[m][:, 20],
+                        training=False,
+                    )
                     _feats = self.get_feats(pts=_verts.detach(), object_id=m)
 
             self.dual_vertex_center_dev_loss.append(L_dev)
@@ -277,7 +320,9 @@ class Flexicubes(Meshes):
 
         self.meshes_count = len(verts)
         self.verts = torch.cat([_verts for _verts in verts], dim=0).to(**factory_kwargs)
-        self.feats_objects = torch.cat([_feats for _feats in feats], dim=0).to(**factory_kwargs)
+        self.feats_objects = torch.cat([_feats for _feats in feats], dim=0).to(
+            **factory_kwargs
+        )
 
         self.faces = torch.cat([_faces for _faces in faces], dim=0).to(device=device)
 
@@ -302,23 +347,33 @@ class Flexicubes(Meshes):
             self.mask_verts_not_padded[i, self.verts_counts[i] :] = False
 
         import matplotlib.pyplot as plt
+
         color_ = plt.get_cmap("tab20", len(self))
         self.feats_rgb_object_id = []
         for i in range(len(self)):
             self.feats_rgb_object_id.extend([color_(i)] * self.verts_counts[i])
 
         self.update_verts_coarse()
+
     def get_uniform_jittered_tets_verts(self, object_id):
-        pts = self.tets_verts.clone() #  self.get_verts_with_mesh_id(object_id)
+        pts = self.tets_verts.clone()  #  self.get_verts_with_mesh_id(object_id)
         if self.mesh_update_jitter_scale > 0:
-            jitter = (torch.rand(3, device=pts.device) - 0.5) * self.tets_scale * self.mesh_update_jitter_scale
+            jitter = (
+                (torch.rand(3, device=pts.device) - 0.5)
+                * self.tets_scale
+                * self.mesh_update_jitter_scale
+            )
             pts = pts + jitter
         return pts
 
     def get_rand_jittered_mesh_verts(self, object_id):
         pts = self.get_verts_with_mesh_id(object_id, clone=True).detach()
         if self.mesh_update_jitter_scale > 0:
-            jitter = (torch.rand_like(pts, device=pts.device) - 0.5) * self.tets_scale * self.mesh_update_jitter_scale
+            jitter = (
+                (torch.rand_like(pts, device=pts.device) - 0.5)
+                * self.tets_scale
+                * self.mesh_update_jitter_scale
+            )
             pts = pts + jitter
         return pts
 
@@ -332,23 +387,26 @@ class Flexicubes(Meshes):
 
         sdf_init = pts.detach().norm(dim=-1, keepdim=True) - self.init_radius
         from od3d.data.batch_datatypes import OD3D_ModelData
-        sdf_delta = self.sdf_coordmlps[object_id](OD3D_ModelData(pts3d=pts[None,])).feat[0]
+
+        sdf_delta = self.sdf_coordmlps[object_id](
+            OD3D_ModelData(pts3d=pts[None,])
+        ).feat[0]
         sdf_vals = sdf_init + sdf_delta
         return sdf_vals
 
     def get_feats(self, pts, object_id):
         from od3d.data.batch_datatypes import OD3D_ModelData
+
         feats = self.feat_coordmlps[object_id](OD3D_ModelData(pts3d=pts[None,])).feat[0]
         return feats
 
-
     def get_sdf_gradient(self, object_id):
         num_samples = 5000
-        sample_points = (torch.rand(num_samples, 3, device=self.verts.device) - 0.5) * self.tets_scale
-
+        sample_points = (
+            torch.rand(num_samples, 3, device=self.verts.device) - 0.5
+        ) * self.tets_scale
 
         mesh_verts = self.get_rand_jittered_mesh_verts(object_id=object_id)
-
 
         rand_idx = torch.randperm(len(mesh_verts), device=mesh_verts.device)[:5000]
         mesh_verts = mesh_verts[rand_idx]
@@ -363,7 +421,8 @@ class Flexicubes(Meshes):
                 grad_outputs=d_output,
                 create_graph=True,
                 retain_graph=True,
-                only_inputs=True)[0]
+                only_inputs=True,
+            )[0]
         except RuntimeError:  # For validation, we have disabled gradient calculation.
             return torch.zeros_like(sample_points)
         return gradients
@@ -371,25 +430,38 @@ class Flexicubes(Meshes):
     def get_geo_sdf_reg_loss(self, objects_ids, dual_vertex_center_dev_loss=None):
         regs_losses = []
         for object_id in objects_ids:
-            sdf_reg_weight = 0.1 # 0. -> 0.2 in official repo
-            #sdf_reg_weight_init  = 0.2
-            #sdf_reg_weight = sdf_reg_weight_init - (sdf_reg_weight_init - sdf_reg_weight_init / 20) * min(1.0, 4.0 * t_iter)
+            sdf_reg_weight = 0.1  # 0. -> 0.2 in official repo
+            # sdf_reg_weight_init  = 0.2
+            # sdf_reg_weight = sdf_reg_weight_init - (sdf_reg_weight_init - sdf_reg_weight_init / 20) * min(1.0, 4.0 * t_iter)
 
             dual_vertex_center_dev_weight = 0.5
 
             weights_weight = 0.1
 
-            sdf_f1x6x2 = self.fc_sdfs[object_id][self.fc_grid_edges.reshape(-1)].reshape(-1,2)
-            mask = torch.sign(sdf_f1x6x2[...,0]) != torch.sign(sdf_f1x6x2[...,1])
+            sdf_f1x6x2 = self.fc_sdfs[object_id][
+                self.fc_grid_edges.reshape(-1)
+            ].reshape(-1, 2)
+            mask = torch.sign(sdf_f1x6x2[..., 0]) != torch.sign(sdf_f1x6x2[..., 1])
             sdf_f1x6x2 = sdf_f1x6x2[mask]
-            sdf_diff_loss = torch.nn.functional.binary_cross_entropy_with_logits(sdf_f1x6x2[...,0], (sdf_f1x6x2[...,1] > 0).float()) + \
-                    torch.nn.functional.binary_cross_entropy_with_logits(sdf_f1x6x2[...,1], (sdf_f1x6x2[...,0] > 0).float())
+            sdf_diff_loss = torch.nn.functional.binary_cross_entropy_with_logits(
+                sdf_f1x6x2[..., 0], (sdf_f1x6x2[..., 1] > 0).float()
+            ) + torch.nn.functional.binary_cross_entropy_with_logits(
+                sdf_f1x6x2[..., 1], (sdf_f1x6x2[..., 0] > 0).float()
+            )
 
             reg_loss = sdf_diff_loss.mean() * sdf_reg_weight
 
-            if self.dual_vertex_center_dev_loss is not None and len(self.dual_vertex_center_dev_loss) > 0:
-                reg_loss += self.dual_vertex_center_dev_loss[object_id].mean() * dual_vertex_center_dev_weight  # L_dev as in Equation 8 of our paper
-            reg_loss += (self.fc_weights[object_id][:, :20]).abs().mean() * weights_weight
+            if (
+                self.dual_vertex_center_dev_loss is not None
+                and len(self.dual_vertex_center_dev_loss) > 0
+            ):
+                reg_loss += (
+                    self.dual_vertex_center_dev_loss[object_id].mean()
+                    * dual_vertex_center_dev_weight
+                )  # L_dev as in Equation 8 of our paper
+            reg_loss += (
+                self.fc_weights[object_id][:, :20]
+            ).abs().mean() * weights_weight
 
             regs_losses.append(reg_loss)
 
@@ -421,7 +493,6 @@ class Flexicubes(Meshes):
 
         regs_losses = torch.stack(regs_losses)
         return regs_losses
-
 
     #
     # @property
@@ -509,6 +580,7 @@ class Flexicubes(Meshes):
     #     self.mesh_verts = verts
     #     return mesh.make_mesh(verts[None], faces[None], uvs[None], uv_idx[None], material=None)
     #
+
 
 """
     def __init__(self, grid_res, scale, num_layers=None, hidden_size=None, embedder_freq=None, embed_concat_pts=True,

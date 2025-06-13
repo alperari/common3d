@@ -1,9 +1,13 @@
 import logging
+
 logger = logging.getLogger(__name__)
 
 import torch
 
-def batch_point_face_distance(verts1, faces1, pts2, verts1_mask=None, faces1_mask=None, pts2_mask=None):
+
+def batch_point_face_distance(
+    verts1, faces1, pts2, verts1_mask=None, faces1_mask=None, pts2_mask=None
+):
     """
     Args:
         verts1 (torch.Tensor): (B, N, 3)
@@ -32,8 +36,8 @@ def batch_point_face_distance(verts1, faces1, pts2, verts1_mask=None, faces1_mas
         pt3d_faces1 = [faces1[b, faces1_mask[b]] for b in range(B)]
 
     pt3d_meshes = PT3DMeshes(
-            verts=pt3d_verts1,
-            faces=pt3d_faces1,
+        verts=pt3d_verts1,
+        faces=pt3d_faces1,
     )
 
     if pts2_mask is None:
@@ -57,7 +61,15 @@ def batch_point_face_distance(verts1, faces1, pts2, verts1_mask=None, faces1_mas
     """
     return loss
 
-def batch_chamfer_distance(pts1, pts2, pts1_mask = None, pts2_mask = None, uniform_weight_pts1=True, only_pts2_nn=False):
+
+def batch_chamfer_distance(
+    pts1,
+    pts2,
+    pts1_mask=None,
+    pts2_mask=None,
+    uniform_weight_pts1=True,
+    only_pts2_nn=False,
+):
     """
     Args:
         pts1 (torch.Tensor): (B, N, 3)
@@ -77,37 +89,53 @@ def batch_chamfer_distance(pts1, pts2, pts1_mask = None, pts2_mask = None, unifo
 
     pairs_mask = pts1_mask[:, :, None] * pts2_mask[:, None, :]
     verts_cdist_pred_gt = torch.cdist(pts1, pts2)
-    verts_cdist_pred_gt_min = verts_cdist_pred_gt.detach().clone()  # + ((~pairs_mask) * 1.) * torch.inf
+    verts_cdist_pred_gt_min = (
+        verts_cdist_pred_gt.detach().clone()
+    )  # + ((~pairs_mask) * 1.) * torch.inf
     verts_cdist_pred_gt_min[~pairs_mask] = torch.inf
 
     argmin_pred_from_gt = verts_cdist_pred_gt_min.argmin(dim=-2)  # BxG
 
-    pairs_pred_from_gt = torch.stack([
-        argmin_pred_from_gt,
-        torch.arange(argmin_pred_from_gt.shape[-1]).view(1, -1).expand(argmin_pred_from_gt.shape).to(
-            device=device), ], dim=-1
+    pairs_pred_from_gt = torch.stack(
+        [
+            argmin_pred_from_gt,
+            torch.arange(argmin_pred_from_gt.shape[-1])
+            .view(1, -1)
+            .expand(argmin_pred_from_gt.shape)
+            .to(
+                device=device,
+            ),
+        ],
+        dim=-1,
     )
     if not only_pts2_nn:
-
         argmin_gt_from_pred = verts_cdist_pred_gt_min.argmin(dim=-1)  # BxP
 
-        pairs_gt_from_pred = torch.stack([
-            torch.arange(argmin_gt_from_pred.shape[-1]).view(1, -1).expand(argmin_gt_from_pred.shape).to(
-                device=device),
-            argmin_gt_from_pred], dim=-1
+        pairs_gt_from_pred = torch.stack(
+            [
+                torch.arange(argmin_gt_from_pred.shape[-1])
+                .view(1, -1)
+                .expand(argmin_gt_from_pred.shape)
+                .to(
+                    device=device,
+                ),
+                argmin_gt_from_pred,
+            ],
+            dim=-1,
         )
 
-
-        pairs_pred_gt = torch.cat([pairs_pred_from_gt, pairs_gt_from_pred], dim=1) # B x M+N x 2
+        pairs_pred_gt = torch.cat(
+            [pairs_pred_from_gt, pairs_gt_from_pred], dim=1
+        )  # B x M+N x 2
     else:
         pairs_pred_gt = pairs_pred_from_gt
 
-
     from od3d.cv.select import batched_indexMD_select, batched_index_select
+
     chamfer_dist_pairwise = batched_indexMD_select(
         indexMD=pairs_pred_gt,
         inputMD=verts_cdist_pred_gt,
-    ) # B x M+N
+    )  # B x M+N
 
     M = pts2_mask.shape[-1]
     N = pts1_mask.shape[-1]
@@ -119,27 +147,32 @@ def batch_chamfer_distance(pts1, pts2, pts1_mask = None, pts2_mask = None, unifo
         pairs_pred_gt_ext[:, M:, 0][~pts1_mask] = N
         pts1_counts = torch.nn.functional.one_hot(pairs_pred_gt_ext[:, :, 0]).sum(dim=1)
         pts1_counts = pts1_counts[:, :N]
-        pts1_weights = 1. / pts1_counts
+        pts1_weights = 1.0 / pts1_counts
         pts2_weights_from_pts1 = batched_index_select(
-                index=pairs_pred_gt[:, :M, 0],
-                input=pts1_weights,
-            )
+            index=pairs_pred_gt[:, :M, 0],
+            input=pts1_weights,
+        )
         pts2_mask = pts2_mask.clone() * pts2_weights_from_pts1
         pts1_mask = pts1_mask.clone() * pts1_weights
 
-    chamfer_dist_mean_pred_from_gt = (chamfer_dist_pairwise[:, :M] * pts2_mask).sum(dim=-1) / (
-            pts2_mask.sum(dim=-1) + 1e-10)
+    chamfer_dist_mean_pred_from_gt = (chamfer_dist_pairwise[:, :M] * pts2_mask).sum(
+        dim=-1
+    ) / (pts2_mask.sum(dim=-1) + 1e-10)
 
     if not only_pts2_nn:
-        chamfer_dist_mean_gt_from_pred = (chamfer_dist_pairwise[:, M:] * pts1_mask).sum(dim=-1) / (
-                    pts1_mask.sum(dim=-1) + 1e-10)
-        chamfer_dist = (chamfer_dist_mean_pred_from_gt + chamfer_dist_mean_gt_from_pred) / 2.
+        chamfer_dist_mean_gt_from_pred = (chamfer_dist_pairwise[:, M:] * pts1_mask).sum(
+            dim=-1
+        ) / (pts1_mask.sum(dim=-1) + 1e-10)
+        chamfer_dist = (
+            chamfer_dist_mean_pred_from_gt + chamfer_dist_mean_gt_from_pred
+        ) / 2.0
     else:
         chamfer_dist = chamfer_dist_mean_pred_from_gt
 
     return chamfer_dist
 
-#def batch_point_face_distance_v2(pts3d, meshes, objects_ids, pts3d_mask = None,):
+
+# def batch_point_face_distance_v2(pts3d, meshes, objects_ids, pts3d_mask = None,):
 """
 Args:
     pts3d: BxPx3
@@ -148,7 +181,10 @@ Args:
     objects_ids: B
 """
 
-def batch_point_face_distance_v2(verts1, faces1, pts2, verts1_mask=None, faces1_mask=None, pts2_mask=None):
+
+def batch_point_face_distance_v2(
+    verts1, faces1, pts2, verts1_mask=None, faces1_mask=None, pts2_mask=None
+):
     """
     Args:
         verts1 (torch.Tensor): (B, N, 3)
@@ -181,6 +217,7 @@ def batch_point_face_distance_v2(verts1, faces1, pts2, verts1_mask=None, faces1_
     dists = torch.stack(dists, dim=0)
     return dists
 
+
 def points_faces_dist(pts3d, verts, faces):
     """
 
@@ -192,17 +229,27 @@ def points_faces_dist(pts3d, verts, faces):
         dist: float
     """
 
-    faces_normals = torch.cross(verts[faces[:, 1]] - verts[faces[:, 0]], verts[faces[:, 2]] - verts[faces[:, 0]],
-                                dim=-1)
+    faces_normals = torch.cross(
+        verts[faces[:, 1]] - verts[faces[:, 0]],
+        verts[faces[:, 2]] - verts[faces[:, 0]],
+        dim=-1,
+    )
     faces_area = faces_normals.norm(dim=-1)
-    faces_large_enough = (faces_area > 1e-10) * (faces_area < 1e+10)
+    faces_large_enough = (faces_area > 1e-10) * (faces_area < 1e10)
 
     faces_normals = faces_normals / (faces_normals.norm(dim=-1, keepdim=True) + 1e-15)
 
-    pts3d_signed_dist_to_faces = (torch.einsum('fd,fd->f', faces_normals, verts[faces[:, 0]])[None,]
-                                  - torch.einsum('fd,pd->pf', faces_normals, pts3d))
+    pts3d_signed_dist_to_faces = torch.einsum(
+        "fd,fd->f", faces_normals, verts[faces[:, 0]]
+    )[
+        None,
+    ] - torch.einsum(
+        "fd,pd->pf", faces_normals, pts3d
+    )
 
-    pts3d_on_faces = pts3d[:, None] + faces_normals[None,] * pts3d_signed_dist_to_faces[:, :, None]
+    pts3d_on_faces = (
+        pts3d[:, None] + faces_normals[None,] * pts3d_signed_dist_to_faces[:, :, None]
+    )
 
     verts0_pts_faces = verts[faces[:, 0]][None,].repeat(pts3d_on_faces.shape[0], 1, 1)
     verts1_pts_faces = verts[faces[:, 1]][None,].repeat(pts3d_on_faces.shape[0], 1, 1)
@@ -212,22 +259,41 @@ def points_faces_dist(pts3d, verts, faces):
     edge02_pts_faces = verts2_pts_faces - verts0_pts_faces
     edge12_pts_faces = verts2_pts_faces - verts1_pts_faces
 
-    pts3d_signed_dist_to_edge01 = torch.einsum('pfd,pfd->pf', edge01_pts_faces, pts3d_on_faces - verts0_pts_faces)
-    pts3d_signed_dist_to_edge02 = torch.einsum('pfd,pfd->pf', edge02_pts_faces, pts3d_on_faces - verts0_pts_faces)
-    pts3d_signed_dist_to_edge12 = torch.einsum('pfd,pfd->pf', edge12_pts_faces, pts3d_on_faces - verts1_pts_faces)
+    pts3d_signed_dist_to_edge01 = torch.einsum(
+        "pfd,pfd->pf", edge01_pts_faces, pts3d_on_faces - verts0_pts_faces
+    )
+    pts3d_signed_dist_to_edge02 = torch.einsum(
+        "pfd,pfd->pf", edge02_pts_faces, pts3d_on_faces - verts0_pts_faces
+    )
+    pts3d_signed_dist_to_edge12 = torch.einsum(
+        "pfd,pfd->pf", edge12_pts_faces, pts3d_on_faces - verts1_pts_faces
+    )
 
-    pts3d_signed_dist_to_edge01 = pts3d_signed_dist_to_edge01.clamp(0., 1.)
-    pts3d_signed_dist_to_edge02 = pts3d_signed_dist_to_edge02.clamp(0., 1.)
-    pts3d_signed_dist_to_edge12 = pts3d_signed_dist_to_edge12.clamp(0., 1.)
+    pts3d_signed_dist_to_edge01 = pts3d_signed_dist_to_edge01.clamp(0.0, 1.0)
+    pts3d_signed_dist_to_edge02 = pts3d_signed_dist_to_edge02.clamp(0.0, 1.0)
+    pts3d_signed_dist_to_edge12 = pts3d_signed_dist_to_edge12.clamp(0.0, 1.0)
 
-    pts3d_on_edge01 = verts0_pts_faces + edge01_pts_faces * pts3d_signed_dist_to_edge01[:, :, None]
-    pts3d_on_edge02 = verts0_pts_faces + edge02_pts_faces * pts3d_signed_dist_to_edge02[:, :, None]
-    pts3d_on_edge12 = verts1_pts_faces + edge12_pts_faces * pts3d_signed_dist_to_edge12[:, :, None]
+    pts3d_on_edge01 = (
+        verts0_pts_faces + edge01_pts_faces * pts3d_signed_dist_to_edge01[:, :, None]
+    )
+    pts3d_on_edge02 = (
+        verts0_pts_faces + edge02_pts_faces * pts3d_signed_dist_to_edge02[:, :, None]
+    )
+    pts3d_on_edge12 = (
+        verts1_pts_faces + edge12_pts_faces * pts3d_signed_dist_to_edge12[:, :, None]
+    )
 
-    A = torch.stack([verts0_pts_faces.detach(), verts1_pts_faces.detach(), verts2_pts_faces.detach()], dim=-1)
+    A = torch.stack(
+        [
+            verts0_pts_faces.detach(),
+            verts1_pts_faces.detach(),
+            verts2_pts_faces.detach(),
+        ],
+        dim=-1,
+    )
 
     # A_full_rank_mask = torch.linalg.matrix_rank(A) == 3
-    #A_full_rank_mask = torch.ones_like(A[..., 0, 0], dtype=torch.bool, device=A.device)
+    # A_full_rank_mask = torch.ones_like(A[..., 0, 0], dtype=torch.bool, device=A.device)
     A_full_rank_mask = faces_large_enough[None,].repeat(A.shape[0], 1)
 
     A[~A_full_rank_mask] = torch.eye(3).to(device=A.device, dtype=A.dtype)
@@ -235,16 +301,32 @@ def points_faces_dist(pts3d, verts, faces):
     X = torch.linalg.solve(A, B)  # alpha beta gamma
     X[~A_full_rank_mask] = torch.Tensor([-1, -1, -1]).to(device=X.device, dtype=X.dtype)
 
-    pts3d_on_faces_closest = (A @ X[..., None]).squeeze(-1) #  pts3d_on_faces.clone()  # * 0
-    pts3d_on_faces_closest_v0 = (X[:, :, 0] >= 0.) * (X[:, :, 1] <= 0.) * (X[:, :, 2] <= 0.)
-    pts3d_on_faces_closest_v1 = (X[:, :, 0] <= 0.) * (X[:, :, 1] >= 0.) * (X[:, :, 2] <= 0.)
-    pts3d_on_faces_closest_v2 = (X[:, :, 0] <= 0.) * (X[:, :, 1] <= 0.) * (X[:, :, 2] >= 0.)
+    pts3d_on_faces_closest = (A @ X[..., None]).squeeze(
+        -1
+    )  #  pts3d_on_faces.clone()  # * 0
+    pts3d_on_faces_closest_v0 = (
+        (X[:, :, 0] >= 0.0) * (X[:, :, 1] <= 0.0) * (X[:, :, 2] <= 0.0)
+    )
+    pts3d_on_faces_closest_v1 = (
+        (X[:, :, 0] <= 0.0) * (X[:, :, 1] >= 0.0) * (X[:, :, 2] <= 0.0)
+    )
+    pts3d_on_faces_closest_v2 = (
+        (X[:, :, 0] <= 0.0) * (X[:, :, 1] <= 0.0) * (X[:, :, 2] >= 0.0)
+    )
 
-    pts3d_on_faces_closest_e01 = (X[:, :, 0] >= 0.) * (X[:, :, 1] >= 0.) * (X[:, :, 2] <= 0.)
-    pts3d_on_faces_closest_e02 = (X[:, :, 0] >= 0.) * (X[:, :, 1] <= 0.) * (X[:, :, 2] >= 0.)
-    pts3d_on_faces_closest_e12 = (X[:, :, 0] <= 0.) * (X[:, :, 1] >= 0.) * (X[:, :, 2] >= 0.)
+    pts3d_on_faces_closest_e01 = (
+        (X[:, :, 0] >= 0.0) * (X[:, :, 1] >= 0.0) * (X[:, :, 2] <= 0.0)
+    )
+    pts3d_on_faces_closest_e02 = (
+        (X[:, :, 0] >= 0.0) * (X[:, :, 1] <= 0.0) * (X[:, :, 2] >= 0.0)
+    )
+    pts3d_on_faces_closest_e12 = (
+        (X[:, :, 0] <= 0.0) * (X[:, :, 1] >= 0.0) * (X[:, :, 2] >= 0.0)
+    )
 
-    pts3d_on_faces_closest_inside = (X[:, :, 0] >= 0.) * (X[:, :, 1] >= 0.) * (X[:, :, 2] >= 0.)
+    pts3d_on_faces_closest_inside = (
+        (X[:, :, 0] >= 0.0) * (X[:, :, 1] >= 0.0) * (X[:, :, 2] >= 0.0)
+    )
     pts3d_on_faces_closest_inside += pts3d_on_faces_closest_v0
     pts3d_on_faces_closest_inside += pts3d_on_faces_closest_v1
     pts3d_on_faces_closest_inside += pts3d_on_faces_closest_v2
@@ -252,36 +334,54 @@ def points_faces_dist(pts3d, verts, faces):
     pts3d_on_faces_closest_inside += pts3d_on_faces_closest_e02
     pts3d_on_faces_closest_inside += pts3d_on_faces_closest_e12
 
-    pts3d_on_faces_closest[~pts3d_on_faces_closest_inside] = torch.inf #  999999.
+    pts3d_on_faces_closest[~pts3d_on_faces_closest_inside] = torch.inf  #  999999.
 
-    pts3d_on_faces_closest[pts3d_on_faces_closest_v0] = verts0_pts_faces[pts3d_on_faces_closest_v0]
-    pts3d_on_faces_closest[pts3d_on_faces_closest_v1] = verts1_pts_faces[pts3d_on_faces_closest_v1]
-    pts3d_on_faces_closest[pts3d_on_faces_closest_v2] = verts2_pts_faces[pts3d_on_faces_closest_v2]
+    pts3d_on_faces_closest[pts3d_on_faces_closest_v0] = verts0_pts_faces[
+        pts3d_on_faces_closest_v0
+    ]
+    pts3d_on_faces_closest[pts3d_on_faces_closest_v1] = verts1_pts_faces[
+        pts3d_on_faces_closest_v1
+    ]
+    pts3d_on_faces_closest[pts3d_on_faces_closest_v2] = verts2_pts_faces[
+        pts3d_on_faces_closest_v2
+    ]
 
-    pts3d_on_faces_closest[pts3d_on_faces_closest_e01] = pts3d_on_edge01[pts3d_on_faces_closest_e01]
-    pts3d_on_faces_closest[pts3d_on_faces_closest_e02] = pts3d_on_edge02[pts3d_on_faces_closest_e02]
-    pts3d_on_faces_closest[pts3d_on_faces_closest_e12] = pts3d_on_edge12[pts3d_on_faces_closest_e12]
+    pts3d_on_faces_closest[pts3d_on_faces_closest_e01] = pts3d_on_edge01[
+        pts3d_on_faces_closest_e01
+    ]
+    pts3d_on_faces_closest[pts3d_on_faces_closest_e02] = pts3d_on_edge02[
+        pts3d_on_faces_closest_e02
+    ]
+    pts3d_on_faces_closest[pts3d_on_faces_closest_e12] = pts3d_on_edge12[
+        pts3d_on_faces_closest_e12
+    ]
 
     from od3d.cv.select import batched_index_select
+
     dist_pts3d_faces = (pts3d[:, None] - pts3d_on_faces_closest).norm(dim=-1)
 
     pts3d_closest_face_id = dist_pts3d_faces.min(dim=-1).indices
-    pts3d_on_faces_closest_sel = batched_index_select(pts3d_on_faces_closest, index=pts3d_closest_face_id[:, None],
-                                                      dim=1)[:, 0]
+    pts3d_on_faces_closest_sel = batched_index_select(
+        pts3d_on_faces_closest,
+        index=pts3d_closest_face_id[:, None],
+        dim=1,
+    )[:, 0]
 
     pts3d_closest_to_face_id = dist_pts3d_faces.min(dim=-2).indices
     pts3d_to_faces_closest_sel = pts3d[pts3d_closest_to_face_id]
-    pts3d_on_faces_closest_to_pts3d_sel = batched_index_select(pts3d_on_faces_closest.permute(1, 0, 2),
-                                                               index=pts3d_closest_to_face_id[:, None],
-                                                               dim=1)[:, 0]
+    pts3d_on_faces_closest_to_pts3d_sel = batched_index_select(
+        pts3d_on_faces_closest.permute(1, 0, 2),
+        index=pts3d_closest_to_face_id[:, None],
+        dim=1,
+    )[:, 0]
 
     pts3d_dists_pt_to_face = (pts3d - pts3d_on_faces_closest_sel).norm(dim=-1)
     # pts3d_dists_face_to_pt = (pts3d_to_faces_closest_sel - pts3d_on_faces_closest_to_pts3d_sel).norm(dim=-1)
 
     pts3d_dist = pts3d_dists_pt_to_face.mean()
 
-    #from od3d.cv.visual.show import show_scene
-    #show_scene(pts3d=[verts, torch.zeros((0, 3)).to(pts3d.device), pts3d[:1000], pts3d_on_face_closest[:1000] ],
+    # from od3d.cv.visual.show import show_scene
+    # show_scene(pts3d=[verts, torch.zeros((0, 3)).to(pts3d.device), pts3d[:1000], pts3d_on_face_closest[:1000] ],
     #           lines3d=[torch.stack([pts3d[:1000], pts3d_on_face_closest[:1000]],dim=-2)])
 
     return pts3d_dist

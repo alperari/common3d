@@ -103,4 +103,3 @@ checkpoints_cats:
   cup: ${platform.path_exps}/${checkpoints_cats_run_name.cup}/nemo.ckpt
   suitcase: ${platform.path_exps}/${checkpoints_cats_run_name.suitcase}/nemo.ckpt
   tv: ${platform.path_exps}/${checkpoints_cats_run_name.tv}/nemo.ckpt
-

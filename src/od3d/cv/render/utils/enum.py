@@ -1,5 +1,6 @@
 from od3d.data.ext_enum import StrEnum
 
+
 class LIGHT_ENV_FPATHS(StrEnum):
     NEUTRAL = "./data/light_envs/neutral.hdr"
     SPOT = "./data/light_envs/neutral.hdr"

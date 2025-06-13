@@ -101,7 +101,6 @@ def gradient_descent_se3(
         models = tform4x4(models.detach(), se3_exp_map(obj_tform6_tmp))
         obj_tform6_tmp.data[..., :] = 0.0
 
-
         # show_scene(pts3d = [ pts + pts_weight * pts_offset ], pts3d_colors= [1. - weights_arap[0, :, None].clamp(0, 1).repeat(1, 3)])
     pts_offset = pts_weight * pts_offset.detach()
     models = tform4x4(models.detach(), se3_exp_map(obj_tform6_tmp.detach()))

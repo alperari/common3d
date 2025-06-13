@@ -10,6 +10,7 @@ from od3d.cv.geometry.transform import (
 )
 from od3d.cv.geometry.primitives import Cuboids
 
+
 def fit_sphere_to_pts3d(
     pts3d,
     size=None,
@@ -33,7 +34,6 @@ def fit_sphere_to_pts3d(
 
     dtype = pts3d.dtype
     device = pts3d.device
-
 
     sphere_pts3d_limits = torch.cat(
         [
@@ -64,7 +64,7 @@ def fit_sphere_to_pts3d(
         verts_count=vertices_max_count,
         radius=sphere_size / 2.0,
         device=device,
-        ico=ico
+        ico=ico,
     )
 
     return spheres, spheres_tform4x4_obj

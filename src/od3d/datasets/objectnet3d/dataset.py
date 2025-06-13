@@ -23,6 +23,7 @@ from tqdm import tqdm
 from od3d.cv.geometry.objects3d.meshes import Meshes
 from od3d.datasets.object import OD3D_MESH_TYPES, OD3D_SCALE_TYPES
 
+
 class ObjectNet3D(OD3D_Dataset):
     map_od3d_categories = MAP_CATEGORIES_OD3D_TO_OBJECTNET3D
     all_categories = list(OBJECTNET3D_CATEGORIES)
@@ -228,7 +229,6 @@ class ObjectNet3D(OD3D_Dataset):
                     remove_previous=remove_previous,
                 )
 
-
     def preprocess_cuboid(self, override=False, remove_previous=False, quantile=0.95):
         logger.info("preprocess cuboid...")
 
@@ -287,7 +287,10 @@ class ObjectNet3D(OD3D_Dataset):
                 meshes.verts.data = meshes.verts
                 pts3d = meshes.verts
 
-                from od3d.cv.geometry.fit.cuboid import fit_cuboid_to_pts3d, fit_sphere_to_pts3d
+                from od3d.cv.geometry.fit.cuboid import (
+                    fit_cuboid_to_pts3d,
+                    fit_sphere_to_pts3d,
+                )
                 from od3d.datasets.enum import OD3D_CATEGORIES_SIZES_IN_M
 
                 if "cuboid" in mesh_type:
@@ -298,19 +301,19 @@ class ObjectNet3D(OD3D_Dataset):
                         vertices_max_count=mesh_vertices_count,
                         optimize_steps=0,
                         q=0.95,
-                        #size=OD3D_CATEGORIES_SIZES_IN_M[
+                        # size=OD3D_CATEGORIES_SIZES_IN_M[
                         #    MAP_CATEGORIES_PASCAL3D_TO_OD3D[category]
-                        #],
+                        # ],
                     )
 
-                    #scale_pascal3d_to_od3d[category] = (
+                    # scale_pascal3d_to_od3d[category] = (
                     #    tform_obj[:3, :3].norm(dim=-1).mean()
-                    #)
+                    # )
                     # show:
                     # meshes.verts *= scale_pascal3d_to_od3d[category]
                     # Meshes.load_from_meshes([meshes.get_mesh_with_id(i) for i in range(meshes.meshes_count)] + [cuboids.get_mesh_with_id(0)]).show(meshes_add_translation=False)
 
-                    obj_mesh = cuboids # .get_mesh_with_id(0)
+                    obj_mesh = cuboids  # .get_mesh_with_id(0)
 
                 elif "sphere" in mesh_type:
                     import torch
@@ -320,19 +323,19 @@ class ObjectNet3D(OD3D_Dataset):
                         optimize_transl=False,
                         vertices_max_count=mesh_vertices_count,
                         q=0.95,
-                        #size=OD3D_CATEGORIES_SIZES_IN_M[
+                        # size=OD3D_CATEGORIES_SIZES_IN_M[
                         #    MAP_CATEGORIES_PASCAL3D_TO_OD3D[category]
-                        #],
-                        )
+                        # ],
+                    )
 
-                    #scale_pascal3d_to_od3d[category] = (
+                    # scale_pascal3d_to_od3d[category] = (
                     #    tform_obj[:3, :3].norm(dim=-1).mean()
-                    #)
+                    # )
                     # show:
                     # meshes.verts *= scale_pascal3d_to_od3d[category]
                     # Meshes.load_from_meshes([meshes.get_mesh_with_id(i) for i in range(meshes.meshes_count)] + [cuboids.get_mesh_with_id(0)]).show(meshes_add_translation=False)
 
-                    obj_mesh = spheres # .get_mesh_with_id(0)
+                    obj_mesh = spheres  # .get_mesh_with_id(0)
 
                 else:
                     raise ValueError(f"mesh type {mesh_type} not recognized")

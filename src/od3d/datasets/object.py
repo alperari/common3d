@@ -9,7 +9,9 @@ import torch
 from od3d.data.ext_enum import StrEnum
 from typing import List
 from od3d.cv.geometry.objects3d.meshes import Meshes
+
 # from od3d.datasets.frame import OD3D_FRAME_MODALITIES
+
 
 @dataclass
 class OD3D_Object(ABC):
@@ -53,9 +55,11 @@ class OD3D_FRAME_DEPTH_TYPES(StrEnum):
     META = "meta"
     MESH = "mesh"
 
+
 class OD3D_SCALE_TYPES(StrEnum):
     REAL = "real"
     NORM = "norm"
+
 
 class OD3D_MESH_TYPES(StrEnum):
     META = "meta"
@@ -71,6 +75,7 @@ class OD3D_MESH_TYPES(StrEnum):
     TRELLISMASK500 = "trellismask500"
     TRELLISMV500 = "trellismv500"
     TRELLISMVMASK500 = "trellismvmask500"
+
 
 class OD3D_MESH_FEATS_TYPES(StrEnum):
     M_DINOV2_VITS14_FROZEN_BASE_NO_NORM_T_CENTERZOOM512_R_ACC = (
@@ -114,6 +119,7 @@ class OD3D_PCL_TYPES(StrEnum):
     POISSON_DISK = "poisson_disk"
     POISSON_DISK_FPS = "poisson_disk_fps"
 
+
 class OD3D_TFROM_OBJ_TYPES(StrEnum):
     RAW = "raw"
     CENTER3D = "center3d"
@@ -121,10 +127,11 @@ class OD3D_TFROM_OBJ_TYPES(StrEnum):
     LABEL3D_ZSP_CUBOID = "label3d_zsp_cuboid"
     LABEL3D = "label3d"
     LABEL3D_CUBOID = "label3d_cuboid"
-    META = 'meta'
-    META_CUBOID = 'meta_cuboid'
+    META = "meta"
+    META_CUBOID = "meta_cuboid"
 
     # ALIGNED7D = 'aligned7d'
+
 
 class OD3D_SEQUENCE_SFM_TYPES(StrEnum):
     META = "meta"
@@ -136,9 +143,11 @@ class OD3D_FRAME_KPTS2D_ANNOT_TYPES(StrEnum):
     META = "meta"
     LABEL = "label"
 
+
 @dataclass
 class OD3D_FrameKpts2d3dTypeMixin(OD3D_Object):
     kpts2d_annot_type: OD3D_FRAME_KPTS2D_ANNOT_TYPES
+
 
 @dataclass
 class OD3D_TformObjMixin:
@@ -211,7 +220,7 @@ class OD3D_MeshTypeMixin(OD3D_Object):
         if mesh_type is None:
             mesh_type = self.mesh_type
         if mesh_type == OD3D_MESH_TYPES.META:
-            return self. get_fpath_mesh_with_rfpath(self.meta.rfpath_mesh)
+            return self.get_fpath_mesh_with_rfpath(self.meta.rfpath_mesh)
         else:
             if "trellis" not in mesh_type and "hunyuan" not in mesh_type:
                 return self.path_preprocess.joinpath(
@@ -241,7 +250,7 @@ class OD3D_MeshTypeMixin(OD3D_Object):
             device=device,
         )
 
-        if (mesh_type is None or mesh_type == self.mesh_type):
+        if mesh_type is None or mesh_type == self.mesh_type:
             self.mesh = mesh
         return mesh
 
@@ -274,6 +283,7 @@ class OD3D_PCLTypeMixin(OD3D_Object):
 @dataclass
 class OD3D_SequenceSfMTypeMixin(OD3D_Object):
     sfm_type: OD3D_SEQUENCE_SFM_TYPES  # = OD3D_SEQUENCE_SFM_TYPES.DROID
+
 
 @dataclass
 class OD3D_SubsetMixin(OD3D_Object):

@@ -1,3 +1,4 @@
+import datetime
 import logging
 from pathlib import Path
 
@@ -5,9 +6,12 @@ import numpy
 import od3d.io
 import pandas
 import typer
-from od3d.io import write_dict_as_yaml, read_dict_from_yaml
-import datetime
-from od3d.io import dt_from_str, dt_to_str, td_to_hours, td_to_mins
+from od3d.io import dt_from_str
+from od3d.io import dt_to_str
+from od3d.io import read_dict_from_yaml
+from od3d.io import td_to_hours
+from od3d.io import td_to_mins
+from od3d.io import write_dict_as_yaml
 
 logger = logging.getLogger(__name__)
 from od3d.benchmark.run import (
@@ -1040,7 +1044,9 @@ def run(
     ablation: str = typer.Option(None, "-a", "--ablation"),
     platform: str = typer.Option("local", "-p", "--platform"),
     age_in_hours_lt: int = typer.Option(24, "-l", "--age-in-hours-lt"),
-    max_count_running_and_pending_runs: int = typer.Option(70, "-r", "--max-count-runs"),
+    max_count_running_and_pending_runs: int = typer.Option(
+        70, "-r", "--max-count-runs"
+    ),
     force: str = typer.Option(False, "-f", "--force"),
     max_count_sleep_time_in_mins: int = typer.Option(10, "-s", "--max-count-sleep"),
 ):
@@ -1089,8 +1095,6 @@ def run(
     print(f"{len(methods_cfgs)} configs with single method.")
 
     current_branch = Repository(".").head.shorthand  # 'master'
-
-
 
     # only to get last run
     prev_runs_all = get_dataframe_multiple(
@@ -1152,10 +1156,14 @@ def run(
                     )
 
             method_cfg.run_name = run_name
-            method_cfg.run_name_without_ts_and_platform = run_name_without_ts_and_platform
+            method_cfg.run_name_without_ts_and_platform = (
+                run_name_without_ts_and_platform
+            )
 
     while len(methods_cfgs) > 0:
-        hours_passed_since_start = math.ceil((datetime.datetime.now()-datetime_start).seconds / 3600)
+        hours_passed_since_start = math.ceil(
+            (datetime.datetime.now() - datetime_start).seconds / 3600
+        )
         # running_runs_names_without_ts_and_platform = [
         #     get_run_name_without_ts_and_platform(run.name) for run in get_runs_multiple(
         #         benchmark=None,
@@ -1165,7 +1173,8 @@ def run(
         # ]
 
         finished_runs_names_without_ts_and_platform = [
-            get_run_name_without_ts_and_platform(run.name) for run in get_runs_multiple(
+            get_run_name_without_ts_and_platform(run.name)
+            for run in get_runs_multiple(
                 benchmark=benchmark,
                 ablation=ablation,
                 age_in_hours_lt=age_in_hours_lt + hours_passed_since_start,
@@ -1191,18 +1200,27 @@ def run(
                     # ablation=ablation,
                     platform=platform_base,
                     age_in_hours_lt=3,
-                    state="(failed)")
+                    state="(failed)",
+                )
                 if slurm_failed_runs is None:
                     slurm_failed_runs = []
 
-                slurm_failed_hosts = [run.metadata['host'] for run in slurm_failed_runs if run is not None and run.metadata is not None]
+                slurm_failed_hosts = [
+                    run.metadata["host"]
+                    for run in slurm_failed_runs
+                    if run is not None and run.metadata is not None
+                ]
                 slurm_failed_hosts = list(set(slurm_failed_hosts))
-                slurm_failed_hosts = [node for node in slurm_failed_hosts if len(node) > 0]
+                slurm_failed_hosts = [
+                    node for node in slurm_failed_hosts if len(node) > 0
+                ]
 
                 dict_slurm_failed_hosts = {}
                 dict_slurm_failed_hosts["time"] = dt_to_str(datetime.datetime.now())
                 dict_slurm_failed_hosts["hosts"] = slurm_failed_hosts
-                write_dict_as_yaml(fpath=slurm_failed_hosts_fpath, _dict=dict_slurm_failed_hosts)
+                write_dict_as_yaml(
+                    fpath=slurm_failed_hosts_fpath, _dict=dict_slurm_failed_hosts
+                )
 
             if len(slurm_failed_hosts) > 0:
                 logger.info(f"excluding slurm failed nodes {slurm_failed_hosts}")
@@ -1210,34 +1228,50 @@ def run(
             slurm_failed_hosts = None
 
         pending_runs_names_without_ts_and_platform = [
-            get_run_name_without_ts_and_platform(job_name) for job_name in
-            get_jobs_names(platform=platform_base, state="PENDING")]
+            get_run_name_without_ts_and_platform(job_name)
+            for job_name in get_jobs_names(platform=platform_base, state="PENDING")
+        ]
 
         pending_runs_names_without_ts_and_platform += [
-            get_run_name_without_ts_and_platform(job_name) for job_name in
-            get_jobs_names(platform=platform_base, state="CONFIGURING")]
+            get_run_name_without_ts_and_platform(job_name)
+            for job_name in get_jobs_names(platform=platform_base, state="CONFIGURING")
+        ]
 
         running_runs_names_without_ts_and_platform = [
-            get_run_name_without_ts_and_platform(job_name) for job_name in
-            get_jobs_names(platform=platform_base, state="RUNNING")]
+            get_run_name_without_ts_and_platform(job_name)
+            for job_name in get_jobs_names(platform=platform_base, state="RUNNING")
+        ]
 
-        methods_cfgs = [method_cfg for method_cfg in methods_cfgs if method_cfg.run_name_without_ts_and_platform not in finished_runs_names_without_ts_and_platform ]
+        methods_cfgs = [
+            method_cfg
+            for method_cfg in methods_cfgs
+            if method_cfg.run_name_without_ts_and_platform
+            not in finished_runs_names_without_ts_and_platform
+        ]
 
         for method_cfg in methods_cfgs:
             logger.info(f"{method_cfg.run_name}")
 
         logger.info(f"time: {datetime.datetime.now()}")
-        logger.info(f"runs finished: {len(finished_runs_names_without_ts_and_platform)}")
+        logger.info(
+            f"runs finished: {len(finished_runs_names_without_ts_and_platform)}"
+        )
         logger.info(f"runs running: {len(running_runs_names_without_ts_and_platform)}")
         logger.info(f"runs pending: {len(pending_runs_names_without_ts_and_platform)}")
         logger.info(f"runs to finish: {len(methods_cfgs)}")
 
         started_runs = 0
         for i, method_cfg in tqdm(enumerate(methods_cfgs)):
-            if (started_runs + len(running_runs_names_without_ts_and_platform) + len(
-                    pending_runs_names_without_ts_and_platform)) > max_count_running_and_pending_runs:
+            if (
+                started_runs
+                + len(running_runs_names_without_ts_and_platform)
+                + len(
+                    pending_runs_names_without_ts_and_platform,
+                )
+            ) > max_count_running_and_pending_runs:
                 logger.warning(
-                    f'already more than {max_count_running_and_pending_runs} runs running or pending, sleep for 10 minutes')
+                    f"already more than {max_count_running_and_pending_runs} runs running or pending, sleep for 10 minutes",
+                )
                 time.sleep(max_count_sleep_time)
                 break
 
@@ -1260,8 +1294,10 @@ def run(
                 run_name,
             )
             if not force and (
-                run_name_without_ts_and_platform in running_runs_names_without_ts_and_platform
-                or run_name_without_ts_and_platform in pending_runs_names_without_ts_and_platform
+                run_name_without_ts_and_platform
+                in running_runs_names_without_ts_and_platform
+                or run_name_without_ts_and_platform
+                in pending_runs_names_without_ts_and_platform
             ):
                 logger.info(f"{run_name} already running or pending. Skipping...")
                 continue
@@ -1281,11 +1317,12 @@ def run(
             time.sleep(5)
 
         if len(methods_cfgs) > started_runs:
-            logger.warning(f'started runs, sleep for 10 minutes')
+            logger.warning(f"started runs, sleep for 10 minutes")
             time.sleep(max_count_sleep_time)
         else:
-            logger.info(f'started all runs.')
+            logger.info(f"started all runs.")
             break
+
 
 def get_failed_runs(name_regex=".*", age_in_hours=1000):
     logging.basicConfig(level=logging.INFO)
@@ -1347,6 +1384,7 @@ def delete_wandb_failed(
         logger.info(run.name)
         run.delete()
 
+
 @app.command()
 def get_run():
     "07-24_15-35-56_CO3D_NeMo_sparse_meshes_soft_sigm_norm_no_def_slurm"
@@ -1354,6 +1392,7 @@ def get_run():
     runs = get_runs(
         name_regex="07-24_15-35-56_CO3D_NeMo_sparse_meshes_soft_sigm_norm_no_def_slurm",
     )
+
 
 @app.command()
 def delete_wandb_running(

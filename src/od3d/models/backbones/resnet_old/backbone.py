@@ -11,6 +11,7 @@ from od3d.models.backbones.resnet_old.backbone_old import NetE2E
 from od3d.cv.visual.resize import resize
 from od3d.data.batch_datatypes import OD3D_ModelData
 
+
 class ResNetOld(OD3D_Backbone):
     def __init__(
         self,
@@ -67,7 +68,6 @@ class ResNetOld(OD3D_Backbone):
 
         # return self.net.forward_test(resize(rgb, H_out=512, W_out=512))
         # return torch.nn.functional.normalize(self.net.net(rgb), p=2, dim=1)
-
 
         x_out = OD3D_ModelData(featmaps=[self.net.forward_test(rgb)])
 

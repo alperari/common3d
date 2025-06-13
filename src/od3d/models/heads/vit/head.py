@@ -28,7 +28,6 @@ class ViT(OD3D_Head):
         block_fn: Type[nn.Module] = Block,
         mlp_layer: Type[nn.Module] = Mlp,
     ):
-
         super().__init__(
             in_dims=in_dims,
             in_upsample_scales=in_upsample_scales,

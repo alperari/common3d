@@ -249,9 +249,15 @@ class Cuboids(Meshes):
             # ~ v = (x * y + z * y + x * x * z) * 2 / step^2
             # ~ step = sqrt((x * y + z * y + x * z) * 2 / v)
             if verts_count is not None:
-                vx = max(1, int(w / (((w * h + w * d + h * d) * 2 / verts_count) ** 0.5)))
-                vy = max(1, int(h / (((w * h + w * d + h * d) * 2 / verts_count) ** 0.5)))
-                vz = max(1, int(d / (((w * h + w * d + h * d) * 2 / verts_count) ** 0.5)))
+                vx = max(
+                    1, int(w / (((w * h + w * d + h * d) * 2 / verts_count) ** 0.5))
+                )
+                vy = max(
+                    1, int(h / (((w * h + w * d + h * d) * 2 / verts_count) ** 0.5))
+                )
+                vz = max(
+                    1, int(d / (((w * h + w * d + h * d) * 2 / verts_count) ** 0.5))
+                )
             else:
                 vx = 2
                 vy = 2

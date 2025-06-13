@@ -407,8 +407,6 @@ class Meshes(torch.nn.Module):
     def __len__(self):
         return self.meshes_count
 
-
-
     def _apply(self, fn):
         super()._apply(fn)
 

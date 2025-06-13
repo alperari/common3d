@@ -30,19 +30,19 @@ class Pascal3D(OD3D_Dataset):
     mesh_type = OD3D_MESH_TYPES.META
 
     def __init__(
-            self,
-            name: str,
-            modalities: List[OD3D_FRAME_MODALITIES],
-            path_raw: Path,
-            path_preprocess: Path,
-            categories: List[str] = None,
-            transform=None,
-            index_shift=0,
-            subset_fraction=1.0,
-            dict_nested_frames: Dict = None,
-            dict_nested_frames_ban: Dict = None,
-            mesh_type: OD3D_MESH_TYPES=OD3D_MESH_TYPES.META,
-            scale_type: OD3D_SCALE_TYPES = OD3D_SCALE_TYPES.NORM,
+        self,
+        name: str,
+        modalities: List[OD3D_FRAME_MODALITIES],
+        path_raw: Path,
+        path_preprocess: Path,
+        categories: List[str] = None,
+        transform=None,
+        index_shift=0,
+        subset_fraction=1.0,
+        dict_nested_frames: Dict = None,
+        dict_nested_frames_ban: Dict = None,
+        mesh_type: OD3D_MESH_TYPES = OD3D_MESH_TYPES.META,
+        scale_type: OD3D_SCALE_TYPES = OD3D_SCALE_TYPES.NORM,
     ):
         super().__init__(
             name=name,
@@ -231,7 +231,10 @@ class Pascal3D(OD3D_Dataset):
                 meshes.verts.data = meshes.verts
                 pts3d = meshes.verts
 
-                from od3d.cv.geometry.fit.cuboid import fit_cuboid_to_pts3d, fit_sphere_to_pts3d
+                from od3d.cv.geometry.fit.cuboid import (
+                    fit_cuboid_to_pts3d,
+                    fit_sphere_to_pts3d,
+                )
                 from od3d.datasets.enum import OD3D_CATEGORIES_SIZES_IN_M
 
                 if "cuboid" in mesh_type:
@@ -242,14 +245,14 @@ class Pascal3D(OD3D_Dataset):
                         vertices_max_count=mesh_vertices_count,
                         optimize_steps=0,
                         q=0.95,
-                        #size=OD3D_CATEGORIES_SIZES_IN_M[
+                        # size=OD3D_CATEGORIES_SIZES_IN_M[
                         #    MAP_CATEGORIES_PASCAL3D_TO_OD3D[category]
-                        #],
+                        # ],
                     )
 
-                    #scale_pascal3d_to_od3d[category] = (
+                    # scale_pascal3d_to_od3d[category] = (
                     #    tform_obj[:3, :3].norm(dim=-1).mean()
-                    #)
+                    # )
                     # show:
                     # meshes.verts *= scale_pascal3d_to_od3d[category]
                     # Meshes.load_from_meshes([meshes.get_mesh_with_id(i) for i in range(meshes.meshes_count)] + [cuboids.get_mesh_with_id(0)]).show(meshes_add_translation=False)
@@ -264,14 +267,14 @@ class Pascal3D(OD3D_Dataset):
                         optimize_transl=False,
                         vertices_max_count=mesh_vertices_count,
                         q=0.95,
-                        #size=OD3D_CATEGORIES_SIZES_IN_M[
+                        # size=OD3D_CATEGORIES_SIZES_IN_M[
                         #    MAP_CATEGORIES_PASCAL3D_TO_OD3D[category]
-                        #],
-                        )
+                        # ],
+                    )
 
-                    #scale_pascal3d_to_od3d[category] = (
+                    # scale_pascal3d_to_od3d[category] = (
                     #    tform_obj[:3, :3].norm(dim=-1).mean()
-                    #)
+                    # )
                     # show:
                     # meshes.verts *= scale_pascal3d_to_od3d[category]
                     # Meshes.load_from_meshes([meshes.get_mesh_with_id(i) for i in range(meshes.meshes_count)] + [cuboids.get_mesh_with_id(0)]).show(meshes_add_translation=False)
@@ -304,7 +307,7 @@ class Pascal3D(OD3D_Dataset):
             path_preprocess=self.path_preprocess,
             name_unique=name_unique,
             all_categories=self.categories,
-            mask_type=OD3D_FRAME_MASK_TYPES.SAM_KPTS2D_BBOX, # .MESH .SAM_KPTS2D_BBOX
+            mask_type=OD3D_FRAME_MASK_TYPES.SAM_KPTS2D_BBOX,  # .MESH .SAM_KPTS2D_BBOX
             cam_tform4x4_obj_type=OD3D_CAM_TFORM_OBJ_TYPES.META,
             mesh_type=self.mesh_type,
             mesh_feats_type=OD3D_MESH_FEATS_TYPES.M_DINOV2_VITB14_FROZEN_BASE_NO_NORM_T_CENTERZOOM512_R_ACC,

@@ -1,9 +1,10 @@
 import torch
 
+
 def fps(pts3d, K, fill=True):
     sample_count = min(len(pts3d), K)
     pts_inds = torch.zeros((K,), dtype=torch.long, device=pts3d.device)
-    pts_vals = torch.zeros((K, 3,), device=pts3d.device)
+    pts_vals = torch.zeros((K, 3), device=pts3d.device)
 
     if len(pts3d) > 0:
         pts_vals[:] = pts3d[0]
@@ -14,6 +15,7 @@ def fps(pts3d, K, fill=True):
     # pts_inds_sampled = pts_inds_sampled[0]
 
     from torch_cluster import fps
+
     # pip install torch-cluster -f https://data.pyg.org/whl/torch-2.0.1+cu117.html
     pts_inds_sampled = fps(pts3d, ratio=sample_count / len(pts3d))
     pts_vals_sampled = pts3d[pts_inds_sampled]
@@ -27,6 +29,7 @@ def fps(pts3d, K, fill=True):
         pts_vals = pts_vals_sampled[:sample_count]
         pts_inds = pts_inds_sampled[:sample_count]
     return pts_inds, pts_vals
+
 
 def farthest_point_sampling(pts3d_cls, K):
     import pytorch3d.ops

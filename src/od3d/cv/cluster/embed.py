@@ -29,6 +29,7 @@ def pca(X, C=2, center=True, return_V=False):
             X_embedded = X_embedded.reshape(*batch_shape, C)
         return X_embedded
 
+
 def tsne(X, C=2):
     """
     t-distributed Stochastic Neighbor Embedding (t-SNE) is a nonlinear dimensionality reduction technique well-suited for embedding high-dimensional data for visualization in a low-dimensional space of two or three dimensions. Specifically, it models each high-dimensional object by a two- or three-dimensional point in such a way that similar objects are modeled by nearby points and dissimilar objects are modeled by distant points with high probability.

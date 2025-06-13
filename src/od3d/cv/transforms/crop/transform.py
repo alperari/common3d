@@ -7,6 +7,7 @@ from od3d.cv.transforms.transform import OD3D_Transform
 from od3d.datasets.frame import OD3D_FRAME_MODALITIES
 import torch
 
+
 class Crop(OD3D_Transform):
     def __init__(self, H, W):
         super().__init__()
@@ -47,7 +48,6 @@ class Crop(OD3D_Transform):
                 frame.kpts2d_annot = frame.kpts2d_annot + cam_crop_tform_cam[:2, 2]
 
         if OD3D_FRAME_MODALITIES.RGBS in frame.modalities:
-
             for r in range(len(frame.get_rgbs())):
                 scale = min(self.H / frame.sizes[r][0], self.W / frame.sizes[r][1])
 
@@ -68,12 +68,20 @@ class Crop(OD3D_Transform):
 
                 if OD3D_FRAME_MODALITIES.BBOXS in frame.modalities:
                     # x_min, y_min, x_max, y_max
-                    frame.bboxs[r] = (frame.get_bboxs()[r].reshape(2, 2) * scale[None,]).flatten()
-                    frame.bboxs[r][[0, 2]] = frame.bboxs[r][[0, 2]] + cam_crop_tform_cam[0, 2]
-                    frame.bboxs[r][[1, 3]] = frame.bboxs[r][[1, 3]] + cam_crop_tform_cam[1, 2]
+                    frame.bboxs[r] = (
+                        frame.get_bboxs()[r].reshape(2, 2) * scale[None,]
+                    ).flatten()
+                    frame.bboxs[r][[0, 2]] = (
+                        frame.bboxs[r][[0, 2]] + cam_crop_tform_cam[0, 2]
+                    )
+                    frame.bboxs[r][[1, 3]] = (
+                        frame.bboxs[r][[1, 3]] + cam_crop_tform_cam[1, 2]
+                    )
 
                 if OD3D_FRAME_MODALITIES.KPTS2D_ANNOTS in frame.modalities:
                     frame.kpts2d_annots[r] = frame.get_kpts2d_annots()[r] * scale[None,]
-                    frame.kpts2d_annots[r] = frame.kpts2d_annots[r] + cam_crop_tform_cam[:2, 2]
+                    frame.kpts2d_annots[r] = (
+                        frame.kpts2d_annots[r] + cam_crop_tform_cam[:2, 2]
+                    )
 
         return frame

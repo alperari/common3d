@@ -10,6 +10,7 @@ from typing import List
 from od3d.data.ext_enum import ExtEnum
 from od3d.data.batch_datatypes import OD3D_ModelData
 
+
 class RESNET_CONV_BLOCK_TYPES(str, ExtEnum):
     BOTTLENECK = "bottleneck"
     BASIC = "basic"
@@ -34,7 +35,9 @@ def get_block(
                 planes=out_dim,
                 stride=stride,
                 downsample=nn.Sequential(
-                    nn.Conv2d(in_dim, out_dim, kernel_size=1, stride=stride, bias=False),
+                    nn.Conv2d(
+                        in_dim, out_dim, kernel_size=1, stride=stride, bias=False
+                    ),
                     nn.BatchNorm2d(out_dim),
                 ),
             ),
@@ -47,7 +50,9 @@ def get_block(
                 planes=out_dim // 4,
                 stride=stride,
                 downsample=nn.Sequential(
-                    nn.Conv2d(in_dim, out_dim, kernel_size=1, stride=stride, bias=False),
+                    nn.Conv2d(
+                        in_dim, out_dim, kernel_size=1, stride=stride, bias=False
+                    ),
                     nn.BatchNorm2d(out_dim),
                 ),
             ),
@@ -176,7 +181,7 @@ class ResNet(OD3D_Head):
                     out_dim=self.conv_blocks_out_dims[i],
                     stride=self.conv_blocks_strides[i],
                     pre_upsampling=self.conv_blocks_pre_upsampling[i],
-                    out_conv1x1=self.conv_blocks_out_conv1x1[i]
+                    out_conv1x1=self.conv_blocks_out_conv1x1[i],
                 )
                 for i in range(self.conv_blocks_count)
             ],
@@ -220,8 +225,8 @@ class ResNet(OD3D_Head):
 
     def get_feat_distr(self, feat):
         feat_dim = feat.shape[-1]
-        feat_mu = feat[..., :feat_dim // 2]
-        feat_logvar = feat[..., feat_dim // 2:]
+        feat_mu = feat[..., : feat_dim // 2]
+        feat_logvar = feat[..., feat_dim // 2 :]
         # Compute the standard deviation from the log variance
         std = torch.exp(0.5 * feat_logvar)
         # Generate random noise using the same shape as std
@@ -290,5 +295,7 @@ class ResNet(OD3D_Head):
                 x_featmap = torch.nn.functional.normalize(x_featmap, p=2, dim=1)
                 x_feat = torch.nn.functional.normalize(x_feat, p=2, dim=1)
 
-        x_out = OD3D_ModelData(featmap=x_featmap, feat=x_feat, feat_mu=x_feat_mu, feat_logvar=x_feat_logvar)
+        x_out = OD3D_ModelData(
+            featmap=x_featmap, feat=x_feat, feat_mu=x_feat_mu, feat_logvar=x_feat_logvar
+        )
         return x_out

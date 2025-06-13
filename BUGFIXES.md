@@ -125,13 +125,13 @@ pip install imageio-ffmpeg
 pip install moviepy
 
 
-# BUG 11 
+# BUG 11
 
 NO SPACE LEFT ON DEVICE
 
 tail -n 100 /var/log/auth.log
 
-/var/log/syslog 
+/var/log/syslog
 
 sudo su
 echo "" > /var/log/kern.log
@@ -199,13 +199,13 @@ os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 
 warning: failed to delete old cython speedups. Please delete all *.so files from the directories
 
-in registry: ctrl+alt+shift+'/' -> registry : 
+in registry: ctrl+alt+shift+'/' -> registry :
 disable
 python.debug.enable.cython.speedups
 
 # BUG 15 Not enough SWAP MEMORY
-swapon --show     
-/dev/nvme0n1p4 
+swapon --show
+/dev/nvme0n1p4
 # 1MB * 1K= 1GB, 1MB * 30K = 30GB
 sudo dd if=/dev/nvme0n1p3 of=/swapfile count=30K bs=1M
 sudo mkswap /swapfile

@@ -1,8 +1,11 @@
 import logging
 
-from od3d.cv.io import read_depth_image, read_image
+from od3d.cv.io import read_depth_image
+from od3d.cv.io import read_image
+from od3d.datasets.object import OD3D_MESH_TYPES
+from od3d.datasets.object import OD3D_TFROM_OBJ_TYPES
 from od3d.datasets.omni6dpose.enum import MAP_CATEGORIES_OMNI6DPOSE_TO_OD3D
-from od3d.datasets.object import OD3D_TFROM_OBJ_TYPES, OD3D_MESH_TYPES
+
 logger = logging.getLogger(__name__)
 from od3d.cv.geometry.objects3d.meshes import Meshes
 import torch
@@ -25,7 +28,7 @@ from od3d.datasets.frame_meta import (
     OD3D_FrameMetaObjsValidMixin,
     OD3D_FrameMetaObjsNameMixin,
     OD3D_FrameMetaSubsetMixin,
-    OD3D_FrameMetaMeshsMixin
+    OD3D_FrameMetaMeshsMixin,
 )
 
 from od3d.datasets.frame import (
@@ -53,6 +56,7 @@ from od3d.datasets.object import (
     OD3D_SequenceSfMTypeMixin,
 )
 
+
 @dataclass
 class Omni6DPose_FrameMeta(
     OD3D_FrameMetaCamIntr4x4Mixin,
@@ -74,10 +78,13 @@ class Omni6DPose_FrameMeta(
     @property
     def name_unique(self):
         return f"{self.subset}/{super().name_unique}"
+
     @property
     def sequence_name_unique(self):
         return f"{self.subset}/{super().sequence_name_unique}"
+
     pass
+
 
 @dataclass
 class Omni6DPose_Frame(
@@ -107,15 +114,20 @@ class Omni6DPose_Frame(
     def __post_init__(self):
         # hack: prevents circular import
         from od3d.datasets.omni6dpose.sequence import Omni6DPose_Sequence
+
         self.sequence_type = Omni6DPose_Sequence
 
     @property
     def fpath_bboxs(self):
-        return Path(self.path_preprocess.joinpath("bboxs", self.name_unique, "bboxs.pt"))
+        return Path(
+            self.path_preprocess.joinpath("bboxs", self.name_unique, "bboxs.pt")
+        )
 
     @property
     def fpath_bboxs_vsbl(self):
-        return Path(self.path_preprocess.joinpath("bboxs", self.name_unique, "bboxs_vsbl.pt"))
+        return Path(
+            self.path_preprocess.joinpath("bboxs", self.name_unique, "bboxs_vsbl.pt")
+        )
 
     def write_bboxs(self, bboxs: torch.LongTensor):
         self.fpath_bboxs.parent.mkdir(parents=True, exist_ok=True)
@@ -130,17 +142,21 @@ class Omni6DPose_Frame(
         self.mesh.cuda()
         #
         from od3d.cv.geometry.objects3d.meshes import PROJECT_MODALITIES
-        scene = self.mesh.render(cams_tform4x4_obj=self.meta.cam_tform4x4_obj.clone()[None,].cuda(),
-                                 cams_intr4x4=self.meta.cam_intr4x4.clone()[None,].cuda(),
-                                 imgs_sizes=self.meta.size.clone(),
-                                 #objects_ids=objs_ids,
-                                 modalities=PROJECT_MODALITIES.MASK,
-                                 broadcast_batch_and_cams=True,
-                                 obj_tform4x4_objs=self.meta.obj_tform4x4_objs.clone().cuda())
+
+        scene = self.mesh.render(
+            cams_tform4x4_obj=self.meta.cam_tform4x4_obj.clone()[None,].cuda(),
+            cams_intr4x4=self.meta.cam_intr4x4.clone()[None,].cuda(),
+            imgs_sizes=self.meta.size.clone(),
+            # objects_ids=objs_ids,
+            modalities=PROJECT_MODALITIES.MASK,
+            broadcast_batch_and_cams=True,
+            obj_tform4x4_objs=self.meta.obj_tform4x4_objs.clone().cuda(),
+        )
         # scene: [16, 1, 1, 512, 512]) get bounding box per object in 16
-        #from od3d.cv.visual.show import show_img, show_imgs
-        #show_imgs(scene[:, 0])
+        # from od3d.cv.visual.show import show_img, show_imgs
+        # show_imgs(scene[:, 0])
         from torchvision.ops import masks_to_boxes
+
         bboxs = masks_to_boxes(scene[:, 0, 0] > 0).long()
         self.write_bboxs(bboxs=bboxs)
 
@@ -148,17 +164,21 @@ class Omni6DPose_Frame(
         self.mesh = self.read_mesh()
         self.mesh.cuda()
         from od3d.cv.geometry.objects3d.meshes import PROJECT_MODALITIES
-        scene = self.mesh.render(cams_tform4x4_obj=self.meta.cam_tform4x4_obj.clone()[None,].cuda(),
-                                 cams_intr4x4=self.meta.cam_intr4x4.clone()[None,].cuda(),
-                                 imgs_sizes=self.meta.size.clone(),
-                                 objects_ids=torch.arange(len(self.mesh))[None,],
-                                 modalities=PROJECT_MODALITIES.OBJ_IN_SCENE_ONEHOT,
-                                 broadcast_batch_and_cams=False,
-                                 obj_tform4x4_objs=self.meta.obj_tform4x4_objs.clone()[None,].cuda())
+
+        scene = self.mesh.render(
+            cams_tform4x4_obj=self.meta.cam_tform4x4_obj.clone()[None,].cuda(),
+            cams_intr4x4=self.meta.cam_intr4x4.clone()[None,].cuda(),
+            imgs_sizes=self.meta.size.clone(),
+            objects_ids=torch.arange(len(self.mesh))[None,],
+            modalities=PROJECT_MODALITIES.OBJ_IN_SCENE_ONEHOT,
+            broadcast_batch_and_cams=False,
+            obj_tform4x4_objs=self.meta.obj_tform4x4_objs.clone()[None,].cuda(),
+        )
         # scene: [1, 16, 512, 512]) get bounding box per object in 16
-        #from od3d.cv.visual.show import show_img, show_imgs
-        #show_imgs(scene[0])
+        # from od3d.cv.visual.show import show_img, show_imgs
+        # show_imgs(scene[0])
         from torchvision.ops import masks_to_boxes
+
         bboxs = masks_to_boxes(scene[0] > 0).long()
         self.write_bboxs_vsbl(bboxs=bboxs)
 
@@ -174,10 +194,15 @@ class Omni6DPose_Frame(
 
     @property
     def objcentric(self):
-        return (self.meta.subset != "test_real" and self.meta.subset != "test_ikea" and
-                self.meta.subset != "test_matterport3d" and self.meta.subset != "test_scannetpp" and
-                self.meta.subset != "train_ikea" and self.meta.subset != "train_matterport3d" and
-                self.meta.subset != "train_scannetpp")
+        return (
+            self.meta.subset != "test_real"
+            and self.meta.subset != "test_ikea"
+            and self.meta.subset != "test_matterport3d"
+            and self.meta.subset != "test_scannetpp"
+            and self.meta.subset != "train_ikea"
+            and self.meta.subset != "train_matterport3d"
+            and self.meta.subset != "train_scannetpp"
+        )
 
     @property
     def fpath_pxl_cat_id(self):
@@ -215,7 +240,7 @@ class Omni6DPose_Frame(
     def read_pxl_cat_id(self):
         if not self.objcentric:
             """Load the mask image.
-    
+
             :return: uint8 array of shape (Height, Width), whose values are related
                 to the objects' mask ids (:attr:`.image_meta.ObjectPoseInfo.mask_id`).
             """
@@ -223,36 +248,42 @@ class Omni6DPose_Frame(
             import numpy as np
             import torch
             import os
+
             os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
-            img = cv2.imread(str(self.fpath_pxl_cat_id), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+            img = cv2.imread(
+                str(self.fpath_pxl_cat_id), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
+            )
             if len(img.shape) == 3:
                 img = img[:, :, 2]
             img = np.array(img * 255, dtype=np.uint8)
             os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "0"
 
             pxl_cat_id = torch.from_numpy(img)[None,]
-            pxl_cat_id[pxl_cat_id == 255] = 0 # bug in test_real subset
+            pxl_cat_id[pxl_cat_id == 255] = 0  # bug in test_real subset
         else:
             pxl_cat_id = read_image(path=self.fpath_pxl_cat_id)
-        return pxl_cat_id # 1xHxW
+        return pxl_cat_id  # 1xHxW
 
     def read_mask(self):
-        return (self.read_pxl_cat_id() > 0) # 1xHxW
+        return self.read_pxl_cat_id() > 0  # 1xHxW
 
     def read_depth(self):
         if not self.objcentric:
             """
             This function read the depth image, selecting the first channel if multiple
             channels are detected.
-    
+
             :return: A 2D float array of shape (Height, Width). For Omni6DPose,
                 the unit of pixel value is meter.
             """
             import cv2
             import torch
             import os
+
             os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
-            depth = cv2.imread(str(self.fpath_depth), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+            depth = cv2.imread(
+                str(self.fpath_depth), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
+            )
             if len(depth.shape) == 3:
                 depth = depth[:, :, 0]
 
@@ -266,24 +297,33 @@ class Omni6DPose_Frame(
     def read_depth_mask(self):
         return (self.read_depth() > 0)[None,]  # 1xHxW
 
-
     def get_fpaths_meshs(self, mesh_type=None):
         # TODO: add for multiple mesh types
         if mesh_type is None:
             mesh_type = OD3D_MESH_TYPES.META
 
         if mesh_type == OD3D_MESH_TYPES.META:
-            fpaths_meshs = [self.get_fpath_mesh_with_rfpath(rfpath) for rfpath in self.meta.rfpaths_meshs]
+            fpaths_meshs = [
+                self.get_fpath_mesh_with_rfpath(rfpath)
+                for rfpath in self.meta.rfpaths_meshs
+            ]
         else:
-            #logger.info(self.path_preprocess)
-            #logger.info(mesh_type)
-            #logger.info(self.meta.rfpaths_meshs)
-            #logger.info([ rfpath.with_suffix('.ply') for rfpath in self.meta.rfpaths_meshs])
-            fpaths_meshs = [self.path_preprocess.joinpath("mesh", str(mesh_type), rfpath.with_suffix('.ply')) for rfpath in self.meta.rfpaths_meshs]
+            # logger.info(self.path_preprocess)
+            # logger.info(mesh_type)
+            # logger.info(self.meta.rfpaths_meshs)
+            # logger.info([ rfpath.with_suffix('.ply') for rfpath in self.meta.rfpaths_meshs])
+            fpaths_meshs = [
+                self.path_preprocess.joinpath(
+                    "mesh", str(mesh_type), rfpath.with_suffix(".ply")
+                )
+                for rfpath in self.meta.rfpaths_meshs
+            ]
         return fpaths_meshs
 
     def read_obj_tform4x4_objs(self):
-        obj_tform4x4_objs = super(OD3D_FrameCamTform4x4ObjsMixin, self).read_obj_tform4x4_objs()
+        obj_tform4x4_objs = super(
+            OD3D_FrameCamTform4x4ObjsMixin, self
+        ).read_obj_tform4x4_objs()
         fpaths_meshes = self.get_fpaths_meshs(mesh_type=self.mesh_type)
         mesh = Meshes.read_from_ply_files(fpaths_meshes=fpaths_meshes)
         objscentric_tform4x4_objs = mesh.get_objscentric_tform4x4_objs()
@@ -296,12 +336,11 @@ class Omni6DPose_Frame(
             self.obj_tform4x4_objs = self.read_obj_tform4x4_objs()
         return self.obj_tform4x4_objs
 
-
     def read_mesh(self, mesh_type=None, device="cpu", tform_obj_type=None):
-        #mesh = Meshes.read_from_ply_file(
+        # mesh = Meshes.read_from_ply_file(
         #    fpath=self.get_fpath_mesh(mesh_type=mesh_type),
         #    device=device,
-        #)
+        # )
         if mesh_type is None:
             mesh_type = self.mesh_type
         fpaths_meshes = self.get_fpaths_meshs(mesh_type=mesh_type)
@@ -398,5 +437,4 @@ class Omni6DPose_Frame(
     #
     # def get_mesh(self, mesh_type=None, clone=False, device="cpu", tform_obj_type=None):
 
-        #return self.sequence.get_mesh(mesh_type=mesh_type, clone=clone, device=device, tform_obj_type=tform_obj_type)
-
+    # return self.sequence.get_mesh(mesh_type=mesh_type, clone=clone, device=device, tform_obj_type=tform_obj_type)

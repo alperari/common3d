@@ -4,10 +4,14 @@ logger = logging.getLogger(__name__)
 
 import torch
 import math
+
 # from kornia.geometry.liegroup import Se3, So3
-#from kornia.geometry.quaternion import Quaternion
-import od3d.cv.metric.pt3d_so3 # import so3_exp_map, so3_log_map
-from od3d.cv.metric.pt3d_rotation_conversions import rotation_6d_to_matrix, matrix_to_rotation_6d
+# from kornia.geometry.quaternion import Quaternion
+import od3d.cv.metric.pt3d_so3  # import so3_exp_map, so3_log_map
+from od3d.cv.metric.pt3d_rotation_conversions import (
+    rotation_6d_to_matrix,
+    matrix_to_rotation_6d,
+)
 
 
 def transf4x4_to_rot4x4_without_scale(transf4x4):
@@ -26,15 +30,17 @@ def so3_exp_map(so3_log: torch.Tensor):
 
     # so3_3x3 = Quaternion.from_axis_angle(axis_angle=so3_log.reshape(-1, 3)).matrix()
 
-    #from kornia.geometry.conversions import axis_angle_to_rotation_matrix
-    #so3_3x3 = axis_angle_to_rotation_matrix(axis_angle=so3_log.reshape(-1, 3))
+    # from kornia.geometry.conversions import axis_angle_to_rotation_matrix
+    # so3_3x3 = axis_angle_to_rotation_matrix(axis_angle=so3_log.reshape(-1, 3))
 
     so3_3x3 = so3_3x3.reshape(so3_log_shape[:-1] + torch.Size([3, 3]))
     return so3_3x3
 
+
 def so3_exp_map_tform4x4(so3_log: torch.Tensor):
     so3_3x3 = so3_exp_map(so3_log)
     return transf4x4_from_rot3x3(so3_3x3)
+
 
 def rotation_6d_to_matrix(d6: torch.Tensor) -> torch.Tensor:
     """
@@ -64,6 +70,7 @@ def rotation_6d_to_matrix(d6: torch.Tensor) -> torch.Tensor:
     _rot3x3[..., 2] = -_rot3x3[..., 2]
     return _rot3x3
 
+
 def matrix_to_rotation_6d(matrix: torch.Tensor) -> torch.Tensor:
     """
     Converts rotation matrices to 6D rotation representation by Zhou et al. [1]
@@ -86,13 +93,16 @@ def matrix_to_rotation_6d(matrix: torch.Tensor) -> torch.Tensor:
     batch_dim = matrix.size()[:-2]
     return matrix[..., :2, :].clone().reshape(batch_dim + (6,))
 
+
 def rot6d_to_rot3x3(rot6d: torch.Tensor):
     rot6d_shape = rot6d.shape
     _rot3x3 = rotation_6d_to_matrix(rot6d.reshape(-1, 6))
     return _rot3x3.reshape(rot6d_shape[:-1] + torch.Size([3, 3]))
 
-def rot6d_to_tform4x4(rot6d:torch.Tensor):
+
+def rot6d_to_tform4x4(rot6d: torch.Tensor):
     return transf4x4_from_rot3x3(rot6d_to_rot3x3(rot6d))
+
 
 def so3_log_map(so3_3x3: torch.Tensor):
     so3_exp_shape = so3_3x3.shape
@@ -109,6 +119,7 @@ def rot3x3_to_rot6d(_rot3x3: torch.Tensor):
     _rot6d = matrix_to_rotation_6d(_rot3x3.reshape(-1, 3, 3))
     return _rot6d.reshape(rot3x3_shape[:-2] + torch.Size([6]))
 
+
 def tform4x4_to_rot6d(_tform4x4: torch.Tensor):
     return rot3x3_to_rot6d(_tform4x4[..., :3, :3])
 
@@ -123,9 +134,9 @@ def se3_log_map(se3_exp: torch.Tensor):
 
     se3_exp_shape = se3_exp.shape
 
-    #se3_log = pytorch3d.transforms.se3_log_map(
+    # se3_log = pytorch3d.transforms.se3_log_map(
     #    se3_exp.reshape(-1, 4, 4).permute(0, 2, 1),
-    #)
+    # )
 
     # se3_log = Se3.from_matrix(se3_exp.reshape(-1, 4, 4)).log()
     # (transl :3, rot 3:6)
@@ -147,12 +158,14 @@ def se3_exp_map(se3_log: torch.Tensor):
     se3_log_shape = se3_log.shape
 
     so3_3x3 = so3_exp_map(se3_log.reshape(-1, 6)[:, 3:6])
-    se3_4x4 = transf4x4_from_rot3x3_and_transl3(rot3x3=so3_3x3, transl3=se3_log.reshape(-1, 6)[:, :3])
+    se3_4x4 = transf4x4_from_rot3x3_and_transl3(
+        rot3x3=so3_3x3, transl3=se3_log.reshape(-1, 6)[:, :3]
+    )
 
-    #se3_4x4 = Se3(rotation=Quaternion.from_axis_angle(axis_angle=se3_log.reshape(-1, 6)[:, 3:6]),
+    # se3_4x4 = Se3(rotation=Quaternion.from_axis_angle(axis_angle=se3_log.reshape(-1, 6)[:, 3:6]),
     #              translation=se3_log.reshape(-1, 6)[:, :3]).matrix()
 
-    #se3_4x4 = pytorch3d.transforms.se3_exp_map(se3_log.reshape(-1, 6)).permute(0, 2, 1)
+    # se3_4x4 = pytorch3d.transforms.se3_exp_map(se3_log.reshape(-1, 6)).permute(0, 2, 1)
 
     se3_4x4 = se3_4x4.reshape(se3_log_shape[:-1] + torch.Size([4, 4]))
 
@@ -212,23 +225,31 @@ def rot3x3_from_two_vectors(a: torch.Tensor, b: torch.Tensor):
         rot3x3 = rot3x3[0]
     return rot3x3
 
+
 def get_scale3d_tform4x4(a_tform4x4_b, keepdim=True):
     scale3d = torch.linalg.norm(a_tform4x4_b[..., :3, :3], dim=-1, keepdim=keepdim)
     return scale3d
 
+
 def get_scale1d_tform4x4(a_tform4x4_b, keepdim=True):
     if keepdim:
-        scale1d = get_scale3d_tform4x4(a_tform4x4_b, keepdim=keepdim).mean(dim=-2, keepdim=keepdim)
+        scale1d = get_scale3d_tform4x4(a_tform4x4_b, keepdim=keepdim).mean(
+            dim=-2, keepdim=keepdim
+        )
     else:
-        scale1d = get_scale3d_tform4x4(a_tform4x4_b, keepdim=keepdim).mean(dim=-1, keepdim=keepdim)
+        scale1d = get_scale3d_tform4x4(a_tform4x4_b, keepdim=keepdim).mean(
+            dim=-1, keepdim=keepdim
+        )
 
     return scale1d
+
 
 def scale3d_tform4x4(a_tform4x4_b, scale, clone=True):
     if clone:
         a_tform4x4_b = a_tform4x4_b.clone()
-    a_tform4x4_b[..., :3, :3] = (a_tform4x4_b[..., :3, :3] / (scale + 1e-7))
+    a_tform4x4_b[..., :3, :3] = a_tform4x4_b[..., :3, :3] / (scale + 1e-7)
     return a_tform4x4_b
+
 
 def scale1d_tform4x4_with_dist(a_tform4x4_b, clone=True):
     scale1d = get_scale1d_tform4x4(a_tform4x4_b=a_tform4x4_b, keepdim=True)
@@ -237,11 +258,12 @@ def scale1d_tform4x4_with_dist(a_tform4x4_b, clone=True):
     a_tform4x4_b[..., :3, :4] = a_tform4x4_b[..., :3, :4] / scale1d
     return a_tform4x4_b
 
+
 def inv_tform4x4(a_tform4x4_b):
     scale = get_scale3d_tform4x4(a_tform4x4_b)
-    #scale = torch.linalg.norm(a_tform4x4_b[..., :3, :3], dim=-1, keepdim=True)
-    #scale_avg = scale.mean(dim=-2, keepdim=True)
-    #if ((scale - scale_avg).abs() > 1e-3).any():
+    # scale = torch.linalg.norm(a_tform4x4_b[..., :3, :3], dim=-1, keepdim=True)
+    # scale_avg = scale.mean(dim=-2, keepdim=True)
+    # if ((scale - scale_avg).abs() > 1e-3).any():
     #    scale_sel = scale[((scale - scale_avg).abs() > 1e-3)]
     #    logger.warning(f"Scale is not constant over all dimensions {scale_sel}")
 
@@ -254,8 +276,11 @@ def inv_tform4x4(a_tform4x4_b):
 def rem_scale_tform4x4(a_tform4x4_b):
     scale = torch.linalg.norm(a_tform4x4_b[..., :3, :3], dim=-1, keepdim=True)
     a_tform4x4_b_wo_scale = a_tform4x4_b.clone()
-    a_tform4x4_b_wo_scale[..., :3, :3] = (a_tform4x4_b_wo_scale[..., :3, :3] / (scale + 1e-7))
+    a_tform4x4_b_wo_scale[..., :3, :3] = a_tform4x4_b_wo_scale[..., :3, :3] / (
+        scale + 1e-7
+    )
     return a_tform4x4_b_wo_scale
+
 
 # from od3d.cv.geometry.transform import inv_tform4x4
 # import torch
@@ -264,6 +289,7 @@ def rem_scale_tform4x4(a_tform4x4_b):
 #         [0.0000, 0.0000, 3.1000, 0.0000],
 #         [0.0000, 0.0000, 0.0000, 1.0000]])
 # inv_tform4x4(t) - torch.linalg.pinv(t)
+
 
 def tform4x4(tform1_4x4, tform2_4x4):
     return torch.bmm(
@@ -301,6 +327,7 @@ def rot3x3_broadcast(a_rot3x3_b, b_rot3x3_c):
     )
     return a_rot3x3_c
 
+
 def make_device(device) -> torch.device:
     """
     Makes an actual torch.device object from the device specified as
@@ -320,10 +347,11 @@ def make_device(device) -> torch.device:
         device = torch.device(f"cuda:{torch.cuda.current_device()}")
     return device
 
+
 def format_tensor(
     input,
     dtype: torch.dtype = torch.float32,
-    device = "cpu",
+    device="cpu",
 ) -> torch.Tensor:
     """
     Helper function for converting a scalar value to a tensor.
@@ -349,10 +377,11 @@ def format_tensor(
     input = input.to(device=device)
     return input
 
+
 def convert_to_tensors_and_broadcast(
     *args,
     dtype: torch.dtype = torch.float32,
-    device = "cpu",
+    device="cpu",
 ):
     """
     Helper function to handle parsing an arbitrary number of inputs (*args)
@@ -393,8 +422,12 @@ def convert_to_tensors_and_broadcast(
 
     return args_Nd
 
+
 def look_at_rotation(
-    camera_position, at=((0, 0, 0),), up=((0, 1, 0),), device="cpu"
+    camera_position,
+    at=((0, 0, 0),),
+    up=((0, 1, 0),),
+    device="cpu",
 ) -> torch.Tensor:
     """
     This function takes a vector 'camera_position' which specifies the location
@@ -423,7 +456,10 @@ def look_at_rotation(
     """
     # Format input and broadcast
     broadcasted_args = convert_to_tensors_and_broadcast(
-        camera_position, at, up, device=device
+        camera_position,
+        at,
+        up,
+        device=device,
     )
     camera_position, at, up = broadcasted_args
     for t, n in zip([camera_position, at, up], ["camera_position", "at", "up"]):
@@ -434,13 +470,17 @@ def look_at_rotation(
     x_axis = torch.nn.functional.normalize(torch.cross(up, z_axis, dim=1), eps=1e-5)
     y_axis = torch.nn.functional.normalize(torch.cross(z_axis, x_axis, dim=1), eps=1e-5)
     is_close = torch.isclose(x_axis, torch.tensor(0.0), atol=5e-3).all(
-        dim=1, keepdim=True
+        dim=1,
+        keepdim=True,
     )
     if is_close.any():
-        replacement = torch.nn.functional.normalize(torch.cross(y_axis, z_axis, dim=1), eps=1e-5)
+        replacement = torch.nn.functional.normalize(
+            torch.cross(y_axis, z_axis, dim=1), eps=1e-5
+        )
         x_axis = torch.where(is_close, replacement, x_axis)
     R = torch.cat((x_axis[:, None, :], y_axis[:, None, :], z_axis[:, None, :]), dim=1)
     return R.transpose(1, 2)
+
 
 def transf4x4_from_pos_and_theta(pos, theta):
     in_shape = theta.shape
@@ -551,9 +591,9 @@ def get_cam_tform4x4_obj_for_viewpoints_count(
     if not spiral:
         if viewpoints_count == 1:
             # front:
-            #azim = torch.Tensor([0.0])
-            #elev = torch.Tensor([0.0])
-            #theta = torch.Tensor([0.0])
+            # azim = torch.Tensor([0.0])
+            # elev = torch.Tensor([0.0])
+            # theta = torch.Tensor([0.0])
 
             # front right
             azim = torch.Tensor([-math.pi / 3.5])
@@ -562,9 +602,9 @@ def get_cam_tform4x4_obj_for_viewpoints_count(
 
         elif viewpoints_count == 2:
             # front, top
-            #azim = torch.Tensor([0.0, 0.0])
-            #elev = torch.Tensor([0.0, math.pi / 2.0 - 0.01])
-            #theta = torch.Tensor([0.0, 0.0])
+            # azim = torch.Tensor([0.0, 0.0])
+            # elev = torch.Tensor([0.0, math.pi / 2.0 - 0.01])
+            # theta = torch.Tensor([0.0, 0.0])
 
             # front right, back left
             azim = torch.Tensor([-math.pi / 10, math.pi - math.pi / 10 - math.pi / 2])
@@ -657,32 +697,57 @@ def transf4x4_from_spherical(azim, elev, theta, dist):
 
     return transf4x4_from_pos_and_theta(obj_transl3_cam, theta)
 
-def rot3x3_from_yaw_pitch(yaw, pitch,roll):
+
+def rot3x3_from_yaw_pitch(yaw, pitch, roll):
     # convention A
-    rotation_matrix = torch.Tensor([
-        [math.cos(yaw) * math.cos(pitch),
-         math.cos(yaw) * math.sin(pitch) * math.sin(roll) - math.sin(yaw) * math.cos(roll),
-         math.cos(yaw) * math.sin(pitch) * math.cos(roll) + math.sin(yaw) * math.sin(roll)],
-        [math.sin(yaw) * math.cos(pitch),
-         math.sin(yaw) * math.sin(pitch) * math.sin(roll) + math.cos(yaw) * math.cos(roll),
-         math.sin(yaw) * math.sin(pitch) * math.cos(roll) - math.cos(yaw) * math.sin(roll)],
-        [-math.sin(pitch),
-         math.cos(pitch) * math.sin(roll),
-         math.cos(pitch) * math.cos(roll)]
-    ])
+    rotation_matrix = torch.Tensor(
+        [
+            [
+                math.cos(yaw) * math.cos(pitch),
+                math.cos(yaw) * math.sin(pitch) * math.sin(roll)
+                - math.sin(yaw) * math.cos(roll),
+                math.cos(yaw) * math.sin(pitch) * math.cos(roll)
+                + math.sin(yaw) * math.sin(roll),
+            ],
+            [
+                math.sin(yaw) * math.cos(pitch),
+                math.sin(yaw) * math.sin(pitch) * math.sin(roll)
+                + math.cos(yaw) * math.cos(roll),
+                math.sin(yaw) * math.sin(pitch) * math.cos(roll)
+                - math.cos(yaw) * math.sin(roll),
+            ],
+            [
+                -math.sin(pitch),
+                math.cos(pitch) * math.sin(roll),
+                math.cos(pitch) * math.cos(roll),
+            ],
+        ]
+    )
 
     # convention B
-    rotation_matrix = torch.Tensor([
-        [math.cos(pitch) * math.cos(yaw),
-         math.cos(pitch) * math.sin(yaw),
-         -math.sin(pitch), ],
-        [math.sin(roll) * math.sin(pitch) * math.cos(yaw) - math.cos(roll) * math.sin(yaw),
-         math.sin(roll) * math.sin(pitch) * math.sin(yaw) + math.cos(roll) * math.cos(yaw),
-         math.sin(roll) * math.cos(pitch), ],
-        [math.cos(roll) * math.sin(pitch) * math.cos(yaw) + math.sin(roll) * math.sin(yaw),
-         math.cos(roll) * math.sin(pitch) * math.sin(yaw) - math.sin(roll) * math.cos(yaw),
-         math.cos(roll) * math.cos(pitch), ],
-    ])
+    rotation_matrix = torch.Tensor(
+        [
+            [
+                math.cos(pitch) * math.cos(yaw),
+                math.cos(pitch) * math.sin(yaw),
+                -math.sin(pitch),
+            ],
+            [
+                math.sin(roll) * math.sin(pitch) * math.cos(yaw)
+                - math.cos(roll) * math.sin(yaw),
+                math.sin(roll) * math.sin(pitch) * math.sin(yaw)
+                + math.cos(roll) * math.cos(yaw),
+                math.sin(roll) * math.cos(pitch),
+            ],
+            [
+                math.cos(roll) * math.sin(pitch) * math.cos(yaw)
+                + math.sin(roll) * math.sin(yaw),
+                math.cos(roll) * math.sin(pitch) * math.sin(yaw)
+                - math.sin(roll) * math.cos(yaw),
+                math.cos(roll) * math.cos(pitch),
+            ],
+        ]
+    )
     return rotation_matrix
 
 
@@ -690,8 +755,13 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 
-def get_ico_traj_cam_tform4x4_obj_for_viewpoints_count(viewpoints_count=100, radius=1, theta_count=1,
-                                                       geodesic_distance=0.3, real=False):
+def get_ico_traj_cam_tform4x4_obj_for_viewpoints_count(
+    viewpoints_count=100,
+    radius=1,
+    theta_count=1,
+    geodesic_distance=0.3,
+    real=False,
+):
     """
     Generate n points along a random geodesic trajectory on a unit sphere,
     ensuring the endpoints are separated by a given geodesic distance.
@@ -715,11 +785,13 @@ def get_ico_traj_cam_tform4x4_obj_for_viewpoints_count(viewpoints_count=100, rad
     else:
         phi1 = np.arccos(2 * v - 1)  # Polar angle
 
-    p1 = np.array([
-        np.sin(phi1) * np.cos(theta1),
-        np.sin(phi1) * np.sin(theta1),
-        np.cos(phi1)
-    ])
+    p1 = np.array(
+        [
+            np.sin(phi1) * np.cos(theta1),
+            np.sin(phi1) * np.sin(theta1),
+            np.cos(phi1),
+        ]
+    )
 
     if real:
         random_vec = np.array([0, 0, 1])
@@ -736,16 +808,16 @@ def get_ico_traj_cam_tform4x4_obj_for_viewpoints_count(viewpoints_count=100, rad
 
     # Generate n points along the great-circle path
     angles = np.linspace(0, angle, viewpoints_count)
-    points = np.array([
-        R.from_rotvec(a * random_vec).apply(p1) for a in angles
-    ])
+    points = np.array([R.from_rotvec(a * random_vec).apply(p1) for a in angles])
 
     xyz = torch.from_numpy(points).to(dtype=torch.float)
 
-    theta_offset = torch.linspace(0, 2 * torch.pi - (2*torch.pi) / theta_count, theta_count)
+    theta_offset = torch.linspace(
+        0, 2 * torch.pi - (2 * torch.pi) / theta_count, theta_count
+    )
     if real:
-        theta_start = torch.rand(1) * 0.
-        theta_end = torch.rand(1) * 0.
+        theta_start = torch.rand(1) * 0.0
+        theta_end = torch.rand(1) * 0.0
     else:
         theta_start = torch.rand(1) * 2 * torch.pi
         theta_end = torch.rand(1) * 2 * torch.pi
@@ -758,26 +830,32 @@ def get_ico_traj_cam_tform4x4_obj_for_viewpoints_count(viewpoints_count=100, rad
     theta_offset = theta_offset.repeat(viewpoints_count)
     theta += theta_offset
 
-    cam_tform4x4_obj = transf4x4_from_pos_and_theta(pos=xyz, theta=theta) # torch.zeros_like(xyz[:, 0]))
+    cam_tform4x4_obj = transf4x4_from_pos_and_theta(
+        pos=xyz, theta=theta
+    )  # torch.zeros_like(xyz[:, 0]))
 
     return cam_tform4x4_obj
 
 
 def get_ico_cam_tform4x4_obj_for_viewpoints_count(
-        viewpoints_count=100, radius=1, theta_count=1, viewpoints_uniform=True, theta_uniform=True):
-
+    viewpoints_count=100,
+    radius=1,
+    theta_count=1,
+    viewpoints_uniform=True,
+    theta_uniform=True,
+):
     if isinstance(radius, torch.Tensor):
         radius = radius.clone().detach().cpu()
 
     if viewpoints_uniform:
         # number views
-        #import torch
-        #import math
+        # import torch
+        # import math
         N = viewpoints_count
         # radius
         r = radius
         # area sphere
-        A = 4 * torch.pi * r ** 2
+        A = 4 * torch.pi * r**2
         # area single viewpoint
         A_single = A / N
         # radius single viewpoint
@@ -793,19 +871,27 @@ def get_ico_cam_tform4x4_obj_for_viewpoints_count(
         N_e = (r_e / r_e.sum()) * N
         N_left = N
 
-        for i in range(math.ceil(len(N_e) / 2.)):
+        for i in range(math.ceil(len(N_e) / 2.0)):
             N_e[i] = N_e[i].clamp(min=1).round().int()  # = N_e.clamp(min=1)
             N_e[-(i + 1)] = N_e[-(i + 1)].clamp(min=1).round().int()
             N_left -= N_e[i]
             N_left -= N_e[-(i + 1)]
-            N_e[i + 1:len(N_e) - i - 1] = (N_e[i + 1:len(N_e) - i - 1] / (
-                        N_e[i + 1:len(N_e) - i - 1].sum() + 1e-10)) * N_left
+            N_e[i + 1 : len(N_e) - i - 1] = (
+                N_e[i + 1 : len(N_e) - i - 1]
+                / (N_e[i + 1 : len(N_e) - i - 1].sum() + 1e-10)
+            ) * N_left
 
         # azimuth per evalation
         a_per_e = []
         xyz = []
         for e_id, N_e_single in enumerate(N_e):
-            a_per_e.append(torch.linspace(0, 2 * torch.pi - (2*torch.pi) / N_e_single.int(), N_e_single.int()))
+            a_per_e.append(
+                torch.linspace(
+                    0,
+                    2 * torch.pi - (2 * torch.pi) / N_e_single.int(),
+                    N_e_single.int(),
+                )
+            )
             r_e = torch.cos(e[e_id].abs()).abs()
             x = torch.sin(a_per_e[-1]) * r_e
             y = torch.cos(a_per_e[-1]) * r_e
@@ -821,7 +907,9 @@ def get_ico_cam_tform4x4_obj_for_viewpoints_count(
     xyz *= radius
 
     if theta_uniform:
-        theta = torch.linspace(0, 2 * torch.pi - (2*torch.pi) / theta_count, theta_count)
+        theta = torch.linspace(
+            0, 2 * torch.pi - (2 * torch.pi) / theta_count, theta_count
+        )
     else:
         theta = torch.rand(theta_count) * 2 * torch.pi
     # xyz : V x 3,
@@ -829,12 +917,14 @@ def get_ico_cam_tform4x4_obj_for_viewpoints_count(
     xyz = xyz.repeat_interleave(theta_count, dim=0)
     theta = theta.repeat(viewpoints_count)
 
-    cam_tform4x4_obj = transf4x4_from_pos_and_theta(pos=xyz, theta=theta) # torch.zeros_like(xyz[:, 0]))
+    cam_tform4x4_obj = transf4x4_from_pos_and_theta(
+        pos=xyz, theta=theta
+    )  # torch.zeros_like(xyz[:, 0]))
 
     return cam_tform4x4_obj
-    #look_at_rotation()
-    #from od3d.cv.visual.show import show_scene
-    #show_scene(pts3d=[xyz])
+    # look_at_rotation()
+    # from od3d.cv.visual.show import show_scene
+    # show_scene(pts3d=[xyz])
 
     """
 
@@ -889,8 +979,10 @@ def transf4x4_from_rot3x3(rot3x3):
     transf4x4[..., 3, 3] = 1.0
     return transf4x4
 
+
 def rot3x3_from_tform4x4(_tform4x4: torch.Tensor):
     return _tform4x4[..., :3, :3]
+
 
 def transf4x4_from_rot4_and_transl3(rot4, transl3):
     """
@@ -903,14 +995,20 @@ def transf4x4_from_rot4_and_transl3(rot4, transl3):
 
     from kornia.geometry.quaternion import Quaternion
     import torch
-    cam_rotQ_world = Quaternion.from_coeffs(w=float(rot4[0]), x=float(rot4[1]), y=float(rot4[2]), z=float(rot4[3]))
+
+    cam_rotQ_world = Quaternion.from_coeffs(
+        w=float(rot4[0]), x=float(rot4[1]), y=float(rot4[2]), z=float(rot4[3])
+    )
     if isinstance(transl3, list):
         transl3 = torch.FloatTensor(transl3)
 
     cam_tform4x4_world = transf4x4_from_rot3x3_and_transl3(
-        rot3x3=cam_rotQ_world.matrix(), transl3=transl3)
+        rot3x3=cam_rotQ_world.matrix(),
+        transl3=transl3,
+    )
 
     return cam_tform4x4_world
+
 
 @torch.jit.script
 def transf4x4_from_rot3x3_and_transl3(rot3x3, transl3):
@@ -1115,6 +1213,7 @@ def cam_intr4x4_downsample(cams_intr4x4=None, imgs_sizes=None, down_sample_rate=
             imgs_sizes = imgs_sizes.clone()
     return cams_intr4x4, imgs_sizes
 
+
 def cam_intr4x4_2_rays3d(cam_intr4x4, size):
     #  depth: ...x1xHxW
     #  cam_intr: ...x4x4
@@ -1172,6 +1271,7 @@ def depth2pts3d_grid(depth, cam_intr4x4):
     )
     return pts3d
 
+
 def cam_intr4x4_to_cam_intr_ncds4x4(cam_intr4x4, size):
     cam_intr4x4_ncds = torch.zeros_like(cam_intr4x4)
 
@@ -1183,8 +1283,9 @@ def cam_intr4x4_to_cam_intr_ncds4x4(cam_intr4x4, size):
     cam_intr4x4_ncds[..., 1, 1] = cam_intr4x4[..., 1, 1] * s
     cam_intr4x4_ncds[..., 1, 2] = -(cam_intr4x4[..., 1, 2] - H / 2) * s
     cam_intr4x4_ncds[..., 2, 2] = f * s
-    cam_intr4x4_ncds[..., 3, 3] = 1.
+    cam_intr4x4_ncds[..., 3, 3] = 1.0
     return cam_intr4x4_ncds
+
 
 def inv_cam_intr4x4(cam_intr4x4):
     cam_intr4x4_inv = torch.zeros_like(cam_intr4x4)
@@ -1193,13 +1294,14 @@ def inv_cam_intr4x4(cam_intr4x4):
     px = cam_intr4x4[..., 0, 2]
     py = cam_intr4x4[..., 1, 2]
     s = cam_intr4x4[..., 2, 2]
-    cam_intr4x4_inv[..., 0, 0] = 1. / fx
-    cam_intr4x4_inv[..., 1, 1] = 1. / fy
+    cam_intr4x4_inv[..., 0, 0] = 1.0 / fx
+    cam_intr4x4_inv[..., 1, 1] = 1.0 / fy
     cam_intr4x4_inv[..., 0, 2] = -px / (fx * s)
     cam_intr4x4_inv[..., 1, 2] = -py / (fy * s)
-    cam_intr4x4_inv[..., 2, 2] = 1. / s
-    cam_intr4x4_inv[..., 3, 3] = 1.
+    cam_intr4x4_inv[..., 2, 2] = 1.0 / s
+    cam_intr4x4_inv[..., 3, 3] = 1.0
     return cam_intr4x4_inv
+
 
 """
 K = [[fx,  0, px],
@@ -1212,10 +1314,10 @@ K^(-1) = [[fy*s,    0, -fy*px],
 K^(-1) = [[1/fx,    0, -px/(fx*s)],
           [   0, 1/fy, -py/(fy*s)],
           [   0,    0,  1/s]]
-          
+
 K_ncds^(-1) = [[1/(fx*s),        0, (px-W/2)/(fx*s)],
                [       0, 1/(fy*s), (py-H/2)/(fy*s)],
-               [       0,        0,  1/(fx*s)]]  
+               [       0,        0,  1/(fx*s)]]
 """
 
 from od3d.cv.differentiation.gradient import calc_batch_gradients
@@ -1275,6 +1377,7 @@ def transf3d_broadcast(pts3d, transf4x4):
         transf4x4.expand(*shape_first_dims, 4, 4),
     )
 
+
 def cam_intr_to_4x4(fx, fy, cx, cy):
     """
     Args:
@@ -1287,6 +1390,7 @@ def cam_intr_to_4x4(fx, fy, cx, cy):
     """
 
     return cam_intr_4_to_4x4(torch.FloatTensor([fx, fy, cx, cy]))
+
 
 def cam_intr_4_to_4x4(cam_intr4):
     """

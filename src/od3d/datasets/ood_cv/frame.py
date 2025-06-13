@@ -28,7 +28,7 @@ from od3d.datasets.object import (
     OD3D_MESH_FEATS_TYPES,
     OD3D_MESH_FEATS_DIST_REDUCE_TYPES,
     OD3D_TFROM_OBJ_TYPES,
-    OD3D_SCALE_TYPES
+    OD3D_SCALE_TYPES,
 )
 
 
@@ -181,7 +181,7 @@ class OOD_CV_Frame(Pascal3DFrame):
         mesh_type: OD3D_MESH_TYPES,
         mesh_feats_type: OD3D_MESH_FEATS_TYPES,
         mesh_feats_dist_reduce_type: OD3D_MESH_FEATS_DIST_REDUCE_TYPES,
-        scale_type: OD3D_SCALE_TYPES
+        scale_type: OD3D_SCALE_TYPES,
     ):
         super().__init__(
             path_raw=path_raw,
@@ -197,7 +197,7 @@ class OOD_CV_Frame(Pascal3DFrame):
             mesh_type=mesh_type,
             mesh_feats_type=mesh_feats_type,
             mesh_feats_dist_reduce_type=mesh_feats_dist_reduce_type,
-            scale_type=scale_type
+            scale_type=scale_type,
         )
         self.path_meshes = path_meshes
         self.scale_type = scale_type
@@ -214,6 +214,7 @@ class OOD_CV_Frame(Pascal3DFrame):
                     category=self.category,
                 ),
             )
+
     # @staticmethod
     # def get_rfpath_pp_categorical_mesh(mesh_type: OD3D_MESH_TYPES, category: str):
     #     return Path("mesh", f"{mesh_type}", f"{category}", "mesh.ply")

@@ -1,5 +1,6 @@
 import torch
 
+
 def rgb_to_range01(rgb):
     if (rgb < 0).any() or (rgb > 1).any():
         rgb = (rgb - rgb.min()) / (rgb.max() - rgb.min())
@@ -36,11 +37,14 @@ def gaussian_scatter_image(uv, rgb, H, W, sigma=1.0):
             torch.arange(W),
             indexing="xy",
         ),
-        dim=0
+        dim=0,
     )
     grid_pxl2d = grid_pxl2d.to(device)
-    grid_pxl2d_dist = ((grid_pxl2d[0, :, :, None] - uv[None, None, :, 0]) ** 2 + (grid_pxl2d[1, :, :, None] - uv[None, None, :, 1]) ** 2) ** 0.5
-    grid_pxl2d_weight =  torch.exp(-0.5 * (grid_pxl2d_dist / sigma) ** 2)
+    grid_pxl2d_dist = (
+        (grid_pxl2d[0, :, :, None] - uv[None, None, :, 0]) ** 2
+        + (grid_pxl2d[1, :, :, None] - uv[None, None, :, 1]) ** 2
+    ) ** 0.5
+    grid_pxl2d_weight = torch.exp(-0.5 * (grid_pxl2d_dist / sigma) ** 2)
     image = grid_pxl2d_weight[..., None] * rgb[None, None]
     image = image.sum(dim=-2) / (grid_pxl2d_weight[..., None].sum(dim=-2) + 1e-10)
     image = image.permute(2, 0, 1)

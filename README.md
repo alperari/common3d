@@ -47,7 +47,7 @@ bash setup/shuri.sh
 
 To evaluate the method run
 
-  - `od3d bench run -b co3d_common3d -a co3d_refs -p slurm`  
+  - `od3d bench run -b co3d_common3d -a co3d_refs -p slurm`
   - `od3d bench run -b co3d_common3d -a categories/cross/all,co3d_refs -p slurm`.
 
 To see the current status on slurm use
@@ -59,10 +59,10 @@ To stop a job running on slurm use
   - `od3d bench stop-slurm -j <job-name>`.
 
 ### Media
-`od3d dataset save-sequences-as-video -d co3d_no_zsp_aligned_visual`  
-`od3d dataset visualize-category-sequences -d co3d_no_zsp_aligned_visual`  
-`od3d dataset visualize-category-meshes -d co3d_no_zsp_aligned_visual`  
-`od3d dataset visualize-category-pcls -d co3d_no_zsp_aligned_visual`  
+`od3d dataset save-sequences-as-video -d co3d_no_zsp_aligned_visual`
+`od3d dataset visualize-category-sequences -d co3d_no_zsp_aligned_visual`
+`od3d dataset visualize-category-meshes -d co3d_no_zsp_aligned_visual`
+`od3d dataset visualize-category-pcls -d co3d_no_zsp_aligned_visual`
 
 ### Tables
 `od3d table multiple -b co3d_common3d -a co3d_refs -m test/pascal3d_test/pose/acc_pi6 -l 24`

@@ -1,4 +1,5 @@
 import logging
+
 logger = logging.getLogger(__name__)
 
 import torch
@@ -17,8 +18,14 @@ from od3d.cv.geometry.objects3d.objects3d import (
 
 from typing import Optional
 from od3d.cv.geometry.objects3d.meshes_x_gaussians import Meshes_x_Gaussians
-from od3d.cv.geometry.objects3d.meshes.meshes import Meshes, FACE_BLEND_TYPE, OD3D_Meshes_Deform, RASTERIZER
+from od3d.cv.geometry.objects3d.meshes.meshes import (
+    Meshes,
+    FACE_BLEND_TYPE,
+    OD3D_Meshes_Deform,
+    RASTERIZER,
+)
 from omegaconf import DictConfig
+
 
 class DMTet_x_Gaussians(Meshes_x_Gaussians):
     def __init__(
@@ -27,9 +34,9 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         faces: List[torch.Tensor],
         feat_dim=128,
         objects_count=0,
-        feats_objects: Union[bool, torch.Tensor]=False,
-        feat_clutter_requires_param: Union[bool, torch.Tensor]=False,
-        verts_uvs: List[torch.Tensor]=None,
+        feats_objects: Union[bool, torch.Tensor] = False,
+        feat_clutter_requires_param: Union[bool, torch.Tensor] = False,
+        verts_uvs: List[torch.Tensor] = None,
         verts_coarse_count: int = 150,
         verts_coarse_prob_sigma: float = 0.01,
         feats_requires_grad=True,
@@ -45,13 +52,13 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         pt3d_raster_perspective_correct=False,
         device=None,
         dtype=None,
-        rasterizer = RASTERIZER.NVDIFFRAST,
-        face_blend_type = FACE_BLEND_TYPE.SOFT_SIGMOID_NORMALIZED,
-        face_blend_count = 2,
-        face_opacity=1.,
+        rasterizer=RASTERIZER.NVDIFFRAST,
+        face_blend_type=FACE_BLEND_TYPE.SOFT_SIGMOID_NORMALIZED,
+        face_blend_count=2,
+        face_opacity=1.0,
         face_opacity_face_sdf_sigma=1e-4,
         face_opacity_face_sdf_gamma=1e-4,
-        instance_deform_net_config: DictConfig=None,
+        instance_deform_net_config: DictConfig = None,
         gs_top_k=3,
         gs_scale=0.05,
         gs_opacity_requires_grad=False,
@@ -60,7 +67,7 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         tet_res=16,
         sdf_symmetric=True,
         harmonic_functions_count=8,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             verts=verts,
@@ -98,53 +105,63 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
             gs_scale=gs_scale,
             gs_opacity_requires_grad=gs_opacity_requires_grad,
             gs_scale_requires_grad=gs_scale_requires_grad,
-            gs_rotation_requires_grad=gs_rotation_requires_grad
+            gs_rotation_requires_grad=gs_rotation_requires_grad,
         )
 
-        self.init_radius = 1.
+        self.init_radius = 1.0
         self.mesh_update_jitter_scale = 0.05
 
         self.marching_tets = DMTet_Core()
         self.sdf_coordmlps = torch.nn.ModuleList()
         self.feat_coordmlps = torch.nn.ModuleList()
 
-        sdf_coord_mlp_cfg = DictConfig({
-            "num_layers": 5,
-            "hidden_dim": 256,
-            "out_dim": 1,
-            "dropout": 0,
-            "activation": None, # None
-            "symmetrize": sdf_symmetric,
-        })
+        sdf_coord_mlp_cfg = DictConfig(
+            {
+                "num_layers": 5,
+                "hidden_dim": 256,
+                "out_dim": 1,
+                "dropout": 0,
+                "activation": None,  # None
+                "symmetrize": sdf_symmetric,
+            }
+        )
 
-        feat_coord_mlp_cfg = DictConfig({
-            "num_layers": 5,
-            "hidden_dim": 256,
-            "out_dim": feat_dim,
-            "dropout": 0,
-            "activation": None, # feats_activation
-            "symmetrize": False,
-        })
+        feat_coord_mlp_cfg = DictConfig(
+            {
+                "num_layers": 5,
+                "hidden_dim": 256,
+                "out_dim": feat_dim,
+                "dropout": 0,
+                "activation": None,  # feats_activation
+                "symmetrize": False,
+            }
+        )
 
         # note: import on-the-fly to avoid circular import
         from od3d.models.heads.coordmlp import CoordMLP
 
         for m in range(self.meshes_count):
-            #grid_scale = self.get_ranges()[m]
-            #embedder_scalar = 2 * np.pi / grid_scale * 0.9  # originally (-0.5*s, 0.5*s) rescale to (-pi, pi) * 0.9
-            self.sdf_coordmlps.append(CoordMLP(
-                in_dims=[0, ],
-                in_upsample_scales=[],
-                config=sdf_coord_mlp_cfg,
-                n_harmonic_functions=harmonic_functions_count,
-                embed_concat_pts=True).to(device, dtype))
+            # grid_scale = self.get_ranges()[m]
+            # embedder_scalar = 2 * np.pi / grid_scale * 0.9  # originally (-0.5*s, 0.5*s) rescale to (-pi, pi) * 0.9
+            self.sdf_coordmlps.append(
+                CoordMLP(
+                    in_dims=[0],
+                    in_upsample_scales=[],
+                    config=sdf_coord_mlp_cfg,
+                    n_harmonic_functions=harmonic_functions_count,
+                    embed_concat_pts=True,
+                ).to(device, dtype),
+            )
 
-            self.feat_coordmlps.append(CoordMLP(
-                in_dims=[0, ],
-                in_upsample_scales=[],
-                config=feat_coord_mlp_cfg,
-                n_harmonic_functions=harmonic_functions_count,
-                embed_concat_pts=True).to(device, dtype))
+            self.feat_coordmlps.append(
+                CoordMLP(
+                    in_dims=[0],
+                    in_upsample_scales=[],
+                    config=feat_coord_mlp_cfg,
+                    n_harmonic_functions=harmonic_functions_count,
+                    embed_concat_pts=True,
+                ).to(device, dtype),
+            )
 
         if not verts_requires_grad:
             for param in self.sdf_coordmlps.parameters():
@@ -154,13 +171,18 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
                 param.requires_grad = False
 
         from pathlib import Path
-        tets = np.load(Path(__file__).parent.resolve().joinpath('./{}_tets.npz'.format(str(tet_res))))
+
+        tets = np.load(
+            Path(__file__).parent.resolve().joinpath(f"./{str(tet_res)}_tets.npz")
+        )
         if dtype is None:
             dtype = torch.float
 
         self.tets_scale = self.init_radius * 2.2
-        self.tets_verts = (torch.tensor(tets['vertices'], dtype=dtype, device=device)) * self.tets_scale  # verts original scale (-0.5, 0.5)
-        self.tets_faces = torch.tensor(tets['indices'], dtype=torch.long, device=device)
+        self.tets_verts = (
+            torch.tensor(tets["vertices"], dtype=dtype, device=device)
+        ) * self.tets_scale  # verts original scale (-0.5, 0.5)
+        self.tets_faces = torch.tensor(tets["indices"], dtype=torch.long, device=device)
         # self.generate_edges()
         self.update_dmtet(device=device, dtype=dtype, require_grad=False)
 
@@ -189,7 +211,9 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         self.update_dmtet(require_grad=require_grad)
         # pass
 
-    def update_dmtet(self, device=None, dtype=None, require_grad=None, require_feats_grad=None):
+    def update_dmtet(
+        self, device=None, dtype=None, require_grad=None, require_feats_grad=None
+    ):
         if require_grad is None:
             require_grad = self.verts_requires_grad
         if require_feats_grad is None:
@@ -208,20 +232,26 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
             if require_grad:
                 tets_verts = self.get_uniform_jittered_tets_verts(m)
                 tets_sdfs = self.get_sdf(pts=tets_verts, object_id=m)
-                _verts, _faces, _uvs, _uv_idx = self.marching_tets(tets_verts, tets_sdfs, self.tets_faces)
+                _verts, _faces, _uvs, _uv_idx = self.marching_tets(
+                    tets_verts, tets_sdfs, self.tets_faces
+                )
 
             else:
                 with torch.no_grad():
                     if not require_feats_grad:
-                        tets_verts = self.tets_verts.clone() # self.get_uniform_jittered_tets_verts(m)
+                        tets_verts = (
+                            self.tets_verts.clone()
+                        )  # self.get_uniform_jittered_tets_verts(m)
                     else:
                         tets_verts = self.get_uniform_jittered_tets_verts(m)
                     tets_sdfs = self.get_sdf(pts=tets_verts, object_id=m)
-                    _verts, _faces, _uvs, _uv_idx = self.marching_tets(tets_verts, tets_sdfs, self.tets_faces)
+                    _verts, _faces, _uvs, _uv_idx = self.marching_tets(
+                        tets_verts, tets_sdfs, self.tets_faces
+                    )
 
             if require_feats_grad:
-                #logger.info(m)
-                #logger.info(_verts.shape)
+                # logger.info(m)
+                # logger.info(_verts.shape)
                 _feats = self.get_feats(pts=_verts.detach(), object_id=m)
             else:
                 with torch.no_grad():
@@ -240,15 +270,25 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
             if require_feats_grad:
                 # logger.info(m)
                 # logger.info(_verts.shape)
-                _feat_clutter = self.get_feats(pts=(torch.ones_like(_verts[0:1])).detach() * (self.tets_scale / 2.), object_id=0)[0]
+                _feat_clutter = self.get_feats(
+                    pts=(torch.ones_like(_verts[0:1])).detach()
+                    * (self.tets_scale / 2.0),
+                    object_id=0,
+                )[0]
             else:
                 with torch.no_grad():
-                    _feat_clutter = self.get_feats(pts=(torch.ones_like(_verts[0:1])).detach() * (self.tets_scale / 2.), object_id=0)[0]
+                    _feat_clutter = self.get_feats(
+                        pts=(torch.ones_like(_verts[0:1])).detach()
+                        * (self.tets_scale / 2.0),
+                        object_id=0,
+                    )[0]
             self.feat_clutter = _feat_clutter.to(**factory_kwargs)
 
         self.meshes_count = len(verts)
         self.verts = torch.cat([_verts for _verts in verts], dim=0).to(**factory_kwargs)
-        self.feats_objects = torch.cat([_feats for _feats in feats], dim=0).to(**factory_kwargs)
+        self.feats_objects = torch.cat([_feats for _feats in feats], dim=0).to(
+            **factory_kwargs
+        )
 
         self.faces = torch.cat([_faces for _faces in faces], dim=0).to(device=device)
 
@@ -273,6 +313,7 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
             self.mask_verts_not_padded[i, self.verts_counts[i] :] = False
 
         import matplotlib.pyplot as plt
+
         color_ = plt.get_cmap("tab20", len(self))
         self.feats_rgb_object_id = []
         for i in range(len(self)):
@@ -293,16 +334,24 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         #                                             requires_grad=self.gs_rotation_requires_grad)
 
     def get_uniform_jittered_tets_verts(self, object_id):
-        pts = self.tets_verts.clone() #  self.get_verts_with_mesh_id(object_id)
+        pts = self.tets_verts.clone()  #  self.get_verts_with_mesh_id(object_id)
         if self.mesh_update_jitter_scale > 0:
-            jitter = (torch.rand(3, device=pts.device) - 0.5) * self.tets_scale * self.mesh_update_jitter_scale
+            jitter = (
+                (torch.rand(3, device=pts.device) - 0.5)
+                * self.tets_scale
+                * self.mesh_update_jitter_scale
+            )
             pts = pts + jitter
         return pts
 
     def get_rand_jittered_mesh_verts(self, object_id):
         pts = self.get_verts_with_mesh_id(object_id, clone=True).detach()
         if self.mesh_update_jitter_scale > 0:
-            jitter = (torch.rand_like(pts, device=pts.device) - 0.5) * self.tets_scale * self.mesh_update_jitter_scale
+            jitter = (
+                (torch.rand_like(pts, device=pts.device) - 0.5)
+                * self.tets_scale
+                * self.mesh_update_jitter_scale
+            )
             pts = pts + jitter
         return pts
 
@@ -316,19 +365,24 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
 
         sdf_init = pts.detach().norm(dim=-1, keepdim=True) - self.init_radius
         from od3d.data.batch_datatypes import OD3D_ModelData
-        sdf_delta = self.sdf_coordmlps[object_id](OD3D_ModelData(pts3d=pts[None,])).feat[0]
+
+        sdf_delta = self.sdf_coordmlps[object_id](
+            OD3D_ModelData(pts3d=pts[None,])
+        ).feat[0]
         sdf_vals = sdf_init + sdf_delta
         return sdf_vals
 
     def get_feats(self, pts, object_id):
         from od3d.data.batch_datatypes import OD3D_ModelData
+
         feats = self.feat_coordmlps[object_id](OD3D_ModelData(pts3d=pts[None,])).feat[0]
         return feats
 
-
     def get_sdf_gradient(self, object_id):
         num_samples = 5000
-        sample_points = (torch.rand(num_samples, 3, device=self.verts.device) - 0.5) * self.tets_scale
+        sample_points = (
+            torch.rand(num_samples, 3, device=self.verts.device) - 0.5
+        ) * self.tets_scale
 
         mesh_verts = self.get_rand_jittered_mesh_verts(object_id=object_id)
 
@@ -345,7 +399,8 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
                 grad_outputs=d_output,
                 create_graph=True,
                 retain_graph=True,
-                only_inputs=True)[0]
+                only_inputs=True,
+            )[0]
         except RuntimeError:  # For validation, we have disabled gradient calculation.
             return torch.zeros_like(sample_points)
         return gradients
@@ -353,7 +408,11 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
     def get_geo_sdf_reg_loss(self, objects_ids):
         regs_losses = []
         for object_id in objects_ids:
-            regs_losses.append(((self.get_sdf_gradient(object_id=object_id).norm(dim=-1) - 1) ** 2).mean())
+            regs_losses.append(
+                (
+                    (self.get_sdf_gradient(object_id=object_id).norm(dim=-1) - 1) ** 2
+                ).mean()
+            )
         regs_losses = torch.stack(regs_losses)
         return regs_losses
 
@@ -443,6 +502,7 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
     #     self.mesh_verts = verts
     #     return mesh.make_mesh(verts[None], faces[None], uvs[None], uv_idx[None], material=None)
     #
+
 
 """
     def __init__(self, grid_res, scale, num_layers=None, hidden_size=None, embedder_freq=None, embed_concat_pts=True,

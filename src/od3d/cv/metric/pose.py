@@ -6,6 +6,7 @@ from od3d.cv.geometry.transform import rot3x3, inv_tform4x4
 import math
 from od3d.cv.metric.pt3d_so3 import so3_log_map
 
+
 def get_pose_diff3x3_in_rad(diff_rot3x3: torch.Tensor):
     """
     Args:
@@ -14,13 +15,13 @@ def get_pose_diff3x3_in_rad(diff_rot3x3: torch.Tensor):
         rot_diff_in_rad (torch.Tensor): ...
     """
     try:
-        #diff_so3_log = rotation_matrix_to_axis_angle(diff_rot3x3.reshape(-1, 3, 3)).reshape(*diff_rot3x3.shape[:-2], 3)
+        # diff_so3_log = rotation_matrix_to_axis_angle(diff_rot3x3.reshape(-1, 3, 3)).reshape(*diff_rot3x3.shape[:-2], 3)
         # diff_so3_log = So3.from_matrix(diff_rot3x3.reshape(-1, 3, 3)).log().reshape(*diff_rot3x3.shape[:-2], 3)
         # import pytorch3d
         # import pytorch3d.transforms
-        #diff_so3_log = pytorch3d.transforms.so3_log_map(
+        # diff_so3_log = pytorch3d.transforms.so3_log_map(
         #    diff_rot3x3.reshape(-1, 3, 3),
-        #).reshape(*diff_rot3x3.shape[:-2], 3)
+        # ).reshape(*diff_rot3x3.shape[:-2], 3)
         diff_so3_log = so3_log_map(
             diff_rot3x3.reshape(-1, 3, 3),
         ).reshape(*diff_rot3x3.shape[:-2], 3)
@@ -37,6 +38,7 @@ def get_pose_diff3x3_in_rad(diff_rot3x3: torch.Tensor):
         diff_rot_angle_rad[~diff_rot_angle_rad.isfinite()] = math.pi
 
     return diff_rot_angle_rad
+
 
 def get_pose_diff_in_rad(pred_tform4x4: torch.Tensor, gt_tform4x4: torch.Tensor):
     """

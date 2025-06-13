@@ -12,6 +12,7 @@ from od3d.data.ext_enum import ExtEnum
 from od3d.cv.visual.resize import resize
 from od3d.data.batch_datatypes import OD3D_ModelData
 
+
 class RESNET50_WEIGHTS(str, ExtEnum):
     IMAGENET1K_V2 = (
         "imagenet1k_v2"  # torchvision.models.resnet.ResNet50_Weights.IMAGENET1K_V2

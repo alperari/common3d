@@ -1,0 +1,149 @@
+# @package _global_
+
+checkpoint: ${checkpoint_opt}
+checkpoints_refs_cats_run_name:
+  r0:
+    airplane: 11-02_12-47-25_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_airplane_r0_slurm
+    bicycle: 11-02_12-55-07_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bicycle_r0_slurm
+    bottle: 11-03_18-33-23_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bottle_r0_slurm
+    bus: 11-02_12-46-24_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bus_r0_slurm
+    car: 11-03_18-00-18_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_car_r0_slurm
+    chair: 11-03_18-03-27_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_chair_r0_slurm
+    couch: 11-02_12-53-39_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_couch_r0_slurm
+    motorcycle: 11-03_18-04-28_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_motorcycle_r0_slurm
+    train: 11-02_12-52-37_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_train_r0_slurm
+    tv: 11-03_18-01-23_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_tv_r0_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r1:
+    airplane: 11-02_12-46-36_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_airplane_r1_slurm
+    bicycle: 11-02_12-54-16_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bicycle_r1_slurm
+    bottle: 11-03_18-01-35_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bottle_r1_slurm
+    bus: 11-02_12-45-35_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bus_r1_slurm
+    car: 11-03_17-59-49_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_car_r1_slurm
+    chair: 11-03_18-02-38_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_chair_r1_slurm
+    couch: 11-02_12-52-49_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_couch_r1_slurm
+    motorcycle: 11-03_18-04-16_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_motorcycle_r1_slurm
+    train: 11-03_19-34-05_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_train_r1_slurm
+    tv: 11-03_18-00-31_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_tv_r1_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r2:
+    airplane: 11-02_12-47-13_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_airplane_r2_slurm
+    bicycle: 11-02_12-54-54_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bicycle_r2_slurm
+    bottle: 11-03_18-33-09_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bottle_r2_slurm
+    bus: 11-02_12-46-12_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bus_r2_slurm
+    car: 11-02_12-48-14_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_car_r2_slurm
+    chair: 11-03_18-33-49_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_chair_r2_slurm
+    couch: 11-02_12-53-27_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_couch_r2_slurm
+    motorcycle: 11-02_12-55-57_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_motorcycle_r2_slurm
+    train: 11-03_18-04-04_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_train_r2_slurm
+    tv: 11-03_18-01-10_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_tv_r2_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r3:
+    airplane: 11-03_17-59-22_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_airplane_r3_slurm
+    bicycle: 11-02_12-54-29_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bicycle_r3_slurm
+    bottle: 11-03_18-01-48_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bottle_r3_slurm
+    bus: 11-02_12-45-47_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bus_r3_slurm
+    car: 11-03_18-00-02_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_car_r3_slurm
+    chair: 11-03_18-02-50_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_chair_r3_slurm
+    couch: 11-02_12-53-02_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_couch_r3_slurm
+    motorcycle: 11-02_12-55-32_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_motorcycle_r3_slurm
+    train: 11-02_12-52-00_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_train_r3_slurm
+    tv: 11-03_18-00-44_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_tv_r3_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r4:
+    airplane: 11-03_17-59-36_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_airplane_r4_slurm
+    bicycle: 11-02_12-54-41_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bicycle_r4_slurm
+    bottle: 11-03_18-02-00_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bottle_r4_slurm
+    bus: 11-02_12-46-00_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_bus_r4_slurm
+    car: 11-02_12-48-02_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_car_r4_slurm
+    chair: 11-03_18-33-36_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_chair_r4_slurm
+    couch: 11-02_12-53-14_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_couch_r4_slurm
+    motorcycle: 11-02_12-55-45_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_motorcycle_r4_slurm
+    train: 11-03_18-34-14_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_train_r4_slurm
+    tv: 11-03_18-00-57_CO3D_NeMo_uni6d_vitb_norm_dmtet1k_inst_def6d_coord_conv4_tv_r4_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:

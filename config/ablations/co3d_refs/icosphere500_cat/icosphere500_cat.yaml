@@ -1,0 +1,60 @@
+# @package _global_
+
+checkpoint: ${checkpoint_opt}
+
+checkpoints_refs_cats_run_name:
+        r0:
+                airplane: 01-23_17-59-33_CO3D_NeMo_icosphere500_app0_airplane_r0_slurm
+                bicycle: 01-23_18-04-11_CO3D_NeMo_icosphere500_app0_bicycle_r0_slurm
+                bottle: 01-23_18-01-40_CO3D_NeMo_icosphere500_app0_bottle_r0_slurm
+                bus: 01-23_17-58-53_CO3D_NeMo_icosphere500_app0_bus_r0_slurm
+                car: 01-23_18-00-18_CO3D_NeMo_icosphere500_app0_car_r0_slurm
+                chair: 01-23_18-02-16_CO3D_NeMo_icosphere500_app0_chair_r0_slurm
+                couch: 01-23_18-03-33_CO3D_NeMo_icosphere500_app0_couch_r0_slurm
+                motorcycle: 01-23_18-04-48_CO3D_NeMo_icosphere500_app0_motorcycle_r0_slurm
+                train: 01-23_18-02-53_CO3D_NeMo_icosphere500_app0_train_r0_slurm
+                tv: 01-23_18-01-02_CO3D_NeMo_icosphere500_app0_tv_r0_slurm
+        r1:
+                airplane: 01-23_17-59-01_CO3D_NeMo_icosphere500_app0_airplane_r1_slurm
+                bicycle: 01-23_18-03-40_CO3D_NeMo_icosphere500_app0_bicycle_r1_slurm
+                bottle: 01-23_18-01-09_CO3D_NeMo_icosphere500_app0_bottle_r1_slurm
+                bus: 01-23_17-58-22_CO3D_NeMo_icosphere500_app0_bus_r1_slurm
+                car: 01-23_17-59-41_CO3D_NeMo_icosphere500_app0_car_r1_slurm
+                chair: 01-23_18-01-47_CO3D_NeMo_icosphere500_app0_chair_r1_slurm
+                couch: 01-23_18-03-01_CO3D_NeMo_icosphere500_app0_couch_r1_slurm
+                motorcycle: 01-23_18-04-18_CO3D_NeMo_icosphere500_app0_motorcycle_r1_slurm
+                train: 01-23_18-02-24_CO3D_NeMo_icosphere500_app0_train_r1_slurm
+                tv: 01-23_18-00-25_CO3D_NeMo_icosphere500_app0_tv_r1_slurm
+        r2:
+                airplane: 01-23_17-59-24_CO3D_NeMo_icosphere500_app0_airplane_r2_slurm
+                bicycle: 01-23_18-04-03_CO3D_NeMo_icosphere500_app0_bicycle_r2_slurm
+                bottle: 01-23_18-01-32_CO3D_NeMo_icosphere500_app0_bottle_r2_slurm
+                bus: 01-23_17-58-45_CO3D_NeMo_icosphere500_app0_bus_r2_slurm
+                car: 01-23_18-00-10_CO3D_NeMo_icosphere500_app0_car_r2_slurm
+                chair: 01-23_18-02-09_CO3D_NeMo_icosphere500_app0_chair_r2_slurm
+                couch: 01-23_18-03-25_CO3D_NeMo_icosphere500_app0_couch_r2_slurm
+                motorcycle: 01-23_18-04-41_CO3D_NeMo_icosphere500_app0_motorcycle_r2_slurm
+                train: 01-23_18-02-46_CO3D_NeMo_icosphere500_app0_train_r2_slurm
+                tv: 01-23_18-00-53_CO3D_NeMo_icosphere500_app0_tv_r2_slurm
+        r3:
+                airplane: 01-23_17-59-08_CO3D_NeMo_icosphere500_app0_airplane_r3_slurm
+                bicycle: 01-23_18-03-48_CO3D_NeMo_icosphere500_app0_bicycle_r3_slurm
+                bottle: 01-23_18-01-17_CO3D_NeMo_icosphere500_app0_bottle_r3_slurm
+                bus: 01-23_17-58-30_CO3D_NeMo_icosphere500_app0_bus_r3_slurm
+                car: 01-24_13-45-16_CO3D_NeMo_icosphere500_app0_car_r3_slurm
+                chair: 01-23_18-01-54_CO3D_NeMo_icosphere500_app0_chair_r3_slurm
+                couch: 01-23_18-03-09_CO3D_NeMo_icosphere500_app0_couch_r3_slurm
+                motorcycle: 01-23_18-04-26_CO3D_NeMo_icosphere500_app0_motorcycle_r3_slurm
+                train: 01-23_18-02-31_CO3D_NeMo_icosphere500_app0_train_r3_slurm
+                tv: 01-23_18-00-33_CO3D_NeMo_icosphere500_app0_tv_r3_slurm
+        r4:
+                airplane: 01-23_17-59-16_CO3D_NeMo_icosphere500_app0_airplane_r4_slurm
+                bicycle: 01-23_18-03-56_CO3D_NeMo_icosphere500_app0_bicycle_r4_slurm
+                bottle: 01-23_18-01-25_CO3D_NeMo_icosphere500_app0_bottle_r4_slurm
+                bus: 01-23_17-58-38_CO3D_NeMo_icosphere500_app0_bus_r4_slurm
+                car: 01-23_17-59-56_CO3D_NeMo_icosphere500_app0_car_r4_slurm
+                chair: 01-23_18-02-02_CO3D_NeMo_icosphere500_app0_chair_r4_slurm
+                couch: 01-23_18-03-16_CO3D_NeMo_icosphere500_app0_couch_r4_slurm
+                motorcycle: 01-23_18-04-33_CO3D_NeMo_icosphere500_app0_motorcycle_r4_slurm
+                train: 01-23_18-02-39_CO3D_NeMo_icosphere500_app0_train_r4_slurm
+                tv: 01-23_18-00-40_CO3D_NeMo_icosphere500_app0_tv_r4_slurm

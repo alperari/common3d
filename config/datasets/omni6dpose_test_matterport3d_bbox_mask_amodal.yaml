@@ -1,0 +1,39 @@
+defaults:
+  - omni6dpose
+
+dict_nested_frames_filter_cat_w_name: True
+
+modalities:
+    - 'size'
+    - 'category'
+    - 'category_id'
+    - 'cam_intr4x4'
+    - 'cam_tform4x4_obj'
+    - 'obj_tform4x4_objs'
+    # - 'rays_center3d'
+    - 'category'
+    - 'rgb'
+    - 'rgb_mask'
+    #- 'mask'
+    - 'mask_dt'
+    - 'mask_inv_dt'
+    - 'sequence_name_unique'
+    - 'sequence'
+    - 'mesh'
+
+dict_nested_frames: # train test val
+#    test_real:
+#    test_ikea:
+#    test_matterport3d:
+#    test_scannetpp:
+    test_matterport3d_bbox_mask_amodal:  # "ikea", "matterport3d", "scannet++",
+#    train_matterport3d:
+#    train_scannetpp:
+#    train_syn_albedo_ico_uni64_theta_uni1: # note for these you
+#    test_syn_albedo_ico_uni64_theta_uni1:
+#    test_real_albedo_ico_uni64_theta_uni1:
+#    train_syn_albedo_ico_uni64_theta_uni1:
+
+categories:
+  - mangosteen
+  # s- shoe

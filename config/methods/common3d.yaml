@@ -1,0 +1,383 @@
+name: common3d # nemo
+class_name: NeMo
+
+bank_feats_distribution: von-mises-fisher
+bank_feats_normalize: true
+
+categories:
+    - bicycle
+# checkpoint: /data/lmbraid21/sommerl/exps/10-29_16-22-51_CO3D_NeMo_uni6d_dmtet1k_cat_def_bicycle_app0_r0_slurm/nemo.ckpt
+
+fpaths_meshes:
+    airplane: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/toyplane/111_13148_23780/mesh.ply
+    backpack: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/backpack/196_21139_44291/mesh.ply
+    bench: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/bench/194_20936_42354/mesh.ply
+    bicycle: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/bicycle/354_37645_70054/mesh.ply
+    book: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/book/102_11962_21291/mesh.ply
+    bottle: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/bottle/40_1834_5582/mesh.ply
+    bus: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/toybus/199_21374_39988/mesh.ply
+    car: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/car/185_19982_37678/mesh.ply
+    cellphone: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/cellphone/112_13284_23744/mesh.ply
+    chair: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/chair/218_22993_47010/mesh.ply
+    couch: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/couch/193_20843_43364/mesh.ply
+    cup: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/cup/34_1421_4329/mesh.ply
+    hairdryer: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/hairdryer/101_11750_20715/mesh.ply
+    handbag: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/handbag/396_49728_97942/mesh.ply
+    hydrant: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/hydrant/185_19984_37720/mesh.ply
+    keyboard: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/keyboard/200_21526_41664/mesh.ply
+    laptop: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/laptop/131_15148_29934/mesh.ply
+    microwave: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/microwave/404_53420_104078/mesh.ply
+    motorcycle: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/motorcycle/349_36520_66801/mesh.ply
+    mouse: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/mouse/14_189_1165/mesh.ply
+    remote: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/remote/195_21014_43617/mesh.ply
+    suitcase: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/suitcase/219_23131_48849/mesh.ply
+    teddybear: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/teddybear/196_21096_41534/mesh.ply
+    toaster: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/toaster/274_29366_56609/mesh.ply
+    toilet: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/toilet/243_25916_51736/mesh.ply
+    train: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/toytrain/346_36011_65893/mesh.ply
+    truck: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/toytruck/240_25396_52241/mesh.ply
+    tv: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta/tv/398_50481_99038/mesh.ply
+fpaths_meshes_tform_obj:
+    airplane: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/toyplane/111_13148_23780/tform_obj.pt
+    backpack: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/backpack/196_21139_44291/tform_obj.pt
+    bench: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/bench/194_20936_42354/tform_obj.pt
+    bicycle: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/bicycle/354_37645_70054/tform_obj.pt
+    book: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/book/102_11962_21291/tform_obj.pt
+    bottle: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/bottle/40_1834_5582/tform_obj.pt
+    bus: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/toybus/199_21374_39988/tform_obj.pt
+    car: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/car/185_19982_37678/tform_obj.pt
+    cellphone: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/cellphone/112_13284_23744/tform_obj.pt
+    chair: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/chair/218_22993_47010/tform_obj.pt
+    couch: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/couch/193_20843_43364/tform_obj.pt
+    cup: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/cup/34_1421_4329/tform_obj.pt
+    hairdryer: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/hairdryer/101_11750_20715/tform_obj.pt
+    handbag: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/handbag/396_49728_97942/tform_obj.pt
+    hydrant: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/hydrant/185_19984_37720/tform_obj.pt
+    keyboard: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/keyboard/200_21526_41664/tform_obj.pt
+    laptop: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/laptop/131_15148_29934/tform_obj.pt
+    microwave: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/microwave/404_53420_104078/tform_obj.pt
+    motorcycle: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/motorcycle/349_36520_66801/tform_obj.pt
+    mouse: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/mouse/14_189_1165/tform_obj.pt
+    remote: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/remote/195_21014_43617/tform_obj.pt
+    suitcase: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/suitcase/219_23131_48849/tform_obj.pt
+    teddybear: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/teddybear/196_21096_41534/tform_obj.pt
+    toaster: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/toaster/274_29366_56609/tform_obj.pt
+    toilet: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/toilet/243_25916_51736/tform_obj.pt
+    train: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/toytrain/346_36011_65893/tform_obj.pt
+    truck: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/toytruck/240_25396_52241/tform_obj.pt
+    tv: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta/tv/398_50481_99038/tform_obj.pt
+inference:
+    add_mask_object_to_sim: false
+    allow_clutter: true
+    feats_corresp_alpha: 0.1
+    live: false
+    normalize_surface: false
+    only_use_rendered_inliers: false
+    optimizer:
+        beta0: 0.4
+        beta1: 0.6
+        epochs: 30
+        lr: 0.02
+    pre_rendered: true
+    refine:
+        dims_detached: [0, 1, 2, ] # [0, 1, 2] # 0, 1, 2, 3, 4, 5, 6 # 0-5, transl: 0, 1, 2, rot: 3, 4, 5, scale: 6
+        dims_detached_val: []
+        dims_grad_max:
+            - 0.1
+            - 0.1
+            - 0.1
+            - 0.1
+            - 0.1
+            - 0.1
+        enabled: true
+        latent_detached: true
+    render_classify: false
+    sample:
+        depth_from_box: false
+        epnp3d2d:
+            coarse_labels: false
+            count_cams: 100
+            count_pts: 4
+            pt_nn_top_k: 1
+            pt_nn_weights: true
+        method: uniform
+        uniform:
+            azim:
+                max: math.pi * 2 - (math.pi * 2) / 12.
+                min: "0."
+                steps: 12
+            elev:
+                max: math.pi / 3
+                min: -math.pi / 6
+                steps: 4
+            theta:
+                max: math.pi / 6
+                min: -math.pi / 6
+                steps: 3
+        uniform_multiview_rescale: true
+    sim_feats_mesh_with_image: rendered
+    use_mask_object: false
+    use_sigmoid: false
+max_group: 512
+model:
+    backbone:
+        class_name: DINOv2
+        downsample_rate: 16
+        freeze: true
+        hub_model: dinov2_vits14
+        hub_repo: facebookresearch/dinov2
+        layers_returned:
+            - 0
+        weights: default
+    head:
+        block_type: bottleneck
+        class_name: ResNet
+        conv_blocks:
+            out_conv1x1:
+                - false
+                - false
+                - true
+            out_dims:
+                - 512
+                - 512
+                - 128
+            pre_upsampling:
+                - 1
+                - 1
+                - 2
+            strides:
+                - 1
+                - 1
+                - 1
+        fully_connected:
+            out_dim: null
+        normalize: true
+        pad_zero: false
+multiview:
+    batch_size: 4
+    enabled: true
+
+num_noise: 5
+objects3d:
+    class_name: DMTet
+    face_blend_count: 8
+    face_blend_type: hard
+    face_opacity: 1
+    face_opacity_face_sdf_gamma: 0.0001
+    face_opacity_face_sdf_sigma: 0.005
+    feat_clutter: true
+    feat_clutter_requires_param: true
+    feat_dim: 0
+    feats_activation: norm_detach # "norm_detach" "none" "norm" "sigmoid" "tanh"
+    feats_objects: false
+    feats_requires_grad: true
+    fpaths_meshes: None
+    fpaths_meshes_tforms: None
+    gaussian_splat_enabled: false
+    gaussian_splat_opacity: 1
+    gaussian_splat_pts3d_size_rel_to_neighbor_dist: 0.1
+    geodesic_prob_sigma: 0
+    gs_opacity_requires_grad: false
+    gs_rotation_requires_grad: false
+    gs_scale: 0.07
+    gs_scale_requires_grad: false
+    gs_top_k: 4
+    instance_deform_net_config:
+        affine: true
+        backbone: null
+        head:
+            activation: null
+            class_name: CoordMLP
+            dropout: 0
+            hidden_dim: 256
+            in_dim: 0
+            num_layers: 5
+            out_dim: 256
+            resnet:
+                block_type: bottleneck
+                class_name: ResNet
+                conv_blocks:
+                    out_conv1x1:
+                        - false
+                        - false
+                        - false
+                        - false
+                    out_dims:
+                        - 256
+                        - 256
+                        - 256
+                        - 256
+                    pre_upsampling:
+                        - 1
+                        - 1
+                        - 1
+                        - 1
+                    strides:
+                        - 2
+                        - 2
+                        - 2
+                        - 2
+                fully_connected:
+                    out_dim: 256
+                normalize: false
+                pad_zero: false
+            symmetrize: false
+        nearest_pt3d: none
+    normalize_scale: true
+    pt3d_raster_perspective_correct: false
+    tet_res: 16
+    verts_requires_grad: true
+
+path_meshes: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/mesh/alpha500/meta_mask/meta
+path_meshes_tform: /data/lmbraid19/sommerl/datasets/CO3D_Preprocess/tform_obj/label3d_cuboid/meta_mask/meta
+test:
+    dataloader:
+        batch_size: 4
+        num_workers: 4
+        pin_memory: true
+    kpts3d: vertex_sim_max
+    save_results: false
+    transform:
+        H: 512
+        W: 512
+        center_rel_shift_xy:
+            - -0
+            - -0
+        class_name: CenterZoom3D
+        scale: null
+        scale_with_mask: 1
+    visualize:
+        count_best: 3
+        count_rand: 1
+        count_worst: 3
+        down_sample_rate: 4
+        live: false
+        modalities:
+            - pred_vs_gt_verts_ncds_in_rgb
+            - net_feats_nearest_verts
+            - samples
+            - latent_interp
+            - mesh
+        samples_scores: true
+        samples_sorted: true
+        selected:
+            - 0
+            - 10
+            - 20
+train:
+    T: 0.07
+    alpha: 0.96
+    bank_feats_update: loss_gradient
+    batch_accumulate_to_next_step: 2
+    dataloader:
+        batch_size: 12
+        num_workers: 8
+        pin_memory: true
+    early_stopping: true
+    early_stopping_score: pose/acc_pi18 # pose/acc_pi18 # -loss_app # pose/acc_pi6 # pose/acc_pi6 pose/acc_pi18
+    epochs: 40
+    epoch_app_start: 20
+    epoch_inst_def_start: 20
+    epoch_cat_verts_requires_grad_stop: 20
+    epochs_to_next_test: 1
+    loss:
+        appear:
+            dense_detach_geo: false
+            dense_loss: true
+            dropout: 0.0
+            type: cross_entropy_coarse
+            use_mask_object: false
+            use_mask_rgb: true
+            weight: 0.1
+        geo:
+            deform_latent_reg:
+                type: unit
+                weight: 0
+            deform_reg:
+                weight: 0.05 # 0.1
+            deform_smooth_reg:
+                weight: 0.005 # 0.01
+            mask:
+                weight: 0
+            mask_dt:
+                weight: 200. # 200.  100.
+            mask_inv_dt:
+                weight: 0
+            mask_mse:
+                weight: 2.  # 2. 1.
+            rec:
+                type: cd_pcl
+                weight: 0.1 # 0.1
+            sdf_reg:
+                weight: 0.01
+            smooth:
+                weight: 0
+        pose:
+            weight: 1.
+    optimizer:
+        class_name: torch.optim.Adam
+        kwargs:
+            lr: 0.0001
+            weight_decay: 0.0001
+    pseudo_labels_fraction_per_epoch: 0
+    scheduler:
+        class_name: torch.optim.lr_scheduler.MultiStepLR
+        kwargs:
+            gamma: 0.2
+            milestones:
+                - 400
+                - 600
+    split: sequences_separated
+    transform:
+        class_name: SequentialTransform
+        transforms:
+            - H: 512
+              W: 512
+              apply_txtr: false
+              center_rel_shift_xy_max:
+                - 0
+                - 0
+              center_rel_shift_xy_min:
+                - -0
+                - -0
+              class_name: RandomCenterZoom3D
+              config:
+                class_name: DTD
+                dict_nested_frames:
+                    train: null
+                    val: null
+                extract_meta:
+                    enabled: false
+                    override: false
+                    remove_previous: false
+                modalities:
+                    - rgb
+                    - size
+                name: dtd
+                path_preprocess: /data/lmbraid19/sommerl/datasets/DTD_Preprocess
+                path_raw: /data/lmbraid19/sommerl/datasets/DTD
+                setup:
+                    enabled: false
+                    override: false
+                    remove_previous: false
+              scale_max: 1.2
+              scale_min: 0.8
+              scale_selection: shorter
+              scale_with_mask: 1
+            - class_name: RGB_Random
+    val: true
+    val_fraction: 0.1
+    visualize:
+        count_best: 3
+        count_rand: 1
+        count_worst: 3
+        down_sample_rate: 4
+        live: false
+        modalities:
+            - gt_verts_ncds_in_rgb
+        samples_scores: true
+        samples_sorted: true
+        selected:
+            - 0
+            - 10
+            - 20

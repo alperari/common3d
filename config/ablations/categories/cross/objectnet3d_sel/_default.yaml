@@ -1,0 +1,12 @@
+# @package _global_
+
+test_datasets:
+  co3d:
+    skip: True
+  co3d_zsp:
+    skip: True
+
+skip_cross_objectnet3d: False
+skip_cross_pascal3d: True
+skip_spair71k: True
+skip_co3d_zsp_test: True

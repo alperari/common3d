@@ -1,0 +1,4 @@
+# @package _global_
+
+skip_co3d_zsp_val: True
+skip_co3d_zsp_test: True

@@ -1,0 +1,150 @@
+# @package _global_
+
+checkpoint: ${checkpoint_opt}
+
+checkpoints_refs_cats_run_name:
+  r0:
+    airplane: 11-07_00-28-03_CO3D_NeMo_dmtet1k_airplane_app0_geo_rec0_r0_slurm
+    bicycle: 11-07_00-27-12_CO3D_NeMo_dmtet1k_bicycle_app0_geo_rec0_r0_slurm
+    bottle: 11-07_00-28-54_CO3D_NeMo_dmtet1k_bottle_app0_geo_rec0_r0_slurm
+    bus: 11-07_00-29-45_CO3D_NeMo_dmtet1k_bus_app0_geo_rec0_r0_slurm
+    car: 11-07_00-32-26_CO3D_NeMo_dmtet1k_car_app0_geo_rec0_r0_slurm
+    chair: 11-07_00-33-17_CO3D_NeMo_dmtet1k_chair_app0_geo_rec0_r0_slurm
+    couch: 11-07_00-34-59_CO3D_NeMo_dmtet1k_couch_app0_geo_rec0_r0_slurm
+    motorcycle: 11-07_00-34-08_CO3D_NeMo_dmtet1k_motorcycle_app0_geo_rec0_r0_slurm
+    train: 11-07_00-35-50_CO3D_NeMo_dmtet1k_train_app0_geo_rec0_r0_slurm
+    tv: 11-07_00-31-35_CO3D_NeMo_dmtet1k_tv_app0_geo_rec0_r0_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r1:
+    airplane: 11-07_00-27-53_CO3D_NeMo_dmtet1k_airplane_app0_geo_rec0_r1_slurm
+    bicycle: 11-07_00-27-02_CO3D_NeMo_dmtet1k_bicycle_app0_geo_rec0_r1_slurm
+    bottle: 11-07_00-28-44_CO3D_NeMo_dmtet1k_bottle_app0_geo_rec0_r1_slurm
+    bus: 11-07_00-29-35_CO3D_NeMo_dmtet1k_bus_app0_geo_rec0_r1_slurm
+    car: 11-07_00-32-16_CO3D_NeMo_dmtet1k_car_app0_geo_rec0_r1_slurm
+    chair: 11-07_00-33-07_CO3D_NeMo_dmtet1k_chair_app0_geo_rec0_r1_slurm
+    couch: 11-07_00-34-49_CO3D_NeMo_dmtet1k_couch_app0_geo_rec0_r1_slurm
+    motorcycle: 11-07_00-33-58_CO3D_NeMo_dmtet1k_motorcycle_app0_geo_rec0_r1_slurm
+    train: 11-07_00-35-39_CO3D_NeMo_dmtet1k_train_app0_geo_rec0_r1_slurm
+    tv: 11-07_00-31-25_CO3D_NeMo_dmtet1k_tv_app0_geo_rec0_r1_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r2:
+    airplane: 11-07_00-27-32_CO3D_NeMo_dmtet1k_airplane_app0_geo_rec0_r2_slurm
+    bicycle: 11-07_00-26-41_CO3D_NeMo_dmtet1k_bicycle_app0_geo_rec0_r2_slurm
+    bottle: 11-07_00-28-23_CO3D_NeMo_dmtet1k_bottle_app0_geo_rec0_r2_slurm
+    bus: 11-07_00-29-14_CO3D_NeMo_dmtet1k_bus_app0_geo_rec0_r2_slurm
+    car: 11-07_00-31-56_CO3D_NeMo_dmtet1k_car_app0_geo_rec0_r2_slurm
+    chair: 11-07_00-32-47_CO3D_NeMo_dmtet1k_chair_app0_geo_rec0_r2_slurm
+    couch: 11-07_00-34-28_CO3D_NeMo_dmtet1k_couch_app0_geo_rec0_r2_slurm
+    motorcycle: 11-07_00-33-37_CO3D_NeMo_dmtet1k_motorcycle_app0_geo_rec0_r2_slurm
+    train: 11-07_00-35-19_CO3D_NeMo_dmtet1k_train_app0_geo_rec0_r2_slurm
+    tv: 11-07_00-31-05_CO3D_NeMo_dmtet1k_tv_app0_geo_rec0_r2_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r3:
+    airplane: 11-07_00-27-42_CO3D_NeMo_dmtet1k_airplane_app0_geo_rec0_r3_slurm
+    bicycle: 11-07_00-26-52_CO3D_NeMo_dmtet1k_bicycle_app0_geo_rec0_r3_slurm
+    bottle: 11-07_00-28-34_CO3D_NeMo_dmtet1k_bottle_app0_geo_rec0_r3_slurm
+    bus: 11-07_00-29-24_CO3D_NeMo_dmtet1k_bus_app0_geo_rec0_r3_slurm
+    car: 11-07_00-32-06_CO3D_NeMo_dmtet1k_car_app0_geo_rec0_r3_slurm
+    chair: 11-07_00-32-57_CO3D_NeMo_dmtet1k_chair_app0_geo_rec0_r3_slurm
+    couch: 11-07_00-34-38_CO3D_NeMo_dmtet1k_couch_app0_geo_rec0_r3_slurm
+    motorcycle: 11-07_00-33-48_CO3D_NeMo_dmtet1k_motorcycle_app0_geo_rec0_r3_slurm
+    train: 11-07_00-35-29_CO3D_NeMo_dmtet1k_train_app0_geo_rec0_r3_slurm
+    tv: 11-07_00-31-15_CO3D_NeMo_dmtet1k_tv_app0_geo_rec0_r3_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r4:
+    airplane: 11-07_00-28-13_CO3D_NeMo_dmtet1k_airplane_app0_geo_rec0_r4_slurm
+    bicycle: 11-07_00-27-22_CO3D_NeMo_dmtet1k_bicycle_app0_geo_rec0_r4_slurm
+    bottle: 11-07_00-29-04_CO3D_NeMo_dmtet1k_bottle_app0_geo_rec0_r4_slurm
+    bus: 11-07_00-29-55_CO3D_NeMo_dmtet1k_bus_app0_geo_rec0_r4_slurm
+    car: 11-07_00-32-36_CO3D_NeMo_dmtet1k_car_app0_geo_rec0_r4_slurm
+    chair: 11-07_00-33-27_CO3D_NeMo_dmtet1k_chair_app0_geo_rec0_r4_slurm
+    couch: 11-07_00-35-09_CO3D_NeMo_dmtet1k_couch_app0_geo_rec0_r4_slurm
+    motorcycle: 11-07_00-34-18_CO3D_NeMo_dmtet1k_motorcycle_app0_geo_rec0_r4_slurm
+    train: 11-07_00-36-00_CO3D_NeMo_dmtet1k_train_app0_geo_rec0_r4_slurm
+    tv: 11-07_00-31-46_CO3D_NeMo_dmtet1k_tv_app0_geo_rec0_r4_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:

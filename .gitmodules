@@ -1,0 +1,21 @@
+[submodule "third_party/AutoRecon"]
+	path = third_party/AutoRecon
+	url = git@github.com:limpbot/AutoRecon.git
+[submodule "LightGlue"]
+	path = third_party/LightGlue
+	url = git@github.com:cvg/LightGlue.git
+[submodule "third_party/DROID-SLAM"]
+	path = third_party/DROID-SLAM
+	url = git@github.com:limpbot/DROID-SLAM.git
+[submodule "third_party/zero-shot-pose"]
+	path = third_party/zero-shot-pose
+	url = git@github.com:limpbot/zero-shot-pose.git
+[submodule "third_party/TRELLIS"]
+	path = third_party/TRELLIS
+	url = git@github.com:microsoft/TRELLIS.git
+[submodule "third_party/mip-splatting"]
+	path = third_party/mip-splatting
+	url = https://github.com/autonomousvision/mip-splatting.git
+[submodule "third_party/Hunyuan3D-2"]
+	path = third_party/Hunyuan3D-2
+	url = git@github.com:Tencent/Hunyuan3D-2.git

@@ -1,0 +1,10 @@
+defaults:
+  - shapenet
+#   - override @dict_nested_frames:
+
+sequences_count_max_per_category: 30 # None
+# frames_count_max_per_sequence: 3
+
+dict_nested_frames:
+  v2:
+    airplane:

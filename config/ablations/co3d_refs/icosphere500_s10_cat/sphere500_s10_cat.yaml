@@ -1,0 +1,60 @@
+# @package _global_
+
+checkpoint: ${checkpoint_opt}
+
+checkpoints_refs_cats_run_name:
+        r0:
+                airplane: 01-23_19-03-21_CO3D_NeMo_icosphere500_scale10_app0_airplane_r0_slurm
+                bicycle: 01-24_07-18-26_CO3D_NeMo_icosphere500_scale10_app0_bicycle_r0_slurm
+                bottle: 01-24_05-15-13_CO3D_NeMo_icosphere500_scale10_app0_bottle_r0_slurm
+                bus: 01-23_19-24-52_CO3D_NeMo_icosphere500_scale10_app0_bus_r0_slurm
+                car: 01-23_19-04-00_CO3D_NeMo_icosphere500_scale10_app0_car_r0_slurm
+                chair: 01-24_05-36-03_CO3D_NeMo_icosphere500_scale10_app0_chair_r0_slurm
+                couch: 01-24_06-57-42_CO3D_NeMo_icosphere500_scale10_app0_couch_r0_slurm
+                motorcycle: 01-24_08-41-51_CO3D_NeMo_icosphere500_scale10_app0_motorcycle_r0_slurm
+                train: 01-24_06-16-52_CO3D_NeMo_icosphere500_scale10_app0_train_r0_slurm
+                tv: 01-23_23-33-03_CO3D_NeMo_icosphere500_scale10_app0_tv_r0_slurm
+        r1:
+                airplane: 01-23_19-24-59_CO3D_NeMo_icosphere500_scale10_app0_airplane_r1_slurm
+                bicycle: 01-24_07-17-55_CO3D_NeMo_icosphere500_scale10_app0_bicycle_r1_slurm
+                bottle: 01-23_23-33-11_CO3D_NeMo_icosphere500_scale10_app0_bottle_r1_slurm
+                bus: 01-23_19-24-19_CO3D_NeMo_icosphere500_scale10_app0_bus_r1_slurm
+                car: 01-23_19-03-28_CO3D_NeMo_icosphere500_scale10_app0_car_r1_slurm
+                chair: 01-24_05-35-33_CO3D_NeMo_icosphere500_scale10_app0_chair_r1_slurm
+                couch: 01-24_13-45-09_CO3D_NeMo_icosphere500_scale10_app0_couch_r1_slurm
+                motorcycle: 01-24_08-41-17_CO3D_NeMo_icosphere500_scale10_app0_motorcycle_r1_slurm
+                train: 01-24_05-56-17_CO3D_NeMo_icosphere500_scale10_app0_train_r1_slurm
+                tv: 01-23_19-04-08_CO3D_NeMo_icosphere500_scale10_app0_tv_r1_slurm
+        r2:
+                airplane: 01-23_19-03-12_CO3D_NeMo_icosphere500_scale10_app0_airplane_r2_slurm
+                bicycle: 01-24_07-18-18_CO3D_NeMo_icosphere500_scale10_app0_bicycle_r2_slurm
+                bottle: 01-24_05-15-05_CO3D_NeMo_icosphere500_scale10_app0_bottle_r2_slurm
+                bus: 01-23_19-24-41_CO3D_NeMo_icosphere500_scale10_app0_bus_r2_slurm
+                car: 01-23_19-03-52_CO3D_NeMo_icosphere500_scale10_app0_car_r2_slurm
+                chair: 01-24_05-35-56_CO3D_NeMo_icosphere500_scale10_app0_chair_r2_slurm
+                couch: 01-24_06-57-34_CO3D_NeMo_icosphere500_scale10_app0_couch_r2_slurm
+                motorcycle: 01-24_19-59-43_CO3D_NeMo_icosphere500_scale10_app0_motorcycle_r2_slurm
+                train: 01-24_13-45-02_CO3D_NeMo_icosphere500_scale10_app0_train_r2_slurm
+                tv: 01-23_23-32-56_CO3D_NeMo_icosphere500_scale10_app0_tv_r2_slurm
+        r3:
+                airplane: 01-23_19-25-06_CO3D_NeMo_icosphere500_scale10_app0_airplane_r3_slurm
+                bicycle: 01-24_07-18-03_CO3D_NeMo_icosphere500_scale10_app0_bicycle_r3_slurm
+                bottle: 01-24_05-14-51_CO3D_NeMo_icosphere500_scale10_app0_bottle_r3_slurm
+                bus: 01-23_19-24-27_CO3D_NeMo_icosphere500_scale10_app0_bus_r3_slurm
+                car: 01-23_19-03-36_CO3D_NeMo_icosphere500_scale10_app0_car_r3_slurm
+                chair: 01-24_05-35-41_CO3D_NeMo_icosphere500_scale10_app0_chair_r3_slurm
+                couch: 01-24_06-37-13_CO3D_NeMo_icosphere500_scale10_app0_couch_r3_slurm
+                motorcycle: 01-24_20-09-58_CO3D_NeMo_icosphere500_scale10_app0_motorcycle_r3_slurm
+                train: 01-24_05-56-24_CO3D_NeMo_icosphere500_scale10_app0_train_r3_slurm
+                tv: 01-23_21-12-08_CO3D_NeMo_icosphere500_scale10_app0_tv_r3_slurm
+        r4:
+                airplane: 01-23_19-25-14_CO3D_NeMo_icosphere500_scale10_app0_airplane_r4_slurm
+                bicycle: 01-24_07-18-10_CO3D_NeMo_icosphere500_scale10_app0_bicycle_r4_slurm
+                bottle: 01-24_05-35-26_CO3D_NeMo_icosphere500_scale10_app0_bottle_r4_slurm
+                bus: 01-23_19-24-34_CO3D_NeMo_icosphere500_scale10_app0_bus_r4_slurm
+                car: 01-23_19-03-44_CO3D_NeMo_icosphere500_scale10_app0_car_r4_slurm
+                chair: 01-24_05-35-48_CO3D_NeMo_icosphere500_scale10_app0_chair_r4_slurm
+                couch: 01-24_06-57-26_CO3D_NeMo_icosphere500_scale10_app0_couch_r4_slurm
+                motorcycle: 01-24_08-41-36_CO3D_NeMo_icosphere500_scale10_app0_motorcycle_r4_slurm
+                train: 01-24_05-56-32_CO3D_NeMo_icosphere500_scale10_app0_train_r4_slurm
+                tv: 01-23_23-32-49_CO3D_NeMo_icosphere500_scale10_app0_tv_r4_slurm

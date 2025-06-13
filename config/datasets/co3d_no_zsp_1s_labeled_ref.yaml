@@ -1,0 +1,30 @@
+defaults:
+  - co3d_no_zsp_5s_labeled_ref
+  - /ablations/co3d_refs@: r0
+
+name: co3d_no_zsp_1s_labeled_ref
+
+dict_nested_frames: ${co3d_refs.dict_nested_frames}
+
+#dict_nested_frames: ${dict_nested_frames_ref.r0}
+#
+#mesh_type: 'trellis500'
+#
+#preprocess:
+#  sfm:
+#    enabled: True
+#    override: False
+#  mask:
+#    enabled: True
+#    override: False
+#  pcl:
+#    enabled: True
+#    override: False
+#  tform_obj:
+#    enabled: True
+#    override: False
+#  mesh:
+#    enabled: True
+#    override: False
+
+# mesh_type: 'alpha500'

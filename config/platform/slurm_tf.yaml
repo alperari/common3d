@@ -1,0 +1,47 @@
+defaults:
+  - slurm
+
+link: slurm
+shared_home_with_local: False
+ws_name: od3d # /work/dlclarge1/sommerl-od3d
+pull_od3d: True
+pull_od3d_submodules: False
+install_od3d: True
+path_ws: /work/dlclarge1/sommerl-od3d
+#path_od3d: /work/dlclarge1/sommerl-od3d/od3d
+#path_datasets_raw: /work/dlclarge1/sommerl-od3d/datasets
+#path_datasets_preprocess: /work/dlclarge1/sommerl-od3d/datasets #for student: create your own directory in dlclarge
+path_exps: ${.path_ws}/exps
+#path_cuda: /work/dlclarge1/sommerl-od3d/cudas/cuda-11.7 # should be cuda-11.7
+#path_home: /ihome/sommerl
+
+#path_od3d: /work/dlclarge1/sommerl-od3d/od3d
+path_od3d: ${.path_ws}/od3d
+path_datasets_raw: /data/lmbraid19/sommerl/datasets
+path_datasets_preprocess: /data/lmbraid19/sommerl/datasets # for student: /misc/student/srinivap/datasets_preprocess
+# path_exps: /data/lmbraid19/sommerl/exps
+#path_cuda: /work/dlclarge1/sommerl-od3d/cudas/cuda-11.7 # should be cuda-11.7
+#path_cuda: /usr/local/cuda-11.7 # cannot use shared file cuda for pytorch3d
+path_cuda: /usr/local/cuda-12.4
+path_home: /ihome/sommerl
+
+url_od3d: git@github.com:Generative-Vision-Robust-Learning/od3d.git
+partition: tflmb_gpu-rtx3090 # alldlc_gpu-rtx2080 # lmb_gpu-rtx2080 # lmb_gpu-teslaP100 lmb_gpu-1080ti, lmb_gpu-rtx2080, testdlc_gpu-rtx2080, alldlc_gpu-rtx3080, alldlc_gpu-rtx2080, lmbdlc_gpu-rtx2080
+# 1. lmb_gpu-rtx2080 : usually empty, only 3 slots
+# 2. lmbdlc_gpu-rtx2080 : often pending (but eventually it will work)
+# 3. alldlc_gpu-rtx3080 : usually empty (actually not anymore), but fewer gb?
+# 4. alldlc_gpu-rtx2080 : biggest cluster
+# 5. tflmb_gpu-rtx3090: lmb gpu (debugging)
+# 6. tflmb_gpu-1080ti: lmb gpu (debugging)
+# tflmb_gpu-rtx3090
+# tflmb_gpu-1080ti
+
+
+# lmb_gpu-teslaP100 : error: No Kernel Image is available
+# lmbdlc_gpu-rtx2080: problem: long waiting queue,
+username: sommerl
+gpu_count: 1
+cpu_count: 8
+ram: "40gb"
+walltime: "24:00:00"
+renderer: pytorch3d

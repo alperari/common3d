@@ -1,0 +1,45 @@
+# @package _global_
+
+checkpoint: ${checkpoint_opt}
+
+checkpoints_refs_cats_run_name:
+        r0:
+                bicycle: 01-27_14-35-55_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bicycle_r0_slurm
+                bus: 01-27_14-29-43_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bus_r0_slurm
+                car: 01-27_14-30-23_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_car_r0_slurm
+                chair: 01-27_14-34-40_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_chair_r0_slurm
+                couch: 01-28_09-18-47_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_couch_r0_slurm
+                motorcycle: 01-27_14-36-32_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_motorcycle_r0_slurm
+                tv: 01-27_14-46-43_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_tv_r0_slurm
+        r1:
+                bicycle: 01-27_14-35-25_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bicycle_r1_slurm
+                bus: 01-27_14-29-10_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bus_r1_slurm
+                car: 01-27_14-29-50_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_car_r1_slurm
+                chair: 01-27_14-46-50_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_chair_r1_slurm
+                couch: 01-27_14-34-48_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_couch_r1_slurm
+                motorcycle: 01-27_14-36-02_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_motorcycle_r1_slurm
+                tv: 01-27_14-30-37_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_tv_r1_slurm
+        r2:
+                bicycle: 01-27_14-35-47_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bicycle_r2_slurm
+                bus: 01-27_14-29-35_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bus_r2_slurm
+                car: 01-27_14-30-16_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_car_r2_slurm
+                chair: 01-28_12-11-47_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_chair_r2_slurm
+                couch: 01-27_14-35-10_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_couch_r2_slurm
+                motorcycle: 01-27_14-36-25_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_motorcycle_r2_slurm
+                tv: 01-27_14-31-02_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_tv_r2_slurm
+        r3:
+                bicycle: 01-27_14-35-33_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bicycle_r3_slurm
+                bus: 01-27_14-29-19_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bus_r3_slurm
+                car: 01-27_14-29-58_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_car_r3_slurm
+                chair: 01-27_14-33-25_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_chair_r3_slurm
+                couch: 01-27_14-34-55_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_couch_r3_slurm
+                motorcycle: 01-28_12-22-09_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_motorcycle_r3_slurm
+                tv: 01-27_14-30-46_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_tv_r3_slurm
+        r4:
+                bicycle: 01-28_21-58-49_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bicycle_r4_slurm
+                bus: 01-27_14-29-27_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_bus_r4_slurm
+                car: 01-27_14-30-07_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_car_r4_slurm
+                chair: 01-27_14-34-25_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_chair_r4_slurm
+                couch: 01-27_14-35-03_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_couch_r4_slurm
+                motorcycle: 01-27_14-36-17_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_motorcycle_r4_slurm
+                tv: 01-27_14-30-54_CO3D_NeMo_uni6d_alpha500_inst_def6d_coord_conv4_tv_r4_slurm

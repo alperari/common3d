@@ -1,0 +1,36 @@
+Host freiburg
+    HostName lmblogin.informatik.uni-freiburg.de
+    Port 2122
+    User sommerl
+
+#Host freiburg
+#    HostName login.informatik.uni-freiburg.de
+#    Port 22
+#    User sommerl
+
+Host dacky
+    HostName dacky
+    User sommerl
+    ProxyJump freiburg
+    Port 22
+
+Host shuri
+    HostName shuri
+    User sommerl
+    ProxyJump freiburg
+    Port 22
+
+Host ducky
+    HostName ducky
+    User sommerl
+    ProxyJump freiburg
+    Port 22
+
+Host slurm
+    HostName kis3bat1.rz.ki.privat
+    # ProxyJump freiburg
+
+Host *.github.com
+    Port 22
+    ServerAliveInterval 60 # keep alive 30 x 60 seconds
+    ServerAliveCountMax 30

@@ -1,0 +1,34 @@
+# @package _global_
+defaults:
+  - /ablations/categories/cross/_default
+
+checkpoint_opt: ${checkpoints_cats.book}
+
+categories:
+#  - bicycle
+#  - truck
+#  - train
+#  - teddybear
+#  - car
+#  - bus
+#  - motorcycle
+#  - keyboard
+#  - handbag
+#  - remote
+#  - airplane
+#  - toilet
+#  - hairdryer
+#  - mouse
+#  - toaster
+#  - hydrant
+#  - chair
+#  - laptop
+  - book
+#  - backpack
+#  - cellphone # from cellphone on, no zsp categories
+#  - bench
+#  - bottle
+#  - couch
+#  - cup
+#  - suitcase
+#  - tv

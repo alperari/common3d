@@ -1,0 +1,163 @@
+name: omni6dpose
+class_name: Omni6DPose
+
+modalities:
+    - 'size'
+    - 'category'
+    - 'categories'
+    - 'categories_ids'
+    - 'cam_intr4x4'
+    - 'cam_tform4x4_obj'
+    - 'obj_tform4x4_objs'
+    - 'rgb'
+    - 'rgb_mask'
+#    - 'mask'
+    - 'bboxs'
+    - 'pxl_cat_id'
+    - 'sequence_name_unique'
+    - 'sequence'
+#    - 'mesh'
+#    - 'pcl'
+
+mesh_type: 'alpha500' #  'cuboid500' 'cuboid500' 'convex500', 'voxel500' 'poisson500', 'alpha500', 'cuboid1000'
+# tform_obj_type: 'label3d_cuboid' #'raw' 'label3d_cuboid' 'label3d_cuboid' 'aligned_N_alpha500_dinov2b/r0'
+
+frames_count_max_per_sequence:
+sequences_count_max_per_category: #  50
+block_negative_depth: False
+
+#path_raw: /data/lmbraid21/jesslen/Omni6DPose # added symlink
+path_raw: ${platform.path_datasets_raw}/Omni6DPose
+path_preprocess: ${platform.path_datasets_raw}/Omni6DPose_Preprocess
+
+setup:
+  enabled: False
+  override: False
+  remove_previous: False
+
+extract_meta:
+  enabled: False
+  override: False
+  remove_previous: False
+
+preprocess:
+  mesh:
+    remove_previous: False
+    enabled: False
+    override: False
+  bboxs:
+    remove_previous: False
+    enabled: False
+    override: False
+  objcentric:
+    remove_previous: False
+    enabled: False
+    override: False
+
+dict_nested_frames: # train test val
+#    test_real:
+#    test_ikea:
+#    test_matterport3d:
+#    test_scannetpp:
+#    train_ikea:  # "ikea", "matterport3d", "scannet++",
+#    train_matterport3d:
+#    train_scannetpp:
+#    train_syn_albedo_ico_uni64_theta_uni1: # note for these you
+#    test_syn_albedo_ico_uni64_theta_uni1:
+#    test_real_albedo_ico_uni64_theta_uni1:
+#    train_syn_albedo_ico_uni64_theta_uni1:
+#      box_omniobject3d-box_001:
+#    test_syn_albedo_ico_uni64_theta_uni1:
+#      toy_bus_omniobject3d-toy_bus_015:
+#      doll_omniobject3d-doll_002:
+#      doll_omniobject3d-doll_003:
+#      doll_omniobject3d-doll_004:
+#      doll_omniobject3d-doll_005:
+#      doll_omniobject3d-doll_006:
+#      doll_omniobject3d-doll_007:
+#      doll_omniobject3d-doll_011:
+#      doll_omniobject3d-doll_012:
+#      doll_omniobject3d-doll_013:
+#      doll_omniobject3d-doll_014:
+#      box_omniobject3d-box_001:
+#      box_omniobject3d-box_002:
+#    test_syn_albedo_ico_uni64_theta_uni1:
+#    test_real_albedo_ico_uni64_theta_uni1:
+
+categories:
+  - box
+  - shoe
+  - medicine_bottle
+  - toy_animals
+  - doll
+  - bread
+  - toy_bus
+  - handbag
+  - toy_train
+  - teapot
+  - toy_boat
+  - remote_control
+  - sausage
+  - bottle
+  - dish
+  - mango
+  - toy_truck
+  - pomegranate
+  - flower_pot
+  - wallet
+  - shrimp
+  - facial_cream
+  - book
+  - dinosaur
+  - shampoo
+  - tooth_paste
+  - glasses_case
+  - toy_motorcycle
+  - hand_cream
+  - toy_car
+  - toy_plane
+  - hamburger
+  - egg
+  - power_strip
+  - mug
+  - light
+  - mouse
+  - hair_dryer
+  - corn
+  - mangosteen
+  - knife
+  - lemon
+  - coconut
+  - pillow
+  - backpack
+  - orange
+  - eraser
+  - lotus_root
+  - conch
+  - tooth_brush
+
+#  - box
+#  - shoe
+#  - doll
+#  - bread
+
+# # box, shoe, doll, teapot, handbag, dinosaur, mug, flower_pot
+
+#dataset:
+#  paths:
+#    root: "/data/lmbraid21/jesslen/Omni6DPose"
+#    meta: "Meta/obj_meta.json"
+#    subset: "SOPE"
+#    scene_id: "*"
+#    subsubset: "*" # can be "ikea", "matterport3d", "scannet++", "*"
+#
+#  preprocess: []
+#  postprocess: []
+
+#dataset:
+#  paths:
+#    root: "/data/lmbraid21/jesslen/Omni6DPose"
+#    meta: "Meta/real_obj_meta.json"
+#    subset: "ROPE"
+#    scene_id: "*"
+#    subsubset: "*" # can be "ikea", "matterport3d", "scannet++", "*"

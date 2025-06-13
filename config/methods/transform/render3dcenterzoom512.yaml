@@ -1,0 +1,12 @@
+class_name: SequentialTransform
+transforms:
+  - class_name: Render3D
+    W: 512
+    H: 512
+  - class_name: CenterZoom3D
+    W: 512
+    H: 512
+    scale: 1.
+    center_rel_shift_xy:
+      - -0.
+      - -0.

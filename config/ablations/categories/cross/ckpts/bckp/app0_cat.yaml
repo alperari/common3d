@@ -1,0 +1,5 @@
+# @package _global_
+defaults:
+  - datasets/co3d_refs@co3d_refs: r0
+
+checkpoints_cats: checkpoints_app0_cat

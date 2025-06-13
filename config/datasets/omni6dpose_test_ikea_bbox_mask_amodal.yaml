@@ -1,0 +1,16 @@
+defaults:
+  - omni6dpose
+
+
+dict_nested_frames: # train test val
+#    test_real:
+#    test_ikea:
+#    test_matterport3d:
+#    test_scannetpp:
+    test_ikea_bbox_mask_amodal:  # "ikea", "matterport3d", "scannet++",
+#    train_matterport3d:
+#    train_scannetpp:
+#    train_syn_albedo_ico_uni64_theta_uni1: # note for these you
+#    test_syn_albedo_ico_uni64_theta_uni1:
+#    test_real_albedo_ico_uni64_theta_uni1:
+#    train_syn_albedo_ico_uni64_theta_uni1:

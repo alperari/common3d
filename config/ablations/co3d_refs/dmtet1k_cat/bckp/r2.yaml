@@ -1,0 +1,92 @@
+# @package _global_
+
+co3d_refs:
+  ref_name: 'r2'
+  microwave: '422_58682_113779'
+  hydrant: '206_21797_45640'
+  toyplane: '372_41134_81910'
+  toytruck: '190_20481_38360'
+  bicycle: '373_41715_83384'
+  cup: '31_1352_4179'
+  remote: '100_11550_20470'
+  backpack: '208_21991_45347'
+  mouse: '195_21009_42771'
+  motorcycle: '365_39206_76366'
+  tv: '397_49994_98417'
+  car: '194_20900_41097'
+  cellphone: '173_18782_33853'
+  toybus: '396_49702_97897'
+  toilet: '115_13559_29303'
+  suitcase: '353_37359_70296'
+  toaster: '163_17890_33318'
+  hairdryer: '28_930_2081'
+  couch: '193_20852_43384'
+  handbag: '396_49759_97999'
+  book: '119_13954_28116'
+  keyboard: '153_16977_32093'
+  laptop: '274_29380_56806'
+  toytrain: '190_20479_37788'
+  bottle: '38_1661_5028'
+  teddybear: '208_22018_45660'
+  bench: '194_20884_40057'
+  chair: '196_21091_41396'
+
+checkpoints_cats_run_name:
+  bicycle: 10-29_16-22-38_CO3D_NeMo_uni6d_dmtet1k_cat_def_bicycle_app0_r2_slurm
+  train: 10-29_15-20-34_CO3D_NeMo_uni6d_dmtet1k_cat_def_train_app0_r2_slurm
+  car: 10-29_15-16-35_CO3D_NeMo_uni6d_dmtet1k_cat_def_car_app0_r2_slurm
+  bus: 10-29_15-14-33_CO3D_NeMo_uni6d_dmtet1k_cat_def_bus_app0_r2_slurm
+  motorcycle: 10-29_16-23-41_CO3D_NeMo_uni6d_dmtet1k_cat_def_motorcycle_app0_r2_slurm
+  airplane: 10-29_15-15-34_CO3D_NeMo_uni6d_dmtet1k_cat_def_airplane_app0_r2_slurm
+  chair: 10-29_15-19-34_CO3D_NeMo_uni6d_dmtet1k_cat_def_chair_app0_r2_slurm
+  bottle: 10-29_15-18-34_CO3D_NeMo_uni6d_dmtet1k_cat_def_bottle_app0_r2_slurm
+  couch: 10-29_15-21-34_CO3D_NeMo_uni6d_dmtet1k_cat_def_couch_app0_r2_slurm
+  tv: 10-29_16-56-17_CO3D_NeMo_uni6d_dmtet1k_cat_def_tv_app0_r2_slurm
+  backpack: 11-03_18-25-53_CO3D_NeMo_dmtet1k_backpack_app0_r2_slurm
+  bench: 11-03_18-25-02_CO3D_NeMo_dmtet1k_bench_app0_r2_slurm
+  book: 11-03_18-24-11_CO3D_NeMo_dmtet1k_book_app0_r2_slurm
+  cellphone: 11-03_18-29-35_CO3D_NeMo_dmtet1k_cellphone_app0_r2_slurm
+  cup: 11-03_18-30-26_CO3D_NeMo_dmtet1k_cup_app0_r2_slurm
+  hairdryer: 11-03_18-28-44_CO3D_NeMo_dmtet1k_hairdryer_app0_r2_slurm
+  handbag: 11-03_18-27-53_CO3D_NeMo_dmtet1k_handbag_app0_r2_slurm
+  hydrant: 11-04_12-32-33_CO3D_NeMo_dmtet1k_hydrant_app0_r2_slurm
+  keyboard: 11-04_12-33-24_CO3D_NeMo_dmtet1k_keyboard_app0_r2_slurm
+  laptop: 11-04_12-52-38_CO3D_NeMo_dmtet1k_laptop_app0_r2_slurm
+  microwave: 11-12_23-10-49_CO3D_NeMo_dmtet1k_microwave_app0_r2_slurm # 11-06_09-44-10_CO3D_NeMo_dmtet1k_microwave_app0_r2_slurm
+  mouse: 11-04_18-48-38_CO3D_NeMo_dmtet1k_mouse_app0_r2_slurm
+  remote: 11-04_18-52-13_CO3D_NeMo_dmtet1k_remote_app0_r2_slurm
+  suitcase: 11-04_18-51-22_CO3D_NeMo_dmtet1k_suitcase_app0_r2_slurm
+  teddybear: 11-04_18-50-31_CO3D_NeMo_dmtet1k_teddybear_app0_r2_slurm
+  toaster: 11-04_22-54-05_CO3D_NeMo_dmtet1k_toaster_app0_r2_slurm
+  toilet: 11-04_22-54-55_CO3D_NeMo_dmtet1k_toilet_app0_r2_slurm
+  truck: 11-04_22-55-46_CO3D_NeMo_dmtet1k_truck_app0_r2_slurm
+
+checkpoints_cats:
+  bicycle: ${platform.path_exps}/${checkpoints_cats_run_name.bicycle}/nemo.ckpt
+  truck: ${platform.path_exps}/${checkpoints_cats_run_name.truck}/nemo.ckpt
+  train: ${platform.path_exps}/${checkpoints_cats_run_name.train}/nemo.ckpt
+  teddybear: ${platform.path_exps}/${checkpoints_cats_run_name.teddybear}/nemo.ckpt
+  car: ${platform.path_exps}/${checkpoints_cats_run_name.car}/nemo.ckpt
+  bus: ${platform.path_exps}/${checkpoints_cats_run_name.bus}/nemo.ckpt
+  motorcycle: ${platform.path_exps}/${checkpoints_cats_run_name.motorcycle}/nemo.ckpt
+  keyboard: ${platform.path_exps}/${checkpoints_cats_run_name.keyboard}/nemo.ckpt
+  handbag: ${platform.path_exps}/${checkpoints_cats_run_name.handbag}/nemo.ckpt
+  remote: ${platform.path_exps}/${checkpoints_cats_run_name.remote}/nemo.ckpt
+  airplane: ${platform.path_exps}/${checkpoints_cats_run_name.airplane}/nemo.ckpt
+  toilet: ${platform.path_exps}/${checkpoints_cats_run_name.toilet}/nemo.ckpt
+  hairdryer: ${platform.path_exps}/${checkpoints_cats_run_name.hairdryer}/nemo.ckpt
+  mouse: ${platform.path_exps}/${checkpoints_cats_run_name.mouse}/nemo.ckpt
+  toaster: ${platform.path_exps}/${checkpoints_cats_run_name.toaster}/nemo.ckpt
+  hydrant: ${platform.path_exps}/${checkpoints_cats_run_name.hydrant}/nemo.ckpt
+  chair: ${platform.path_exps}/${checkpoints_cats_run_name.chair}/nemo.ckpt
+  laptop: ${platform.path_exps}/${checkpoints_cats_run_name.laptop}/nemo.ckpt
+  microwave: ${platform.path_exps}/${checkpoints_cats_run_name.microwave}/nemo.ckpt
+  book: ${platform.path_exps}/${checkpoints_cats_run_name.book}/nemo.ckpt
+  backpack: ${platform.path_exps}/${checkpoints_cats_run_name.backpack}/nemo.ckpt
+  cellphone: ${platform.path_exps}/${checkpoints_cats_run_name.cellphone}/nemo.ckpt # from cellphone on, no zsp categories
+  bench: ${platform.path_exps}/${checkpoints_cats_run_name.bench}/nemo.ckpt
+  bottle: ${platform.path_exps}/${checkpoints_cats_run_name.bottle}/nemo.ckpt
+  couch: ${platform.path_exps}/${checkpoints_cats_run_name.couch}/nemo.ckpt
+  cup: ${platform.path_exps}/${checkpoints_cats_run_name.cup}/nemo.ckpt
+  suitcase: ${platform.path_exps}/${checkpoints_cats_run_name.suitcase}/nemo.ckpt
+  tv: ${platform.path_exps}/${checkpoints_cats_run_name.tv}/nemo.ckpt

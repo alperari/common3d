@@ -1,0 +1,105 @@
+# mkdir /misc/lmbraid19/sommerl/datasets/Objectron
+# gsutil -m cp -n -r gs://objectron/v1/records_shuffled /misc/lmbraid19/sommerl/datasets/Objectron
+
+
+name: objectron
+class_name: Objectron
+
+modalities:
+    - 'size'
+    - 'category'
+    - 'cam_intr4x4'
+    - 'cam_tform4x4_obj'
+    - 'category'
+    - 'rgb'
+    - 'kpts2d_annot'
+    - 'kpts2d_annot_vsbl'
+    - 'kpts3d'
+    - 'bbox'
+    - 'mask'
+    #- 'mesh'
+    #- 'sequence_name'
+    #- 'sequence'
+
+    #- 'mask'
+    # - 'mesh'
+
+
+path_raw: ${platform.path_datasets_raw}/Objectron
+path_preprocess: ${platform.path_datasets_preprocess}/Objectron_Preprocess
+
+# frames_count_max_per_sequence: 5
+
+setup:
+  enabled: False
+  override: False
+  remove_previous: False
+
+extract_meta:
+  enabled: False
+  override: False
+  remove_previous: False
+
+#dict_nested_frames:
+#  bike:
+#  book:
+#  bottle:
+#  camera:
+#  cereal_box:
+#  chair:
+#  cup:
+#  laptop:
+#  shoe:
+
+# multiple objects:
+#   batch_1_36, batch_8_35, batch_1_5, batch_1_11, batch_0_14, batch_5_22, batch_3_13, batch_13_7, batch_5_20,
+#   batch_4_17, batch_0_18, batch_3_44, batch_0_15, batch_1_0, batch_3_43,
+#  No such file or directory: '/data/lmbraid19/sommerl/datasets/Objectron_Preprocess/mask/sam_sfm_rays_center3d/bike/batch_0_2/0.png
+preprocess:
+  sfm:
+    enabled: False
+    override: False
+  mask:
+    enabled: True
+    override: False
+  pcl:
+    enabled: True
+    override: False
+  tform_obj:
+    enabled: False
+    override: False
+  mesh:
+    enabled: True
+    override: False
+  mesh_feats:
+    enabled: False
+    override: False
+  mesh_feats_dist:
+    enabled: False
+    override: False
+
+#preprocess:
+#  label:
+#    enabled: False
+#    override: False
+#  droid_slam:
+#    enabled: False
+#    override: False
+#  pcl:
+#    enabled: False
+#    override: False
+#    remove_previous: False
+#  mesh:
+#    enabled: False
+#    override: False
+#  mesh_feats:
+#    enabled: False
+#    override: False
+#  cuboid:
+#    enabled: False
+#    override: False
+#    remove_previous: False
+#  cuboid_avg:
+#    enabled: False
+#    override: False
+#    remove_previous: False

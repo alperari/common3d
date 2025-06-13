@@ -1,0 +1,92 @@
+# @package _global_
+
+co3d_refs:
+  ref_name: 'r1'
+  microwave: '48_2753_8230'
+  hydrant: '167_18177_33907'
+  toyplane: '373_41710_83247'
+  toytruck: '152_16871_32354'
+  bicycle: '372_41153_81941'
+  cup: '31_1331_4174'
+  remote: '117_13757_28342'
+  backpack: '187_20217_38869'
+  mouse: '186_20099_39028'
+  motorcycle: '365_39208_76369'
+  tv: '397_49980_98389'
+  car: '194_20939_43630'
+  cellphone: '241_25539_50962'
+  toybus: '375_42441_85051'
+  toilet: '205_21696_46125'
+  suitcase: '372_41159_81955'
+  toaster: '20_779_1840'
+  hairdryer: '306_32185_60457'
+  couch: '193_20797_40499'
+  handbag: '28_979_2845'
+  book: '119_13961_28527'
+  keyboard: '274_29393_57812'
+  laptop: '163_17903_33591'
+  toytrain: '255_27504_55322'
+  bottle: '40_1843_5616'
+  teddybear: '169_18386_34554'
+  bench: '194_20935_42352'
+  chair: '196_21138_44645'
+
+checkpoints_cats_run_name:
+  airplane: 11-07_00-27-53_CO3D_NeMo_dmtet1k_airplane_app0_geo_rec0_r1_slurm
+  bicycle: 11-07_00-27-02_CO3D_NeMo_dmtet1k_bicycle_app0_geo_rec0_r1_slurm
+  bottle: 11-07_00-28-44_CO3D_NeMo_dmtet1k_bottle_app0_geo_rec0_r1_slurm
+  bus: 11-07_00-29-35_CO3D_NeMo_dmtet1k_bus_app0_geo_rec0_r1_slurm
+  car: 11-07_00-32-16_CO3D_NeMo_dmtet1k_car_app0_geo_rec0_r1_slurm
+  chair: 11-07_00-33-07_CO3D_NeMo_dmtet1k_chair_app0_geo_rec0_r1_slurm
+  couch: 11-07_00-34-49_CO3D_NeMo_dmtet1k_couch_app0_geo_rec0_r1_slurm
+  motorcycle: 11-07_00-33-58_CO3D_NeMo_dmtet1k_motorcycle_app0_geo_rec0_r1_slurm
+  train: 11-07_00-35-39_CO3D_NeMo_dmtet1k_train_app0_geo_rec0_r1_slurm
+  tv: 11-07_00-31-25_CO3D_NeMo_dmtet1k_tv_app0_geo_rec0_r1_slurm
+  truck:
+  teddybear:
+  keyboard:
+  handbag:
+  remote:
+  toilet:
+  hairdryer:
+  mouse:
+  toaster:
+  hydrant:
+  laptop:
+  book:
+  backpack:
+  cellphone: # from cellphone on, no zsp categories
+  microwave:
+  bench:
+  cup:
+  suitcase:
+
+checkpoints_cats:
+  bicycle: ${platform.path_exps}/${checkpoints_cats_run_name.bicycle}/nemo.ckpt
+  truck: ${platform.path_exps}/${checkpoints_cats_run_name.truck}/nemo.ckpt
+  train: ${platform.path_exps}/${checkpoints_cats_run_name.train}/nemo.ckpt
+  teddybear: ${platform.path_exps}/${checkpoints_cats_run_name.teddybear}/nemo.ckpt
+  car: ${platform.path_exps}/${checkpoints_cats_run_name.car}/nemo.ckpt
+  bus: ${platform.path_exps}/${checkpoints_cats_run_name.bus}/nemo.ckpt
+  motorcycle: ${platform.path_exps}/${checkpoints_cats_run_name.motorcycle}/nemo.ckpt
+  keyboard: ${platform.path_exps}/${checkpoints_cats_run_name.keyboard}/nemo.ckpt
+  handbag: ${platform.path_exps}/${checkpoints_cats_run_name.handbag}/nemo.ckpt
+  remote: ${platform.path_exps}/${checkpoints_cats_run_name.remote}/nemo.ckpt
+  airplane: ${platform.path_exps}/${checkpoints_cats_run_name.airplane}/nemo.ckpt
+  toilet: ${platform.path_exps}/${checkpoints_cats_run_name.toilet}/nemo.ckpt
+  hairdryer: ${platform.path_exps}/${checkpoints_cats_run_name.hairdryer}/nemo.ckpt
+  mouse: ${platform.path_exps}/${checkpoints_cats_run_name.mouse}/nemo.ckpt
+  toaster: ${platform.path_exps}/${checkpoints_cats_run_name.toaster}/nemo.ckpt
+  hydrant: ${platform.path_exps}/${checkpoints_cats_run_name.hydrant}/nemo.ckpt
+  chair: ${platform.path_exps}/${checkpoints_cats_run_name.chair}/nemo.ckpt
+  laptop: ${platform.path_exps}/${checkpoints_cats_run_name.laptop}/nemo.ckpt
+  microwave: ${platform.path_exps}/${checkpoints_cats_run_name.microwave}/nemo.ckpt
+  book: ${platform.path_exps}/${checkpoints_cats_run_name.book}/nemo.ckpt
+  backpack: ${platform.path_exps}/${checkpoints_cats_run_name.backpack}/nemo.ckpt
+  cellphone: ${platform.path_exps}/${checkpoints_cats_run_name.cellphone}/nemo.ckpt # from cellphone on, no zsp categories
+  bench: ${platform.path_exps}/${checkpoints_cats_run_name.bench}/nemo.ckpt
+  bottle: ${platform.path_exps}/${checkpoints_cats_run_name.bottle}/nemo.ckpt
+  couch: ${platform.path_exps}/${checkpoints_cats_run_name.couch}/nemo.ckpt
+  cup: ${platform.path_exps}/${checkpoints_cats_run_name.cup}/nemo.ckpt
+  suitcase: ${platform.path_exps}/${checkpoints_cats_run_name.suitcase}/nemo.ckpt
+  tv: ${platform.path_exps}/${checkpoints_cats_run_name.tv}/nemo.ckpt

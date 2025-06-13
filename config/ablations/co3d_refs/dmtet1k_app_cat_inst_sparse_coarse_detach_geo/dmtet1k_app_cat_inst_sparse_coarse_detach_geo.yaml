@@ -1,0 +1,60 @@
+# @package _global_
+
+checkpoint: ${checkpoint_opt}
+
+checkpoints_refs_cats_run_name:
+        r0:
+                airplane: 01-24_01-06-23_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_airplane_r0_dmtet1k_cat_slurm
+                bicycle: 01-24_04-31-26_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bicycle_r0_dmtet1k_cat_slurm
+                bottle: 01-24_01-48-20_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bottle_r0_dmtet1k_cat_slurm
+                bus: 01-24_02-08-38_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bus_r0_dmtet1k_cat_slurm
+                car: 01-24_01-27-03_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_car_r0_dmtet1k_cat_slurm
+                chair: 01-24_02-09-10_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_chair_r0_dmtet1k_cat_slurm
+                couch: 01-24_03-10-34_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_couch_r0_dmtet1k_cat_slurm
+                motorcycle: 01-24_04-52-08_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_motorcycle_r0_dmtet1k_cat_slurm
+                train: 01-24_13-45-29_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_train_r0_dmtet1k_cat_slurm
+                tv: 01-24_01-27-40_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_tv_r0_dmtet1k_cat_slurm
+        r1:
+                airplane: 01-24_00-45-49_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_airplane_r1_dmtet1k_cat_slurm
+                bicycle: 01-24_04-30-57_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bicycle_r1_dmtet1k_cat_slurm
+                bottle: 01-24_13-45-22_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bottle_r1_dmtet1k_cat_slurm
+                bus: 01-24_00-24-03_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bus_r1_dmtet1k_cat_slurm
+                car: 01-24_01-06-31_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_car_r1_dmtet1k_cat_slurm
+                chair: 01-24_01-48-27_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_chair_r1_dmtet1k_cat_slurm
+                couch: 01-24_03-10-05_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_couch_r1_dmtet1k_cat_slurm
+                motorcycle: 01-24_04-51-39_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_motorcycle_r1_dmtet1k_cat_slurm
+                train: 01-24_02-09-18_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_train_r1_dmtet1k_cat_slurm
+                tv: 01-24_01-27-11_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_tv_r1_dmtet1k_cat_slurm
+        r2:
+                airplane: 01-24_00-46-12_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_airplane_r2_dmtet1k_cat_slurm
+                bicycle: 01-24_04-31-19_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bicycle_r2_dmtet1k_cat_slurm
+                bottle: 01-24_01-48-12_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bottle_r2_dmtet1k_cat_slurm
+                bus: 01-24_00-45-34_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bus_r2_dmtet1k_cat_slurm
+                car: 01-24_01-26-56_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_car_r2_dmtet1k_cat_slurm
+                chair: 01-24_02-09-02_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_chair_r2_dmtet1k_cat_slurm
+                couch: 01-24_03-10-27_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_couch_r2_dmtet1k_cat_slurm
+                motorcycle: 01-24_04-52-01_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_motorcycle_r2_dmtet1k_cat_slurm
+                train: 01-24_02-49-47_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_train_r2_dmtet1k_cat_slurm
+                tv: 01-24_01-27-32_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_tv_r2_dmtet1k_cat_slurm
+        r3:
+                airplane: 01-24_00-45-56_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_airplane_r3_dmtet1k_cat_slurm
+                bicycle: 01-24_13-45-43_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bicycle_r3_dmtet1k_cat_slurm
+                bottle: 01-24_01-27-54_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bottle_r3_dmtet1k_cat_slurm
+                bus: 01-24_00-45-16_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bus_r3_dmtet1k_cat_slurm
+                car: 01-24_01-06-38_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_car_r3_dmtet1k_cat_slurm
+                chair: 01-24_02-08-48_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_chair_r3_dmtet1k_cat_slurm
+                couch: 01-24_13-45-36_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_couch_r3_dmtet1k_cat_slurm
+                motorcycle: 01-24_04-51-46_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_motorcycle_r3_dmtet1k_cat_slurm
+                train: 01-24_02-29-29_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_train_r3_dmtet1k_cat_slurm
+                tv: 01-24_01-27-18_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_tv_r3_dmtet1k_cat_slurm
+        r4:
+                airplane: 01-24_00-46-04_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_airplane_r4_dmtet1k_cat_slurm
+                bicycle: 01-24_04-31-11_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bicycle_r4_dmtet1k_cat_slurm
+                bottle: 01-24_01-48-05_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bottle_r4_dmtet1k_cat_slurm
+                bus: 01-24_00-45-24_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_bus_r4_dmtet1k_cat_slurm
+                car: 01-24_01-26-49_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_car_r4_dmtet1k_cat_slurm
+                chair: 01-24_02-08-55_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_chair_r4_dmtet1k_cat_slurm
+                couch: 01-24_03-10-19_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_couch_r4_dmtet1k_cat_slurm
+                motorcycle: 01-24_04-51-54_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_motorcycle_r4_dmtet1k_cat_slurm
+                train: 01-24_02-29-36_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_train_r4_dmtet1k_cat_slurm
+                tv: 01-24_01-27-25_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_sparse1_coarse_detach_geo_tv_r4_dmtet1k_cat_slurm

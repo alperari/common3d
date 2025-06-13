@@ -1,0 +1,540 @@
+from od3d.data.ext_enum import StrEnum
+from od3d.datasets.enum import OD3D_CATEGORIES
+
+#  R2N2: 25 views randomly from list(*([360, 5, 0.3] * np.random.rand(1, 3) + [0, 25, 0.65]))
+#  Trellis: 150 views uniform 40degree / 10-70 degree fov, radius 2
+#           smooth area lighting, 512x512
+# Build camera {yaw, pitch, radius, fov}
+# yaws = []
+# pitchs = []
+# offset = (np.random.rand(), np.random.rand())
+# for i in range(num_views):
+#     y, p = sphere_hammersley_sequence(i, num_views, offset)
+#     yaws.append(y)
+#     pitchs.append(p)
+# import numpy as np
+#
+# PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
+#
+# def radical_inverse(base, n):
+#     val = 0
+#     inv_base = 1.0 / base
+#     inv_base_n = inv_base
+#     while n > 0:
+#         digit = n % base
+#         val += digit * inv_base_n
+#         n //= base
+#         inv_base_n *= inv_base
+#     return val
+#
+# def halton_sequence(dim, n):
+#     return [radical_inverse(PRIMES[dim], n) for dim in range(dim)]
+#
+# def hammersley_sequence(dim, n, num_samples):
+#     return [n / num_samples] + halton_sequence(dim - 1, n)
+#
+# def sphere_hammersley_sequence(n, num_samples, offset=(0, 0), remap=False):
+#     u, v = hammersley_sequence(2, n, num_samples)
+#     u += offset[0] / num_samples
+#     v += offset[1]
+#     if remap:
+#         u = 2 * u if u < 0.25 else 2 / 3 * u + 1 / 3
+#     theta = np.arccos(1 - 2 * u) - np.pi / 2
+#     phi = v * 2 * np.pi
+#     return [phi, theta]
+
+
+# v1: 57 categories
+# v2: 55 categories
+# R2N2: 13 categories
+
+# from v2
+class SHAPENET_SUBSETS(StrEnum):
+    R2N2 = "r2n2"
+    R2N2_V2_ICO_UNI32_THETA_UNI1 = "r2n2_v2_ico_uni32_theta_uni1"
+    R2N2NOTXT_V2_ICO_UNI16_THETA_UNI1 = "r2n2notxt_v2_ico_uni16_theta_uni1"
+    R2N2NOTXT_V2_ICO_UNI32_THETA_UNI1 = "r2n2notxt_v2_ico_uni32_theta_uni1"
+    R2N2NOTXT_V2_ICO_UNI64_THETA_UNI1 = "r2n2notxt_v2_ico_uni64_theta_uni1"
+    R2N2NOTXT_V2_ICO_UNI32_THETA_UNI2 = "r2n2notxt_v2_ico_uni32_theta_uni2"
+    R2N2NOTXT_V2_ICO_UNI16_THETA_UNI4 = "r2n2notxt_v2_ico_uni16_theta_uni4"
+
+    R2N2NOTXT_V2_ICO_RAND16_THETA_RAND1 = "r2n2notxt_v2_ico_rand16_theta_rand1"
+    R2N2NOTXT_V2_ICO_RAND32_THETA_RAND1 = "r2n2notxt_v2_ico_rand32_theta_rand1"
+    R2N2NOTXT_V2_ICO_RAND64_THETA_RAND1 = "r2n2notxt_v2_ico_rand64_theta_rand1"
+
+    R2N2NOTXT_V2_ICOTRAJ100_UNI64_THETA_UNI1 = "r2n2notxt_v2_icotraj100_uni64_theta_uni1"
+    R2N2NOTXT_V2_ICOTRAJ50_UNI32_THETA_UNI1 = "r2n2notxt_v2_icotraj50_uni32_theta_uni1"
+    R2N2NOTXT_V2_ICOTRAJ25_UNI16_THETA_UNI1 = "r2n2notxt_v2_icotraj25_uni16_theta_uni1"
+    R2N2NOTXT_V2_ICOTRAJ10_UNI8_THETA_UNI1 = "r2n2notxt_v2_icotraj10_uni8_theta_uni1"
+
+    R2N2NOTXT_V2_ICOREALTRAJ100_UNI64_THETA_UNI1 = "r2n2notxt_v2_icorealtraj100_uni64_theta_uni1"
+    R2N2NOTXT_V2_ICOREALTRAJ50_UNI32_THETA_UNI1 = "r2n2notxt_v2_icorealtraj50_uni32_theta_uni1"
+    R2N2NOTXT_V2_ICOREALTRAJ25_UNI16_THETA_UNI1 = "r2n2notxt_v2_icorealtraj25_uni16_theta_uni1"
+    R2N2NOTXT_V2_ICOREALTRAJ10_UNI8_THETA_UNI1 = "r2n2notxt_v2_icorealtraj10_uni8_theta_uni1"
+
+    R2N2_V2_ICOREALTRAJ100_UNI64_THETA_UNI1 = "r2n2_v2_icorealtraj100_uni64_theta_uni1"
+    R2N2_V2_ICOREALTRAJ50_UNI32_THETA_UNI1 = "r2n2_v2_icorealtraj50_uni32_theta_uni1"
+    R2N2_V2_ICOREALTRAJ25_UNI16_THETA_UNI1 = "r2n2_v2_icorealtraj25_uni16_theta_uni1"
+    R2N2_V2_ICOREALTRAJ10_UNI8_THETA_UNI1 = "r2n2_v2_icorealtraj10_uni8_theta_uni1"
+
+    R2N2_V2_ICOTRAJ100_UNI64_THETA_UNI1 = "r2n2_v2_icotraj100_uni64_theta_uni1"
+    R2N2_V2_ICOTRAJ50_UNI32_THETA_UNI1 = "r2n2_v2_icotraj50_uni32_theta_uni1"
+    R2N2_V2_ICOTRAJ25_UNI16_THETA_UNI1 = "r2n2_v2_icotraj25_uni16_theta_uni1"
+    R2N2_V2_ICOTRAJ10_UNI8_THETA_UNI1 = "r2n2_v2_icotraj10_uni8_theta_uni1"
+
+    R2N2_V2_ICO = "r2n2_v2_ico"
+    R2N2_V2_ICO_THETA = "r2n2_v2_ico_theta"
+    V1 = "v1"
+    V2 = "v2"
+
+# from v2
+class SHAPENET_CATEGORIES(StrEnum):
+    AIRPLANE = "airplane"
+    TRASH_BIN = "trash bin"
+    BAG = "bag"
+    BASKET = "basket"
+    BATHTUB = "bathtub"
+    BED = "bed"
+    BENCH = "bench"
+    BIRDHOUSE = "birdhouse"
+    BOOKSHELF = "bookshelf"
+    BOTTLE = "bottle"
+    BOWL = "bowl"
+    BUS = "bus"
+    CABINET = "cabinet"
+    CAMERA = "camera"
+    CAN = "can"
+    CAP = "cap"
+    CAR = "car"
+    CELLPHONE = "cellphone"
+    CHAIR = "chair"
+    CLOCK = "clock"
+    KEYBOARD = "keyboard"
+    DISHWASHER = "dishwasher"
+    DISPLAY = "display"
+    EARPHONE = "earphone"
+    FAUCET = "faucet"
+    FILE_CABINET = "file cabinet"
+    GUITAR = "guitar"
+    HELMET = "helmet"
+    JAR = "jar"
+    KNIFE = "knife"
+    LAMP = "lamp"
+    LAPTOP = "laptop"
+    LOUDSPEAKER = "loudspeaker"
+    MAILBOX = "mailbox"
+    MICROPHONE = "microphone"
+    MICROWAVE = "microwaves"
+    MOTORBIKE = "motorbike"
+    MUG = "mug"
+    PIANO = "piano"
+    PILLOW = "pillow"
+    PISTOL = "pistol"
+    FLOWERPOT = "flowerpot"
+    PRINTER = "printer"
+    REMOTE = "remote"
+    RIFLE = "rifle"
+    ROCKET = "rocket"
+    SKATEBOARD = "skateboard"
+    SOFA = "sofa"
+    STOVE = "stove"
+    TABLE = "table"
+    TELEPHONE = "telephone"
+    TOWER = "tower"
+    TRAIN = "train"
+    WATERCRAFT = "watercraft"
+    WASHER = "washer"
+
+class SHAPENET_R2N2_CATEGORIES(StrEnum):
+    PLANE = "plane",  # airplane
+    BENCH = "bench",
+    CABINET = "cabinet",
+    CAR = "car",
+    CHAIR = "chair",
+    MONITOR = "monitor",  # display
+    LAMP = "lamp",
+    SPEAKER = "speaker",  # loudspeaker
+    FIREARM = "firearm",  # rifle
+    COUCH = "couch",  # sofa
+    TABLE = "table",
+    CELLPHONE = "cellphone",  # telephone
+    WATERCRAFT = "watercraft",
+
+class SHAPENET_CANOC_CATEGORIES(StrEnum):
+
+    PLANE = "plane",  # airplane
+    BENCH = "bench",
+    CABINET = "cabinet",
+    CAR = "car",
+    CHAIR = "chair",
+    MONITOR = "monitor",  # display
+    LAMP = "lamp",
+    SPEAKER = "speaker",  # loudspeaker
+    FIREARM = "firearm",  # rifle
+    COUCH = "couch",  # sofa
+    TABLE = "table",
+    CELLPHONE = "cellphone",  # telephone
+    WATERCRAFT = "watercraft",
+
+LIST_CATEGORIES_SHAPENET_CANOC = [
+                    SHAPENET_CATEGORIES.AIRPLANE,
+                    SHAPENET_CATEGORIES.BENCH,
+                    SHAPENET_CATEGORIES.CABINET,
+                    SHAPENET_CATEGORIES.CAR,
+                    SHAPENET_CATEGORIES.CHAIR,
+                    SHAPENET_CATEGORIES.DISPLAY,
+                    SHAPENET_CATEGORIES.LAMP,
+                    SHAPENET_CATEGORIES.LOUDSPEAKER,
+                    SHAPENET_CATEGORIES.RIFLE,
+                    SHAPENET_CATEGORIES.SOFA,
+                    SHAPENET_CATEGORIES.TABLE,
+                    SHAPENET_CATEGORIES.TELEPHONE,
+                    SHAPENET_CATEGORIES.WATERCRAFT,
+
+                    SHAPENET_CATEGORIES.TRAIN,
+                    SHAPENET_CATEGORIES.BUS,
+                    SHAPENET_CATEGORIES.MOTORBIKE,
+                    SHAPENET_CATEGORIES.KEYBOARD,
+                    SHAPENET_CATEGORIES.BAG,
+                    SHAPENET_CATEGORIES.REMOTE,
+                    SHAPENET_CATEGORIES.LAPTOP,
+                ]
+
+MAP_CATEGORIES_SHAPENET_R2N2_TO_SHAPENET = {
+    SHAPENET_R2N2_CATEGORIES.PLANE: SHAPENET_CATEGORIES.AIRPLANE,
+    SHAPENET_R2N2_CATEGORIES.BENCH: SHAPENET_CATEGORIES.BENCH,
+    SHAPENET_R2N2_CATEGORIES.CABINET: SHAPENET_CATEGORIES.CABINET,
+    SHAPENET_R2N2_CATEGORIES.CAR: SHAPENET_CATEGORIES.CAR,
+    SHAPENET_R2N2_CATEGORIES.CHAIR: SHAPENET_CATEGORIES.CHAIR,
+    SHAPENET_R2N2_CATEGORIES.MONITOR: SHAPENET_CATEGORIES.DISPLAY,
+    SHAPENET_R2N2_CATEGORIES.LAMP: SHAPENET_CATEGORIES.LAMP,
+    SHAPENET_R2N2_CATEGORIES.SPEAKER: SHAPENET_CATEGORIES.LOUDSPEAKER,
+    SHAPENET_R2N2_CATEGORIES.FIREARM: SHAPENET_CATEGORIES.RIFLE,
+    SHAPENET_R2N2_CATEGORIES.COUCH: SHAPENET_CATEGORIES.SOFA,
+    SHAPENET_R2N2_CATEGORIES.TABLE: SHAPENET_CATEGORIES.TABLE,
+    SHAPENET_R2N2_CATEGORIES.CELLPHONE: SHAPENET_CATEGORIES.TELEPHONE,
+    SHAPENET_R2N2_CATEGORIES.WATERCRAFT: SHAPENET_CATEGORIES.WATERCRAFT,
+}
+
+MAP_CATEGORIES_SHAPENET_TO_OD3D = {
+    SHAPENET_CATEGORIES.AIRPLANE: OD3D_CATEGORIES.AIRPLANE,
+    SHAPENET_CATEGORIES.TRASH_BIN: OD3D_CATEGORIES.TRASH_BIN,
+    SHAPENET_CATEGORIES.BAG: OD3D_CATEGORIES.HANDBAG,
+    SHAPENET_CATEGORIES.BASKET: OD3D_CATEGORIES.BASKET,
+    SHAPENET_CATEGORIES.BATHTUB: OD3D_CATEGORIES.TUB,
+    SHAPENET_CATEGORIES.BED: OD3D_CATEGORIES.BED,
+    SHAPENET_CATEGORIES.BENCH: OD3D_CATEGORIES.BENCH,
+    SHAPENET_CATEGORIES.BIRDHOUSE: OD3D_CATEGORIES.BIRDHOUSE,
+    SHAPENET_CATEGORIES.BOOKSHELF: OD3D_CATEGORIES.BOOKSHELF,
+    SHAPENET_CATEGORIES.BOTTLE: OD3D_CATEGORIES.BOTTLE,
+    SHAPENET_CATEGORIES.BOWL: OD3D_CATEGORIES.BOWL,
+    SHAPENET_CATEGORIES.BUS: OD3D_CATEGORIES.BUS,
+    SHAPENET_CATEGORIES.CABINET: OD3D_CATEGORIES.CABINET,
+    SHAPENET_CATEGORIES.CAMERA: OD3D_CATEGORIES.CAMERA,
+    SHAPENET_CATEGORIES.CAN: OD3D_CATEGORIES.CAN,
+    SHAPENET_CATEGORIES.CAP: OD3D_CATEGORIES.CAP,
+    SHAPENET_CATEGORIES.CAR: OD3D_CATEGORIES.CAR,
+    SHAPENET_CATEGORIES.CELLPHONE: OD3D_CATEGORIES.CELLPHONE,
+    SHAPENET_CATEGORIES.CHAIR: OD3D_CATEGORIES.CHAIR,
+    SHAPENET_CATEGORIES.CLOCK: OD3D_CATEGORIES.CLOCK,
+    SHAPENET_CATEGORIES.KEYBOARD: OD3D_CATEGORIES.KEYBOARD,
+    SHAPENET_CATEGORIES.DISHWASHER: OD3D_CATEGORIES.DISHWASHER,
+    SHAPENET_CATEGORIES.DISPLAY: OD3D_CATEGORIES.TV,
+    SHAPENET_CATEGORIES.EARPHONE: OD3D_CATEGORIES.HEADPHONE,
+    SHAPENET_CATEGORIES.FAUCET: OD3D_CATEGORIES.FAUCET,
+    SHAPENET_CATEGORIES.FILE_CABINET: OD3D_CATEGORIES.FILING_CABINET,
+    SHAPENET_CATEGORIES.GUITAR: OD3D_CATEGORIES.GUITAR,
+    SHAPENET_CATEGORIES.HELMET: OD3D_CATEGORIES.HELMET,
+    SHAPENET_CATEGORIES.JAR: OD3D_CATEGORIES.JAR,
+    SHAPENET_CATEGORIES.KNIFE: OD3D_CATEGORIES.KNIFE,
+    SHAPENET_CATEGORIES.LAMP: OD3D_CATEGORIES.DESK_LAMP,
+    SHAPENET_CATEGORIES.LAPTOP: OD3D_CATEGORIES.LAPTOP,
+    SHAPENET_CATEGORIES.LOUDSPEAKER: OD3D_CATEGORIES.SPEAKER,
+    SHAPENET_CATEGORIES.MAILBOX: OD3D_CATEGORIES.MAILBOX,
+    SHAPENET_CATEGORIES.MICROPHONE: OD3D_CATEGORIES.MICROPHONE,
+    SHAPENET_CATEGORIES.MICROWAVE: OD3D_CATEGORIES.MICROWAVE,
+    SHAPENET_CATEGORIES.MOTORBIKE: OD3D_CATEGORIES.MOTORCYCLE,
+    SHAPENET_CATEGORIES.MUG: OD3D_CATEGORIES.CUP,
+    SHAPENET_CATEGORIES.PIANO: OD3D_CATEGORIES.PIANO,
+    SHAPENET_CATEGORIES.PILLOW: OD3D_CATEGORIES.PILLOW,
+    SHAPENET_CATEGORIES.PISTOL: OD3D_CATEGORIES.PISTOL,
+    SHAPENET_CATEGORIES.FLOWERPOT: OD3D_CATEGORIES.POT,
+    SHAPENET_CATEGORIES.PRINTER: OD3D_CATEGORIES.PRINTER,
+    SHAPENET_CATEGORIES.REMOTE: OD3D_CATEGORIES.REMOTE,
+    SHAPENET_CATEGORIES.RIFLE: OD3D_CATEGORIES.RIFLE,
+    SHAPENET_CATEGORIES.ROCKET: OD3D_CATEGORIES.ROCKET,
+    SHAPENET_CATEGORIES.SKATEBOARD: OD3D_CATEGORIES.SKATEBOARD,
+    SHAPENET_CATEGORIES.SOFA: OD3D_CATEGORIES.COUCH,
+    SHAPENET_CATEGORIES.STOVE: OD3D_CATEGORIES.STOVE,
+    SHAPENET_CATEGORIES.TABLE: OD3D_CATEGORIES.DINING_TABLE,
+    SHAPENET_CATEGORIES.TELEPHONE: OD3D_CATEGORIES.TELEPHONE,
+    SHAPENET_CATEGORIES.TOWER: OD3D_CATEGORIES.TOWER,
+    SHAPENET_CATEGORIES.TRAIN: OD3D_CATEGORIES.TRAIN,
+    SHAPENET_CATEGORIES.WATERCRAFT: OD3D_CATEGORIES.BOAT,
+    SHAPENET_CATEGORIES.WASHER: OD3D_CATEGORIES.WASHING_MACHINE,
+}
+
+MAP_CATEGORIES_OD3D_TO_SHAPENET = {
+    OD3D_CATEGORIES.AIRPLANE: SHAPENET_CATEGORIES.AIRPLANE,
+    OD3D_CATEGORIES.TRASH_BIN: SHAPENET_CATEGORIES.TRASH_BIN,
+    OD3D_CATEGORIES.HANDBAG: SHAPENET_CATEGORIES.BAG,
+    OD3D_CATEGORIES.BASKET: SHAPENET_CATEGORIES.BASKET,
+    OD3D_CATEGORIES.TUB: SHAPENET_CATEGORIES.BATHTUB,
+    OD3D_CATEGORIES.BED: SHAPENET_CATEGORIES.BED,
+    OD3D_CATEGORIES.BENCH: SHAPENET_CATEGORIES.BENCH,
+    OD3D_CATEGORIES.BIRDHOUSE: SHAPENET_CATEGORIES.BIRDHOUSE,
+    OD3D_CATEGORIES.BOOKSHELF: SHAPENET_CATEGORIES.BOOKSHELF,
+    OD3D_CATEGORIES.BOTTLE: SHAPENET_CATEGORIES.BOTTLE,
+    OD3D_CATEGORIES.BOWL: SHAPENET_CATEGORIES.BOWL,
+    OD3D_CATEGORIES.BUS: SHAPENET_CATEGORIES.BUS,
+    OD3D_CATEGORIES.CABINET: SHAPENET_CATEGORIES.CABINET,
+    OD3D_CATEGORIES.CAMERA: SHAPENET_CATEGORIES.CAMERA,
+    OD3D_CATEGORIES.CAN: SHAPENET_CATEGORIES.CAN,
+    OD3D_CATEGORIES.CAP: SHAPENET_CATEGORIES.CAP,
+    OD3D_CATEGORIES.CAR: SHAPENET_CATEGORIES.CAR,
+    OD3D_CATEGORIES.CELLPHONE: SHAPENET_CATEGORIES.CELLPHONE,
+    OD3D_CATEGORIES.CHAIR: SHAPENET_CATEGORIES.CHAIR,
+    OD3D_CATEGORIES.CLOCK: SHAPENET_CATEGORIES.CLOCK,
+    OD3D_CATEGORIES.KEYBOARD: SHAPENET_CATEGORIES.KEYBOARD,
+    OD3D_CATEGORIES.DISHWASHER: SHAPENET_CATEGORIES.DISHWASHER,
+    OD3D_CATEGORIES.TV: SHAPENET_CATEGORIES.DISPLAY,
+    OD3D_CATEGORIES.HEADPHONE: SHAPENET_CATEGORIES.EARPHONE,
+    OD3D_CATEGORIES.FAUCET: SHAPENET_CATEGORIES.FAUCET,
+    OD3D_CATEGORIES.FILING_CABINET: SHAPENET_CATEGORIES.FILE_CABINET,
+    OD3D_CATEGORIES.GUITAR: SHAPENET_CATEGORIES.GUITAR,
+    OD3D_CATEGORIES.HELMET: SHAPENET_CATEGORIES.HELMET,
+    OD3D_CATEGORIES.JAR: SHAPENET_CATEGORIES.JAR,
+    OD3D_CATEGORIES.KNIFE: SHAPENET_CATEGORIES.KNIFE,
+    OD3D_CATEGORIES.DESK_LAMP: SHAPENET_CATEGORIES.LAMP,
+    OD3D_CATEGORIES.LAPTOP: SHAPENET_CATEGORIES.LAPTOP,
+    OD3D_CATEGORIES.SPEAKER: SHAPENET_CATEGORIES.LOUDSPEAKER,
+    OD3D_CATEGORIES.MAILBOX: SHAPENET_CATEGORIES.MAILBOX,
+    OD3D_CATEGORIES.MICROPHONE: SHAPENET_CATEGORIES.MICROPHONE,
+    OD3D_CATEGORIES.MICROWAVE: SHAPENET_CATEGORIES.MICROWAVE,
+    OD3D_CATEGORIES.MOTORCYCLE: SHAPENET_CATEGORIES.MOTORBIKE,
+    OD3D_CATEGORIES.CUP: SHAPENET_CATEGORIES.MUG,
+    OD3D_CATEGORIES.PIANO: SHAPENET_CATEGORIES.PIANO,
+    OD3D_CATEGORIES.PILLOW: SHAPENET_CATEGORIES.PILLOW,
+    OD3D_CATEGORIES.PISTOL: SHAPENET_CATEGORIES.PISTOL,
+    OD3D_CATEGORIES.POT: SHAPENET_CATEGORIES.FLOWERPOT,
+    OD3D_CATEGORIES.PRINTER: SHAPENET_CATEGORIES.PRINTER,
+    OD3D_CATEGORIES.REMOTE: SHAPENET_CATEGORIES.REMOTE,
+    OD3D_CATEGORIES.RIFLE: SHAPENET_CATEGORIES.RIFLE,
+    OD3D_CATEGORIES.ROCKET: SHAPENET_CATEGORIES.ROCKET,
+    OD3D_CATEGORIES.SKATEBOARD: SHAPENET_CATEGORIES.SKATEBOARD,
+    OD3D_CATEGORIES.COUCH: SHAPENET_CATEGORIES.SOFA,
+    OD3D_CATEGORIES.STOVE: SHAPENET_CATEGORIES.STOVE,
+    OD3D_CATEGORIES.DINING_TABLE: SHAPENET_CATEGORIES.TABLE,
+    OD3D_CATEGORIES.TELEPHONE: SHAPENET_CATEGORIES.TELEPHONE,
+    OD3D_CATEGORIES.TOWER: SHAPENET_CATEGORIES.TOWER,
+    OD3D_CATEGORIES.TRAIN: SHAPENET_CATEGORIES.TRAIN,
+    OD3D_CATEGORIES.BOAT: SHAPENET_CATEGORIES.WATERCRAFT,
+    OD3D_CATEGORIES.WASHING_MACHINE: SHAPENET_CATEGORIES.WASHER,
+}
+
+# R2N2, all categories are in both v1, v2
+MAP_CATEGORIES_SHAPENET_R2N2_ID_TO_CATEGORY = {
+    "02691156": "plane",  # airplane
+    "02828884": "bench",
+    "02933112": "cabinet",
+    "02958343": "car",
+    "03001627": "chair",
+    "03211117": "monitor",  # display
+    "03636649": "lamp",
+    "03691459": "speaker",  # loudspeaker
+    "04090263": "firearm",  # rifle
+    "04256520": "couch",  # sofa
+    "04379243": "table",
+    "04401088": "cellphone",  # telephone
+    "04530566": "watercraft",
+}
+
+# R2N2, all categories are in both v1, v2
+MAP_CATEGORIES_SHAPENET_R2N2_TO_SHAPENET = {
+    "02691156": "plane",  # airplane
+    "02828884": "bench",
+    "02933112": "cabinet",
+    "02958343": "car",
+    "03001627": "chair",
+    "03211117": "monitor",  # display
+    "03636649": "lamp",
+    "03691459": "speaker",  # loudspeaker
+    "04090263": "firearm",  # rifle
+    "04256520": "couch",  # sofa
+    "04379243": "table",
+    "04401088": "cellphone",  # telephone
+    "04530566": "watercraft",
+}
+
+MAP_CATEGORIES_SHAPENET_V1_ID_TO_CATEGORY = {
+    "04379243": "table",
+    "03593526": "jar",
+    "04225987": "skateboard",
+    "02958343": "car",
+    "02876657": "bottle",
+    "04460130": "tower",
+    "03001627": "chair",
+    "02871439": "bookshelf",
+    "02942699": "camera",
+    "02691156": "airplane",
+    "03642806": "laptop",
+    "02801938": "basket",
+    "04256520": "sofa",
+    "03624134": "knife",
+    "02946921": "can",
+    "04090263": "rifle",
+    "04468005": "train",
+    "03938244": "pillow",
+    "03636649": "lamp",
+    "02747177": "trash bin",
+    "03710193": "mailbox",
+    "04530566": "watercraft",
+    "03790512": "motorbike",
+    "03207941": "dishwasher",
+    "02828884": "bench",
+    "03948459": "pistol",
+    "04099429": "rocket",
+    "03691459": "loudspeaker",
+    "03337140": "file cabinet",
+    "02773838": "bag",
+    "02933112": "cabinet",
+    "02818832": "bed",
+    "02843684": "birdhouse",
+    "03211117": "display",
+    "03928116": "piano",
+    "03261776": "earphone",
+    "04401088": "telephone",
+    "04330267": "stove",
+    "03759954": "microphone",
+    "02924116": "bus",
+    "03797390": "mug",
+    "04074963": "remote",
+    "02808440": "bathtub",
+    "02880940": "bowl",
+    "03085013": "keyboard",
+    "03467517": "guitar",
+    "04554684": "washer",
+    "02834778": "bicycle",
+    "03325088": "faucet",
+    "04004475": "printer",
+    "02954340": "cap",
+}
+
+MAP_CATEGORIES_SHAPENET_V2_ID_TO_CATEGORY = {
+    "02691156": "airplane",
+    "02747177": "trash bin",
+    "02773838": "bag",
+    "02801938": "basket",
+    "02808440": "bathtub",
+    "02818832": "bed",
+    "02828884": "bench",
+    "02843684": "birdhouse",
+    "02871439": "bookshelf",
+    "02876657": "bottle",
+    "02880940": "bowl",
+    "02924116": "bus",
+    "02933112": "cabinet",
+    "02942699": "camera",
+    "02946921": "can",
+    "02954340": "cap",
+    "02958343": "car",
+    "02992529": "cellphone",
+    "03001627": "chair",
+    "03046257": "clock",
+    "03085013": "keyboard",
+    "03207941": "dishwasher",
+    "03211117": "display",
+    "03261776": "earphone",
+    "03325088": "faucet",
+    "03337140": "file cabinet",
+    "03467517": "guitar",
+    "03513137": "helmet",
+    "03593526": "jar",
+    "03624134": "knife",
+    "03636649": "lamp",
+    "03642806": "laptop",
+    "03691459": "loudspeaker",
+    "03710193": "mailbox",
+    "03759954": "microphone",
+    "03761084": "microwaves",
+    "03790512": "motorbike",
+    "03797390": "mug",
+    "03928116": "piano",
+    "03938244": "pillow",
+    "03948459": "pistol",
+    "03991062": "flowerpot",
+    "04004475": "printer",
+    "04074963": "remote",
+    "04090263": "rifle",
+    "04099429": "rocket",
+    "04225987": "skateboard",
+    "04256520": "sofa",
+    "04330267": "stove",
+    "04379243": "table",
+    "04401088": "telephone",
+    "04460130": "tower",
+    "04468005": "train",
+    "04530566": "watercraft",
+    "04554684": "washer"
+}
+
+MAP_CATEGORIES_SHAPENET_V2_CATEGORY_TO_ID = {
+    'airplane': '02691156',
+    'trash bin': '02747177',
+    'bag': '02773838',
+    'basket': '02801938',
+    'bathtub': '02808440',
+    'bed': '02818832',
+    'bench': '02828884',
+    'birdhouse': '02843684',
+    'bookshelf': '02871439',
+    'bottle': '02876657',
+    'bowl': '02880940',
+    'bus': '02924116',
+    'cabinet': '02933112',
+    'camera': '02942699',
+    'can': '02946921',
+    'cap': '02954340',
+    'car': '02958343',
+    'cellphone': '02992529',
+    'chair': '03001627',
+    'clock': '03046257',
+    'keyboard': '03085013',
+    'dishwasher': '03207941',
+    'display': '03211117',
+    'earphone': '03261776',
+    'faucet': '03325088',
+    'file cabinet': '03337140',
+    'guitar': '03467517',
+    'helmet': '03513137',
+    'jar': '03593526',
+    'knife': '03624134',
+    'lamp': '03636649',
+    'laptop': '03642806',
+    'loudspeaker': '03691459',
+    'mailbox': '03710193',
+    'microphone': '03759954',
+    'microwaves': '03761084',
+    'motorbike': '03790512',
+    'mug': '03797390',
+    'piano': '03928116',
+    'pillow': '03938244',
+    'pistol': '03948459',
+    'flowerpot': '03991062',
+    'printer': '04004475',
+    'remote': '04074963',
+    'rifle': '04090263',
+    'rocket': '04099429',
+    'skateboard': '04225987',
+    'sofa': '04256520',
+    'stove': '04330267',
+    'table': '04379243',
+    'telephone': '04401088',
+    'tower': '04460130',
+    'train': '04468005',
+    'watercraft': '04530566',
+    'washer': '04554684'
+}
+
+MAP_CATEGORIES_SHAPENET_ID_TO_CATEGORY = MAP_CATEGORIES_SHAPENET_V2_ID_TO_CATEGORY
+MAP_CATEGORIES_SHAPENET_CATEGORY_TO_ID = MAP_CATEGORIES_SHAPENET_V2_CATEGORY_TO_ID

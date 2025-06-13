@@ -1,0 +1,22 @@
+# @package _global_
+
+ablation_name: ${ablation_name_categories}
+
+
+skip_cross_objectnet3d: True
+skip_cross_pascal3d: True
+skip_spair71k: True
+
+# checkpoint_opt:
+
+# ${co3d_refs.ref_name}
+#checkpoint: ${checkpoints.${co3d_refs.ref_name}.}
+#checkpoint: ${platform.path_exps}/${checkpoint_opt}/nemo.ckpt
+#checkpoint: ${platform.path_exps}/__LAST_RUN__/nemo.ckpt
+#train: True
+#method:
+#  nemo:
+#    train:
+#      val: False
+#    inference:
+#      feats_corresp_alpha: 0.3

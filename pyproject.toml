@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]  # "third_party/TRELLIS"
+# namespaces = false
+# include = ["od3d*", "trellis*"]  # alternatively: `exclude = ["additional*"]`
+# third_party/mip-splatting/submodules/diff-gaussian-rasterization
+
+#[tool.setuptools.package-dir]
+#od3d = "src/od3d"
+#trellis = "third_party/TRELLIS/trellis"
+#diff-gaussian-rasterization = "third_party/mip-splatting/submodules/diff-gaussian-rasterization"
+
+[project]
+name = "OD3D"
+authors = [
+    {name = "Leonhard Sommer", email = "sommerl@cs.uni-freiburg.de"},
+]
+description = "Neural Mesh, Render and Compare"
+readme = "README.rst"
+requires-python = ">=3.7"
+keywords = ["3D", "detection", "object"]
+license = {text = "BSD-3-Clause"}
+dynamic = ["version"]
+
+#[tool.setuptools]
+#packages = { find = {} }
+
+
+#[tool.setuptools]
+#packages = []
+
+#[tool.setuptools.packages.find]
+#where = ["src", "third_party/TRELLIS"]
+
+dependencies = [
+    "wheel",
+    "pytest",
+    "wget",
+    "fvcore",
+    "iopath",
+    "tqdm",
+    "requests",
+    "h5py",
+    "wandb",
+    "cython",
+    "gdown",
+    "typer",
+    "hydra-core",
+    "pygit2",
+    "numba",
+    "pandas",
+    "seaborn",
+    "plotly",
+    "pycocotools",
+    "bboxtools",
+    "scipy",
+    "scikit-learn",
+    "scikit-image",
+    "seaborn",
+    "opencv-python",
+    "timm",
+    "torch",
+    "torchvision",
+    "torchaudio",
+    "visdom",
+    "open3d", # ==0.17.0",
+    "tvb-gdist",
+    "pycuda",
+    "kornia",
+    "co3d@git+https://github.com/facebookresearch/co3d",
+    "segment-anything@git+https://github.com/facebookresearch/segment-anything.git",
+    # "pytorch3d@git+https://github.com/facebookresearch/pytorch3d@stable",
+    "ninja",
+    "nvdiffrast@git+https://github.com/NVlabs/nvdiffrast.git",
+    "CGAL",
+    "kaleido",
+    "trimesh",
+    "xatlas",
+    "kaolin",
+    "pyrender", # trimesh
+    "PyOpenGL-accelerate",
+    "PyOpenGL", # upgrade to latest version to work with python12
+    # "Cython", # to speed up debugging
+    "manifold3d" # for iou3d calc trimesh
+]
+
+[project.optional-dependencies]
+od3d-gauss-splat = ["diff-gaussian-rasterization@git+https://github.com/limpbot/diff-gaussian-rasterization.git",]
+od3d-nvdiffrast = ["nvdiffrast@git+https://github.com/NVlabs/nvdiffrast",]
+diff-gauss-mip-splat = ["diff-gaussian-rasterization"]
+
+# diff-gauss-mip-splat = ["diff-gaussian-rasterization@ {root:uri}/third_party/mip-splatting/submodules/diff-gaussian-rasterization"]
+# /${PROJECT_ROOT}/
+
+
+
+[project.scripts]
+od3d = "od3d.cli._entry:main"

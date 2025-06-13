@@ -1,0 +1,70 @@
+defaults:
+  - omni6dpose
+
+dict_nested_sequences_filter_cat_w_name: True
+
+##frames_count_max_per_sequence: 3
+#sequences_count_max_per_category: 10
+#mesh_type: 'common3d' # 'alpha500' 'common3d'
+#categories:
+#  - bread
+#  - handbag
+#  - toy_car
+#  - dinosaur
+#  - dish
+#  - mug
+#  - toy_plane
+#  - hamburger
+#  - egg
+#  - mouse
+#  - toy_animals
+#  - toy_bus
+#  - motorcycle
+###  - book # problem
+###  - shoe
+###  - medicine_bottle
+###  - toy_animals
+
+modalities:
+    - 'size'
+    - 'category'
+    - 'category_id'
+    - 'cam_intr4x4'
+    - 'cam_tform4x4_obj'
+    - 'obj_tform4x4_objs'
+    - 'category'
+    - 'rgb'
+    - 'rgb_mask'
+    - 'mask'
+    - 'mask_dt'
+    - 'mask_inv_dt'
+    - 'sequence_name_unique'
+    - 'sequence'
+    - 'mesh'
+
+dict_nested_frames: # train test val
+#    test_real:
+#    test_ikea:
+#    test_matterport3d:
+#    test_scannetpp:
+#    train_ikea:  # "ikea", "matterport3d", "scannet++",
+#    train_matterport3d:
+#    train_scannetpp:
+    train_syn_albedo_ico_uni64_theta_uni1:
+    test_syn_albedo_ico_uni64_theta_uni1:
+    test_real_albedo_ico_uni64_theta_uni1:
+#      doll_omniobject3d-doll_002:
+#      doll_omniobject3d-doll_003:
+#      doll_omniobject3d-doll_004:
+#      doll_omniobject3d-doll_005:
+#      doll_omniobject3d-doll_006:
+#      doll_omniobject3d-doll_007:
+#      doll_omniobject3d-doll_011:
+#      doll_omniobject3d-doll_012:
+#      doll_omniobject3d-doll_013:
+#      doll_omniobject3d-doll_014:
+#      box_omniobject3d-box_001:
+#      box_omniobject3d-box_002:
+#    test_syn_albedo_ico_uni64_theta_uni1:
+#    test_real_albedo_ico_uni64_theta_uni1:
+

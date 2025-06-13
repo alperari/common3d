@@ -1,0 +1,40 @@
+
+
+name: shapenet # v2
+class_name: ShapeNet
+
+path_raw: ${platform.path_datasets_raw}/ShapeNetCore # .v2
+path_preprocess: ${platform.path_datasets_preprocess}/ShapeNetCore_Preprocess # .v2
+
+setup:
+  enabled: False
+  override: False
+  remove_previous: False
+
+extract_meta:
+  enabled: False
+  override: False
+  remove_previous: False
+
+# preprocess:
+
+modalities:
+    - 'size'
+    - 'category'
+    - 'category_id'
+    - 'cam_intr4x4'
+    - 'cam_tform4x4_obj'
+    - 'rgb'
+    - 'rgb_mask'
+    - 'mask'
+    - 'mesh'
+
+
+
+#dict_nested_frames:
+#  r2n2:
+#    airplane:
+#      d3b9114df1d8a3388e415c6cf89025f0:
+#        - '00'
+#        - '01'
+#        - '02'

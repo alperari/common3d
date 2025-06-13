@@ -1,0 +1,33 @@
+defaults:
+  - co3d_no_zsp_50s_unlabeled
+
+name: co3d_no_zsp_50s_aligned
+
+sequences_require_gt_pose: True
+
+#frames_count_max_per_sequence: 1
+#categories:
+#  - bicycle
+#    # /187_20222_38901/1 375_42529_85239 270_28795_57246
+# dict_nested_frames: None
+
+tform_obj_type: 'aligned_N_alpha500_dinov2b/r0' # 'label3d_cuboid' 'aligned_N_alpha500_dinov2b/r0'
+
+#mesh_type: 'hunyuan500'
+
+#mesh_type: 'trellis500'
+#categories:
+#  - bicycle
+
+#
+#preprocess:
+#  mesh:
+#    enabled: True
+#    override: False
+
+#sequences_count_max_per_category: 1
+#frames_count_max_per_sequence: 5
+
+#tform_obj_type: 'aligned_N_alpha500_dinov2s/r0' # 'label3d_cuboid' 'aligned_N_alpha500_dinov2b/r0'
+#categories:
+#  - couch

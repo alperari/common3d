@@ -1,0 +1,150 @@
+# @package _global_
+
+checkpoint: ${checkpoint_opt}
+
+checkpoints_refs_cats_run_name:
+  r0:
+    airplane: 11-05_19-04-19_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_dense_coarse01_detach_geo_r0_slurm
+    bicycle: 11-05_20-11-45_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_dense_coarse01_detach_geo_r0_slurm
+    bottle: 11-05_19-07-33_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_dense_coarse01_detach_geo_r0_slurm
+    bus: 11-05_19-03-16_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_dense_coarse01_detach_geo_r0_slurm
+    car: 11-05_19-05-23_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_dense_coarse01_detach_geo_r0_slurm
+    chair: 11-05_19-08-37_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_dense_coarse01_detach_geo_r0_slurm
+    couch: 11-05_19-10-43_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_dense_coarse01_detach_geo_r0_slurm
+    motorcycle: 11-06_11-08-18_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_dense_coarse01_detach_geo_r0_slurm
+    train: 11-05_19-09-40_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_dense_coarse01_detach_geo_r0_slurm
+    tv: 11-05_19-06-27_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_dense_coarse01_detach_geo_r0_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r1:
+    airplane: 11-05_19-03-28_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_dense_coarse01_detach_geo_r1_slurm
+    bicycle: 11-05_20-10-56_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_dense_coarse01_detach_geo_r1_slurm
+    bottle: 11-05_19-06-40_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_dense_coarse01_detach_geo_r1_slurm
+    bus: 11-05_19-02-24_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_dense_coarse01_detach_geo_r1_slurm
+    car: 11-05_19-04-33_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_dense_coarse01_detach_geo_r1_slurm
+    chair: 11-05_19-07-45_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_dense_coarse01_detach_geo_r1_slurm
+    couch: 11-05_19-09-53_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_dense_coarse01_detach_geo_r1_slurm
+    motorcycle: 11-05_20-11-57_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_dense_coarse01_detach_geo_r1_slurm
+    train: 11-05_19-08-50_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_dense_coarse01_detach_geo_r1_slurm
+    tv: 11-05_19-05-36_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_dense_coarse01_detach_geo_r1_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r2:
+    airplane: 11-05_19-04-06_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_dense_coarse01_detach_geo_r2_slurm
+    bicycle: 11-05_20-11-33_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_dense_coarse01_detach_geo_r2_slurm
+    bottle: 11-05_19-07-20_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_dense_coarse01_detach_geo_r2_slurm
+    bus: 11-05_19-03-03_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_dense_coarse01_detach_geo_r2_slurm
+    car: 11-05_19-05-11_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_dense_coarse01_detach_geo_r2_slurm
+    chair: 11-05_19-08-24_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_dense_coarse01_detach_geo_r2_slurm
+    couch: 11-05_19-10-31_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_dense_coarse01_detach_geo_r2_slurm
+    motorcycle: 11-05_20-12-34_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_dense_coarse01_detach_geo_r2_slurm
+    train: 11-05_19-09-27_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_dense_coarse01_detach_geo_r2_slurm
+    tv: 11-05_19-06-14_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_dense_coarse01_detach_geo_r2_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r3:
+    airplane: 11-05_19-03-41_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_dense_coarse01_detach_geo_r3_slurm
+    bicycle: 11-05_20-11-09_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_dense_coarse01_detach_geo_r3_slurm
+    bottle: 11-05_19-06-52_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_dense_coarse01_detach_geo_r3_slurm
+    bus: 11-05_19-02-38_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_dense_coarse01_detach_geo_r3_slurm
+    car: 11-05_19-04-45_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_dense_coarse01_detach_geo_r3_slurm
+    chair: 11-05_19-07-58_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_dense_coarse01_detach_geo_r3_slurm
+    couch: 11-05_19-10-05_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_dense_coarse01_detach_geo_r3_slurm
+    motorcycle: 11-06_11-07-54_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_dense_coarse01_detach_geo_r3_slurm
+    train: 11-05_19-09-02_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_dense_coarse01_detach_geo_r3_slurm
+    tv: 11-05_19-05-49_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_dense_coarse01_detach_geo_r3_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:
+  r4:
+    airplane: 11-05_19-03-54_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_dense_coarse01_detach_geo_r4_slurm
+    bicycle: 11-05_20-11-21_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_dense_coarse01_detach_geo_r4_slurm
+    bottle: 11-05_19-07-05_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_dense_coarse01_detach_geo_r4_slurm
+    bus: 11-05_19-02-51_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_dense_coarse01_detach_geo_r4_slurm
+    car: 11-05_19-04-58_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_dense_coarse01_detach_geo_r4_slurm
+    chair: 11-05_19-08-12_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_dense_coarse01_detach_geo_r4_slurm
+    couch: 11-05_19-10-18_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_dense_coarse01_detach_geo_r4_slurm
+    motorcycle: 11-06_11-08-06_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_dense_coarse01_detach_geo_r4_slurm
+    train: 11-05_19-09-15_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_dense_coarse01_detach_geo_r4_slurm
+    tv: 11-05_19-06-02_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_dense_coarse01_detach_geo_r4_slurm
+    truck:
+    teddybear:
+    keyboard:
+    handbag:
+    remote:
+    toilet:
+    hairdryer:
+    mouse:
+    toaster:
+    hydrant:
+    laptop:
+    book:
+    backpack:
+    cellphone: # from cellphone on, no zsp categories
+    microwave:
+    bench:
+    cup:
+    suitcase:

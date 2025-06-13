@@ -1,0 +1,206 @@
+defaults:
+  - logger: wandb
+  - methods@method.common3d: common3d
+  - datasets@train_datasets.labeled: co3d_no_zsp_50s_aligned # _bic # co3d_no_zsp_50s_aligned
+  #- datasets@train_datasets.unlabeled: co3d_no_zsp_50s_aligned # _bic # co3d_no_zsp_5s_labeled_ref co3d_no_zsp_50s_unlabeled
+  #- datasets@train_datasets.initmeshes: co3d_no_zsp_50s_aligned # _bic # co3d_no_zsp_5s_labeled_ref co3d_no_zsp_50s_unlabeled
+  #- datasets@val_datasets.main: co3dv1_zsp_10s # co3d_no_zsp_5s_labeled_ref # _bic
+  - datasets@val_datasets.co3d_zsp: co3dv1_zsp_10s
+  - datasets@val_datasets.pascal3d: pascal3d_val
+  - datasets@val_datasets.objectnet3d: objectnet3d_val
+  - datasets@val_datasets.spair71k: spair71k
+  - datasets@test_datasets.co3d: co3d_no_zsp_1s_aligned
+  - datasets@test_datasets.co3d_zsp: co3dv1_zsp_10s
+  - datasets@test_datasets.pascal3d: pascal3d_test
+  - datasets@test_datasets.pascal3d_occ_l1: pascal3d_occ_l1
+  - datasets@test_datasets.pascal3d_occ_l2: pascal3d_occ_l2
+  - datasets@test_datasets.pascal3d_occ_l3: pascal3d_occ_l3
+  - datasets@test_datasets.objectnet3d: objectnet3d_test
+  - datasets@test_datasets.spair71k: spair71k
+  - datasets@texture_dataset: dtd
+  - ablations/co3d_refs@: r0
+  - platform@platform_local: local
+  - platform: local
+  - _self_
+
+mesh_type: 'alpha500' # note: this is anyway ignored as we are using dmtet
+
+mesh_type_aligned: 'alpha500'
+aligned_name: 'aligned_N_${mesh_type_aligned}_dinov2s/${co3d_refs.ref_name}'
+# mesh_type_used: 'alphauniform250'
+
+modalities:
+    - 'size'
+    - 'category'
+    - 'category_id'
+    - 'cam_intr4x4'
+    - 'cam_tform4x4_obj'
+    - 'rays_center3d'
+    - 'category'
+    - 'rgb'
+    - 'rgb_mask'
+    - 'mask'
+    - 'mask_dt'
+    - 'mask_inv_dt'
+    - 'sequence_name_unique'
+    - 'sequence'
+    - 'mesh'
+    - 'pcl'
+
+#table_metrics:
+#  test/co3d_no_zsp_5s_labeled_ref/geo,test/co3dv1_zsp_10s/geo,test/co3d_no_zsp_5s_labeled_ref/pose/acc_pi6,test/co3dv1_zsp_10s/pose/acc_pi6
+#  - test/co3d_no_zsp_5s_labeled_ref/pose/acc_pi6
+#  - test/co3dv1_zsp_10s/geo
+#  - test/co3dv1_zsp_10s/pose/acc_pi6
+
+test_subset_fraction: 1.
+val_subset_fraction: 0.1
+
+checkpoint_opt: # ${checkpoints_cats.bicycle}
+test: True
+val: True
+train: True
+checkpoint:
+
+#checkpoint: ${platform.path_exps}/05-20_13-25-50_CO3D_NeMo_r4_slurm/nemo.ckpt
+#checkpoint: ${platform.path_exps}/05-20_13-25-43_CO3D_NeMo_r1_slurm/nemo.ckpt
+#checkpoint: ${platform.path_exps}/05-20_13-25-35_CO3D_NeMo_r3_slurm/nemo.ckpt
+#checkpoint: ${platform.path_exps}/__LAST_RUN__/nemo.ckpt
+#checkpoint: ${platform.path_exps}/10-30_15-31-42_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_r0_slurm/nemo.ckpt
+#checkpoint: ${platform.path_exps}/05-22_11-19-47_CO3D_NeMo_r0_slurm/nemo.ckpt
+# exps/wandb/run-20241015_153142
+#cat /work/dlclarge1/sommerl-od3d/exps/wandb/run-20241030_153631-shwnggth/files/config.yaml
+#train: False
+#dims_detached: [0, 1, 2] # [0, 1, 2] # 0, 1, 2, 3, 4, 5, 6 # 0-5, transl: 0, 1, 2, rot: 3, 4, 5, scale: 6
+
+# checkpoint: # ${checkpoint_opt} #  ${platform.path_exps}/__LAST_RUN__/nemo.ckpt # 03-20_15-51-46_CO3D_NeMo_bicycle_slurm # note: not rfpath automatic now /nemo.ckpt
+# checkpoint: ${platform.path_exps}/08-28_15-22-55_CO3D_NeMo_dense_app0_meshes_x_gaussians_cat_def_bic50_slurm/nemo.ckpt
+
+skip_cross_pascal3d: False
+skip_cross_pascal3d_occ: True # ${skip_cross_pascal3d} # False
+
+skip_spair71k: True # False
+skip_cross_objectnet3d: True
+
+skip_co3d_zsp_val: True
+skip_co3d_zsp_test: True # False
+skip_co3d_no_zsp_test: True # False
+
+train_sequences_count_max_per_category: 50
+
+categories:
+  - bicycle
+#  - truck
+#  - train
+#  - teddybear
+#  - car
+#  - bus
+#  - motorcycle
+#  - keyboard
+#  - handbag
+#  - remote
+#  - airplane
+#  - toilet
+#  - hairdryer
+#  - mouse
+#  - toaster
+#  - hydrant
+#  - chair
+#  - laptop
+#  - book
+#  - backpack
+#  - cellphone # from cellphone on, no zsp categories
+#  - microwave
+#  - bench
+#  - bottle
+#  - couch
+#  - cup
+#  - suitcase
+#  - tv
+
+method:
+  common3d:
+    checkpoint: ${checkpoint}
+    categories: ${categories}
+    train:
+      val: ${val}
+
+metrics:
+  - metricA
+  - metricB
+
+train_datasets:
+  labeled:
+    modalities: ${modalities}
+    sequences_count_max_per_category: ${train_sequences_count_max_per_category}
+    tform_obj_type: ${aligned_name}
+    categories: ${categories}
+#  initmeshes:
+#    modalities: ${modalities}
+#    sequences_count_max_per_category: ${train_sequences_count_max_per_category}
+#    categories: ${categories}
+#    tform_obj_type: label3d_cuboid
+#    mesh_type: ${mesh_type}
+#  unlabeled:
+#    modalities: ${modalities}
+#    categories: ${categories}
+
+val_datasets:
+#  main:
+#    modalities: ${modalities}
+#    categories: ${categories}
+#    subset_fraction: ${val_subset_fraction}
+  co3d_zsp:
+    modalities: ${modalities}
+    skip: True # ${skip_co3d_zsp_val}
+    categories: ${categories}
+    subset_fraction: ${val_subset_fraction}
+  pascal3d:
+    skip: True # ${skip_cross_pascal3d}
+    subset_fraction: ${val_subset_fraction}
+    categories: ${categories}
+  objectnet3d:
+    skip: True # ${skip_cross_objectnet3d}
+    subset_fraction: ${val_subset_fraction}
+    categories: ${categories}
+  spair71k:
+    skip: True # ${skip_spair71k}
+    subset_fraction: ${val_subset_fraction}
+    categories: ${categories}
+
+test_datasets:
+  co3d:
+    modalities: ${modalities}
+    skip: ${skip_co3d_no_zsp_test}
+    subset_fraction: ${test_subset_fraction}
+    categories: ${categories}
+    tform_obj_type: ${aligned_name}
+  co3d_zsp:
+    modalities: ${modalities}
+    skip: ${skip_co3d_zsp_test}
+    subset_fraction: ${test_subset_fraction}
+    categories: ${categories}
+  pascal3d:
+    skip: ${skip_cross_pascal3d}
+    subset_fraction: ${test_subset_fraction}
+    categories: ${categories}
+  pascal3d_occ_l1:
+    skip: ${skip_cross_pascal3d_occ}
+    subset_fraction: ${test_subset_fraction}
+    categories: ${categories}
+  pascal3d_occ_l2:
+    skip: ${skip_cross_pascal3d_occ}
+    subset_fraction: ${test_subset_fraction}
+    categories: ${categories}
+  pascal3d_occ_l3:
+    skip: ${skip_cross_pascal3d_occ}
+    subset_fraction: ${test_subset_fraction}
+    categories: ${categories}
+  objectnet3d:
+    skip: ${skip_cross_objectnet3d}
+    subset_fraction: ${test_subset_fraction}
+    categories: ${categories}
+  spair71k:
+    skip: ${skip_spair71k}
+    subset_fraction: ${test_subset_fraction}
+    categories: ${categories}

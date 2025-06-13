@@ -1,0 +1,13 @@
+# @package _global_
+
+checkpoints_cats:
+  airplane:
+  bicycle:
+  bottle:
+  bus:
+  car:
+  chair:
+  couch:
+  motorcycle:
+  train:
+  tv:

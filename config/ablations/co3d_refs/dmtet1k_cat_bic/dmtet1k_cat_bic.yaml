@@ -1,0 +1,1246 @@
+# @package _global_
+
+checkpoint: ${checkpoint_opt}
+
+checkpoints_refs_cats:
+  r0:
+    bicycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.bicycle}/nemo_cat.ckpt
+    truck: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.truck}/nemo.ckpt
+    train: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.train}/nemo.ckpt
+    teddybear: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.teddybear}/nemo.ckpt
+    car: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.car}/nemo.ckpt
+    bus: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.bus}/nemo.ckpt
+    motorcycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.motorcycle}/nemo.ckpt
+    keyboard: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.keyboard}/nemo.ckpt
+    handbag: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.handbag}/nemo.ckpt
+    remote: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.remote}/nemo.ckpt
+    airplane: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.airplane}/nemo.ckpt
+    toilet: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.toilet}/nemo.ckpt
+    hairdryer: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.hairdryer}/nemo.ckpt
+    mouse: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.mouse}/nemo.ckpt
+    toaster: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.toaster}/nemo.ckpt
+    hydrant: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.hydrant}/nemo.ckpt
+    chair: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.chair}/nemo.ckpt
+    laptop: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.laptop}/nemo.ckpt
+    microwave: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.microwave}/nemo.ckpt
+    book: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.book}/nemo.ckpt
+    backpack: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.backpack}/nemo.ckpt
+    cellphone: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.cellphone}/nemo.ckpt # from cellphone on, no zsp categories
+    bench: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.bench}/nemo.ckpt
+    bottle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.bottle}/nemo.ckpt
+    couch: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.couch}/nemo.ckpt
+    cup: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.cup}/nemo.ckpt
+    suitcase: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.suitcase}/nemo.ckpt
+    tv: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r0.tv}/nemo.ckpt
+  r1:
+    bicycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.bicycle}/nemo_cat.ckpt
+    truck: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.truck}/nemo.ckpt
+    train: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.train}/nemo.ckpt
+    teddybear: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.teddybear}/nemo.ckpt
+    car: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.car}/nemo.ckpt
+    bus: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.bus}/nemo.ckpt
+    motorcycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.motorcycle}/nemo.ckpt
+    keyboard: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.keyboard}/nemo.ckpt
+    handbag: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.handbag}/nemo.ckpt
+    remote: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.remote}/nemo.ckpt
+    airplane: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.airplane}/nemo.ckpt
+    toilet: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.toilet}/nemo.ckpt
+    hairdryer: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.hairdryer}/nemo.ckpt
+    mouse: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.mouse}/nemo.ckpt
+    toaster: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.toaster}/nemo.ckpt
+    hydrant: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.hydrant}/nemo.ckpt
+    chair: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.chair}/nemo.ckpt
+    laptop: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.laptop}/nemo.ckpt
+    microwave: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.microwave}/nemo.ckpt
+    book: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.book}/nemo.ckpt
+    backpack: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.backpack}/nemo.ckpt
+    cellphone: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.cellphone}/nemo.ckpt # from cellphone on, no zsp categories
+    bench: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.bench}/nemo.ckpt
+    bottle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.bottle}/nemo.ckpt
+    couch: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.couch}/nemo.ckpt
+    cup: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.cup}/nemo.ckpt
+    suitcase: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.suitcase}/nemo.ckpt
+    tv: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r1.tv}/nemo.ckpt
+  r2:
+    bicycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.bicycle}/nemo_cat.ckpt
+    truck: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.truck}/nemo.ckpt
+    train: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.train}/nemo.ckpt
+    teddybear: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.teddybear}/nemo.ckpt
+    car: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.car}/nemo.ckpt
+    bus: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.bus}/nemo.ckpt
+    motorcycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.motorcycle}/nemo.ckpt
+    keyboard: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.keyboard}/nemo.ckpt
+    handbag: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.handbag}/nemo.ckpt
+    remote: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.remote}/nemo.ckpt
+    airplane: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.airplane}/nemo.ckpt
+    toilet: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.toilet}/nemo.ckpt
+    hairdryer: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.hairdryer}/nemo.ckpt
+    mouse: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.mouse}/nemo.ckpt
+    toaster: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.toaster}/nemo.ckpt
+    hydrant: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.hydrant}/nemo.ckpt
+    chair: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.chair}/nemo.ckpt
+    laptop: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.laptop}/nemo.ckpt
+    microwave: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.microwave}/nemo.ckpt
+    book: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.book}/nemo.ckpt
+    backpack: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.backpack}/nemo.ckpt
+    cellphone: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.cellphone}/nemo.ckpt # from cellphone on, no zsp categories
+    bench: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.bench}/nemo.ckpt
+    bottle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.bottle}/nemo.ckpt
+    couch: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.couch}/nemo.ckpt
+    cup: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.cup}/nemo.ckpt
+    suitcase: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.suitcase}/nemo.ckpt
+    tv: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r2.tv}/nemo.ckpt
+  r3:
+    bicycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.bicycle}/nemo_cat.ckpt
+    truck: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.truck}/nemo.ckpt
+    train: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.train}/nemo.ckpt
+    teddybear: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.teddybear}/nemo.ckpt
+    car: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.car}/nemo.ckpt
+    bus: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.bus}/nemo.ckpt
+    motorcycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.motorcycle}/nemo.ckpt
+    keyboard: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.keyboard}/nemo.ckpt
+    handbag: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.handbag}/nemo.ckpt
+    remote: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.remote}/nemo.ckpt
+    airplane: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.airplane}/nemo.ckpt
+    toilet: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.toilet}/nemo.ckpt
+    hairdryer: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.hairdryer}/nemo.ckpt
+    mouse: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.mouse}/nemo.ckpt
+    toaster: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.toaster}/nemo.ckpt
+    hydrant: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.hydrant}/nemo.ckpt
+    chair: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.chair}/nemo.ckpt
+    laptop: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.laptop}/nemo.ckpt
+    microwave: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.microwave}/nemo.ckpt
+    book: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.book}/nemo.ckpt
+    backpack: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.backpack}/nemo.ckpt
+    cellphone: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.cellphone}/nemo.ckpt # from cellphone on, no zsp categories
+    bench: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.bench}/nemo.ckpt
+    bottle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.bottle}/nemo.ckpt
+    couch: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.couch}/nemo.ckpt
+    cup: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.cup}/nemo.ckpt
+    suitcase: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.suitcase}/nemo.ckpt
+    tv: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r3.tv}/nemo.ckpt
+  r4:
+    bicycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.bicycle}/nemo_cat.ckpt
+    truck: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.truck}/nemo.ckpt
+    train: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.train}/nemo.ckpt
+    teddybear: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.teddybear}/nemo.ckpt
+    car: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.car}/nemo.ckpt
+    bus: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.bus}/nemo.ckpt
+    motorcycle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.motorcycle}/nemo.ckpt
+    keyboard: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.keyboard}/nemo.ckpt
+    handbag: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.handbag}/nemo.ckpt
+    remote: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.remote}/nemo.ckpt
+    airplane: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.airplane}/nemo.ckpt
+    toilet: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.toilet}/nemo.ckpt
+    hairdryer: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.hairdryer}/nemo.ckpt
+    mouse: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.mouse}/nemo.ckpt
+    toaster: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.toaster}/nemo.ckpt
+    hydrant: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.hydrant}/nemo.ckpt
+    chair: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.chair}/nemo.ckpt
+    laptop: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.laptop}/nemo.ckpt
+    microwave: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.microwave}/nemo.ckpt
+    book: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.book}/nemo.ckpt
+    backpack: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.backpack}/nemo.ckpt
+    cellphone: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.cellphone}/nemo.ckpt # from cellphone on, no zsp categories
+    bench: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.bench}/nemo.ckpt
+    bottle: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.bottle}/nemo.ckpt
+    couch: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.couch}/nemo.ckpt
+    cup: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.cup}/nemo.ckpt
+    suitcase: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.suitcase}/nemo.ckpt
+    tv: ${platform.path_exps}/${checkpoints_refs_cats_run_name.r4.tv}/nemo.ckpt
+
+
+dict_nested_frames_ref:
+  r0:
+    microwave:
+      '404_53420_104078':
+  #    '48_2753_8230':
+  #    '422_58682_113779':
+  #    '410_55797_108431':
+  #    '405_53949_105173':
+    hydrant:
+      '185_19984_37720':
+  #    '167_18177_33907':
+  #    '206_21797_45640':
+  #    '250_26749_52968':
+  #    '194_20925_42241':
+    toyplane:
+      '111_13148_23780':
+  #    '373_41710_83247':
+  #    '372_41134_81910':
+  #    '104_12351_22036':
+  #    '375_42517_85194':
+    toytruck:
+      '240_25396_52241':
+  #    '152_16871_32354':
+  #    '190_20481_38360':
+  #    '372_41242_82218':
+  #    '309_32639_60449':
+      # '104_12350_21857': # not required
+    bicycle:
+      '354_37645_70054':
+  #    '372_41153_81941':
+  #    '373_41715_83384':
+  #    '136_15656_31168':
+  #    '270_28771_56661':
+      #'270_28794_57245': # not required
+      #'108_12879_24911':
+      #'187_20222_38901':
+      #'149_16570_31735':
+      #'108_12855_23322':
+      #'169_18399_34807':
+    cup:
+      '34_1421_4329':
+  #    '31_1331_4174':
+  #    '31_1352_4179':
+  #    '31_1348_4176':
+  #    '28_997_2873':
+    remote:
+      '195_21014_43617':
+  #    '117_13757_28342':
+  #    '100_11550_20470':
+  #    '107_12765_24738':
+  #    '100_11561_21987':
+    backpack:
+      '196_21139_44291':
+  #    '187_20217_38869':
+  #    '208_21991_45347':
+  #    '20_778_1839':
+  #    '20_732_1375':
+      # '246_26337_52204': # not required
+    mouse:
+      '14_189_1165':
+  #    '186_20099_39028':
+  #    '195_21009_42771':
+  #    '148_16485_31743':
+  #    '148_16490_32277':
+    motorcycle:
+      '349_36520_66801':
+  #    '365_39208_76369':
+  #    '365_39206_76366':
+  #    '365_39243_76541':
+  #    '359_37731_71933':
+      # '365_39196_76341': # not required
+    tv:
+      '398_50481_99038':
+  #    '397_49980_98389':
+  #    '397_49994_98417':
+  #    '48_2757_8246':
+  #    '48_2763_8316':
+    car:
+      '185_19982_37678':
+  #    '194_20939_43630':
+  #    '194_20900_41097':
+  #    '206_21810_45890':
+  #    '206_21805_45881':
+      # '216_22836_48452': # not required
+    cellphone:
+      '112_13284_23744':
+  #    '241_25539_50962':
+  #    '173_18782_33853':
+  #    '256_27642_53551':
+  #    '153_16979_32160':
+      # '173_18789_34257': # not required
+    toybus:
+      '199_21374_39988':
+  #    '375_42441_85051':
+  #    '396_49702_97897':
+  #    '404_53714_104744':
+  #    '152_16878_31659':
+      #'162_17773_32957': # not required
+      # '121_14153_28986':
+    toilet:
+      '243_25916_51736':
+  #    '205_21696_46125':
+  #    '115_13559_29303':
+  #    '243_25922_52284':
+  #    '205_21700_46136':
+    suitcase:
+      '219_23131_48849':
+  #    '372_41159_81955':
+  #    '353_37359_70296':
+  #    '188_20344_38306':
+  #    '219_23125_48640':
+    toaster:
+      '274_29366_56609':
+  #    '20_779_1840':
+  #    '163_17890_33318':
+  #    '274_29396_57830':
+  #    '222_23413_48776':
+      # '30_1153_3436': # not required
+    hairdryer:
+      '101_11750_20715':
+  #    '306_32185_60457':
+  #    '28_930_2081':
+  #    '31_1294_3987':
+  #    '252_27081_55271':
+      # '20_713_1324': # not required, but also folded
+    couch:
+      '193_20843_43364':
+  #    '193_20797_40499':
+  #    '193_20852_43384':
+  #    '193_20841_43356':
+  #    '193_20842_43359':
+    handbag:
+      '396_49728_97942':
+  #    '28_979_2845':
+  #    '396_49759_97999':
+  #    '396_49367_97469':
+  #    '396_49691_97880':
+    book:
+      '102_11962_21291':
+  #    '119_13961_28527':
+  #    '119_13954_28116':
+  #    '119_13955_27877':
+  #    '119_13959_28346':
+      # '102_11954_20711': # not required
+    keyboard:
+      '200_21526_41664':
+  #    '274_29393_57812':
+  #    '153_16977_32093':
+  #    '122_14256_27376':
+  #    '191_20573_35674':
+      # '241_25555_52318': # not required
+    laptop:
+      '131_15148_29934':
+  #    '163_17903_33591':
+  #    '274_29380_56806':
+  #    '112_13269_22712':
+  #    '222_23409_48576':
+      # '222_23401_48121': # not requred
+    toytrain:
+      '346_36011_65893':
+  #    '255_27504_55322':
+  #    '190_20479_37788':
+  #    '255_27498_54620':
+  #    '374_41989_83996':
+    bottle:
+      '40_1834_5582':
+  #    '40_1843_5616':
+  #    '38_1661_5028':
+  #    '40_1835_5580':
+  #    '38_1708_5100':
+    teddybear:
+      '196_21096_41534':
+  #    '169_18386_34554':
+  #    '208_22018_45660':
+  #    '187_20219_38873':
+  #    '339_35249_64280':
+      # '246_26320_51798': # not required
+    bench:
+      '194_20936_42354':
+  #    '194_20935_42352':
+  #    '194_20884_40057':
+  #    '206_21811_45891':
+  #    '194_20923_42240':
+      # '250_26758_54244': # not required
+    chair:
+      '218_22993_47010':
+  #    '196_21138_44645':
+  #    '196_21091_41396':
+  #    '127_14751_30004':
+  #    '246_26305_51510':
+  r1:
+    microwave:
+  #    '404_53420_104078':
+      '48_2753_8230':
+  #    '422_58682_113779':
+  #    '410_55797_108431':
+  #    '405_53949_105173':
+    hydrant:
+  #    '185_19984_37720':
+      '167_18177_33907':
+  #    '206_21797_45640':
+  #    '250_26749_52968':
+  #    '194_20925_42241':
+    toyplane:
+  #    '111_13148_23780':
+      '373_41710_83247':
+  #    '372_41134_81910':
+  #    '104_12351_22036':
+  #    '375_42517_85194':
+    toytruck:
+  #    '240_25396_52241':
+      '152_16871_32354':
+  #    '190_20481_38360':
+  #    '372_41242_82218':
+  #    '309_32639_60449':
+      # '104_12350_21857': # not required
+    bicycle:
+  #    '354_37645_70054':
+      '372_41153_81941':
+  #    '373_41715_83384':
+  #    '136_15656_31168':
+  #    '270_28771_56661':
+      #'270_28794_57245': # not required
+      #'108_12879_24911':
+      #'187_20222_38901':
+      #'149_16570_31735':
+      #'108_12855_23322':
+      #'169_18399_34807':
+    cup:
+  #    '34_1421_4329':
+      '31_1331_4174':
+  #    '31_1352_4179':
+  #    '31_1348_4176':
+  #    '28_997_2873':
+    remote:
+  #    '195_21014_43617':
+      '117_13757_28342':
+  #    '100_11550_20470':
+  #    '107_12765_24738':
+  #    '100_11561_21987':
+    backpack:
+  #    '196_21139_44291':
+      '187_20217_38869':
+  #    '208_21991_45347':
+  #    '20_778_1839':
+  #    '20_732_1375':
+      # '246_26337_52204': # not required
+    mouse:
+  #    '14_189_1165':
+      '186_20099_39028':
+  #    '195_21009_42771':
+  #    '148_16485_31743':
+  #    '148_16490_32277':
+    motorcycle:
+  #    '349_36520_66801':
+      '365_39208_76369':
+  #    '365_39206_76366':
+  #    '365_39243_76541':
+  #    '359_37731_71933':
+      # '365_39196_76341': # not required
+    tv:
+  #    '398_50481_99038':
+      '397_49980_98389':
+  #    '397_49994_98417':
+  #    '48_2757_8246':
+  #    '48_2763_8316':
+    car:
+  #    '185_19982_37678':
+      '194_20939_43630':
+  #    '194_20900_41097':
+  #    '206_21810_45890':
+  #    '206_21805_45881':
+      # '216_22836_48452': # not required
+    cellphone:
+  #    '112_13284_23744':
+      '241_25539_50962':
+  #    '173_18782_33853':
+  #    '256_27642_53551':
+  #    '153_16979_32160':
+      # '173_18789_34257': # not required
+    toybus:
+  #    '199_21374_39988':
+      '375_42441_85051':
+  #    '396_49702_97897':
+  #    '404_53714_104744':
+  #    '152_16878_31659':
+      #'162_17773_32957': # not required
+      # '121_14153_28986':
+    toilet:
+  #    '243_25916_51736':
+      '205_21696_46125':
+  #    '115_13559_29303':
+  #    '243_25922_52284':
+  #    '205_21700_46136':
+    suitcase:
+  #    '219_23131_48849':
+      '372_41159_81955':
+  #    '353_37359_70296':
+  #    '188_20344_38306':
+  #    '219_23125_48640':
+    toaster:
+  #    '274_29366_56609':
+      '20_779_1840':
+  #    '163_17890_33318':
+  #    '274_29396_57830':
+  #    '222_23413_48776':
+      # '30_1153_3436': # not required
+    hairdryer:
+  #    '101_11750_20715':
+      '306_32185_60457':
+  #    '28_930_2081':
+  #    '31_1294_3987':
+  #    '252_27081_55271':
+      # '20_713_1324': # not required, but also folded
+    couch:
+  #    '193_20843_43364':
+      '193_20797_40499':
+  #    '193_20852_43384':
+  #    '193_20841_43356':
+  #    '193_20842_43359':
+    handbag:
+  #    '396_49728_97942':
+      '28_979_2845':
+  #    '396_49759_97999':
+  #    '396_49367_97469':
+  #    '396_49691_97880':
+    book:
+  #    '102_11962_21291':
+      '119_13961_28527':
+  #    '119_13954_28116':
+  #    '119_13955_27877':
+  #    '119_13959_28346':
+      # '102_11954_20711': # not required
+    keyboard:
+  #    '200_21526_41664':
+      '274_29393_57812':
+  #    '153_16977_32093':
+  #    '122_14256_27376':
+  #    '191_20573_35674':
+      # '241_25555_52318': # not required
+    laptop:
+  #    '131_15148_29934':
+      '163_17903_33591':
+  #    '274_29380_56806':
+  #    '112_13269_22712':
+  #    '222_23409_48576':
+      # '222_23401_48121': # not requred
+    toytrain:
+  #    '346_36011_65893':
+      '255_27504_55322':
+  #    '190_20479_37788':
+  #    '255_27498_54620':
+  #    '374_41989_83996':
+    bottle:
+  #    '40_1834_5582':
+      '40_1843_5616':
+  #    '38_1661_5028':
+  #    '40_1835_5580':
+  #    '38_1708_5100':
+    teddybear:
+  #    '196_21096_41534':
+      '169_18386_34554':
+  #    '208_22018_45660':
+  #    '187_20219_38873':
+  #    '339_35249_64280':
+      # '246_26320_51798': # not required
+    bench:
+  #    '194_20936_42354':
+      '194_20935_42352':
+  #    '194_20884_40057':
+  #    '206_21811_45891':
+  #    '194_20923_42240':
+      # '250_26758_54244': # not required
+    chair:
+  #    '218_22993_47010':
+      '196_21138_44645':
+  #    '196_21091_41396':
+  #    '127_14751_30004':
+  #    '246_26305_51510':
+  r2:
+    microwave:
+  #    '404_53420_104078':
+  #    '48_2753_8230':
+      '422_58682_113779':
+  #    '410_55797_108431':
+  #    '405_53949_105173':
+    hydrant:
+  #    '185_19984_37720':
+  #    '167_18177_33907':
+      '206_21797_45640':
+  #    '250_26749_52968':
+  #    '194_20925_42241':
+    toyplane:
+  #    '111_13148_23780':
+  #    '373_41710_83247':
+      '372_41134_81910':
+  #    '104_12351_22036':
+  #    '375_42517_85194':
+    toytruck:
+  #    '240_25396_52241':
+  #    '152_16871_32354':
+      '190_20481_38360':
+  #    '372_41242_82218':
+  #    '309_32639_60449':
+      # '104_12350_21857': # not required
+    bicycle:
+  #    '354_37645_70054':
+  #    '372_41153_81941':
+      '373_41715_83384':
+  #    '136_15656_31168':
+  #    '270_28771_56661':
+      #'270_28794_57245': # not required
+      #'108_12879_24911':
+      #'187_20222_38901':
+      #'149_16570_31735':
+      #'108_12855_23322':
+      #'169_18399_34807':
+    cup:
+  #    '34_1421_4329':
+  #    '31_1331_4174':
+      '31_1352_4179':
+  #    '31_1348_4176':
+  #    '28_997_2873':
+    remote:
+  #    '195_21014_43617':
+  #    '117_13757_28342':
+      '100_11550_20470':
+  #    '107_12765_24738':
+  #    '100_11561_21987':
+    backpack:
+  #    '196_21139_44291':
+  #    '187_20217_38869':
+      '208_21991_45347':
+  #    '20_778_1839':
+  #    '20_732_1375':
+      # '246_26337_52204': # not required
+    mouse:
+  #    '14_189_1165':
+  #    '186_20099_39028':
+      '195_21009_42771':
+  #    '148_16485_31743':
+  #    '148_16490_32277':
+    motorcycle:
+  #    '349_36520_66801':
+  #    '365_39208_76369':
+      '365_39206_76366':
+  #    '365_39243_76541':
+  #    '359_37731_71933':
+      # '365_39196_76341': # not required
+    tv:
+  #    '398_50481_99038':
+  #    '397_49980_98389':
+      '397_49994_98417':
+  #    '48_2757_8246':
+  #    '48_2763_8316':
+    car:
+  #    '185_19982_37678':
+  #    '194_20939_43630':
+      '194_20900_41097':
+  #    '206_21810_45890':
+  #    '206_21805_45881':
+      # '216_22836_48452': # not required
+    cellphone:
+  #    '112_13284_23744':
+  #    '241_25539_50962':
+      '173_18782_33853':
+  #    '256_27642_53551':
+  #    '153_16979_32160':
+      # '173_18789_34257': # not required
+    toybus:
+  #    '199_21374_39988':
+  #    '375_42441_85051':
+      '396_49702_97897':
+  #    '404_53714_104744':
+  #    '152_16878_31659':
+      #'162_17773_32957': # not required
+      # '121_14153_28986':
+    toilet:
+  #    '243_25916_51736':
+  #    '205_21696_46125':
+      '115_13559_29303':
+  #    '243_25922_52284':
+  #    '205_21700_46136':
+    suitcase:
+  #    '219_23131_48849':
+  #    '372_41159_81955':
+      '353_37359_70296':
+  #    '188_20344_38306':
+  #    '219_23125_48640':
+    toaster:
+  #    '274_29366_56609':
+  #    '20_779_1840':
+      '163_17890_33318':
+  #    '274_29396_57830':
+  #    '222_23413_48776':
+      # '30_1153_3436': # not required
+    hairdryer:
+  #    '101_11750_20715':
+  #    '306_32185_60457':
+      '28_930_2081':
+  #    '31_1294_3987':
+  #    '252_27081_55271':
+      # '20_713_1324': # not required, but also folded
+    couch:
+  #    '193_20843_43364':
+  #    '193_20797_40499':
+      '193_20852_43384':
+  #    '193_20841_43356':
+  #    '193_20842_43359':
+    handbag:
+  #    '396_49728_97942':
+  #    '28_979_2845':
+      '396_49759_97999':
+  #    '396_49367_97469':
+  #    '396_49691_97880':
+    book:
+  #    '102_11962_21291':
+  #    '119_13961_28527':
+      '119_13954_28116':
+  #    '119_13955_27877':
+  #    '119_13959_28346':
+      # '102_11954_20711': # not required
+    keyboard:
+  #    '200_21526_41664':
+  #    '274_29393_57812':
+      '153_16977_32093':
+  #    '122_14256_27376':
+  #    '191_20573_35674':
+      # '241_25555_52318': # not required
+    laptop:
+  #    '131_15148_29934':
+  #    '163_17903_33591':
+      '274_29380_56806':
+  #    '112_13269_22712':
+  #    '222_23409_48576':
+      # '222_23401_48121': # not requred
+    toytrain:
+  #    '346_36011_65893':
+  #    '255_27504_55322':
+      '190_20479_37788':
+  #    '255_27498_54620':
+  #    '374_41989_83996':
+    bottle:
+  #    '40_1834_5582':
+  #    '40_1843_5616':
+      '38_1661_5028':
+  #    '40_1835_5580':
+  #    '38_1708_5100':
+    teddybear:
+  #    '196_21096_41534':
+  #    '169_18386_34554':
+      '208_22018_45660':
+  #    '187_20219_38873':
+  #    '339_35249_64280':
+      # '246_26320_51798': # not required
+    bench:
+  #    '194_20936_42354':
+  #    '194_20935_42352':
+      '194_20884_40057':
+  #    '206_21811_45891':
+  #    '194_20923_42240':
+      # '250_26758_54244': # not required
+    chair:
+  #    '218_22993_47010':
+  #    '196_21138_44645':
+      '196_21091_41396':
+  #    '127_14751_30004':
+  #    '246_26305_51510':
+  r3:
+    microwave:
+  #    '404_53420_104078':
+  #    '48_2753_8230':
+  #    '422_58682_113779':
+      '410_55797_108431':
+  #    '405_53949_105173':
+    hydrant:
+  #    '185_19984_37720':
+  #    '167_18177_33907':
+  #    '206_21797_45640':
+      '250_26749_52968':
+  #    '194_20925_42241':
+    toyplane:
+  #    '111_13148_23780':
+  #    '373_41710_83247':
+  #    '372_41134_81910':
+      '104_12351_22036':
+  #    '375_42517_85194':
+    toytruck:
+  #    '240_25396_52241':
+  #    '152_16871_32354':
+  #    '190_20481_38360':
+      '372_41242_82218':
+  #    '309_32639_60449':
+      # '104_12350_21857': # not required
+    bicycle:
+  #    '354_37645_70054':
+  #    '372_41153_81941':
+  #    '373_41715_83384':
+      '136_15656_31168':
+  #    '270_28771_56661':
+      #'270_28794_57245': # not required
+      #'108_12879_24911':
+      #'187_20222_38901':
+      #'149_16570_31735':
+      #'108_12855_23322':
+      #'169_18399_34807':
+    cup:
+  #    '34_1421_4329':
+  #    '31_1331_4174':
+  #    '31_1352_4179':
+      '31_1348_4176':
+  #    '28_997_2873':
+    remote:
+  #    '195_21014_43617':
+  #    '117_13757_28342':
+  #    '100_11550_20470':
+      '107_12765_24738':
+  #    '100_11561_21987':
+    backpack:
+  #    '196_21139_44291':
+  #    '187_20217_38869':
+  #    '208_21991_45347':
+      '20_778_1839':
+  #    '20_732_1375':
+      # '246_26337_52204': # not required
+    mouse:
+  #    '14_189_1165':
+  #    '186_20099_39028':
+  #    '195_21009_42771':
+      '148_16485_31743':
+  #    '148_16490_32277':
+    motorcycle:
+  #    '349_36520_66801':
+  #    '365_39208_76369':
+  #    '365_39206_76366':
+      '365_39243_76541':
+  #    '359_37731_71933':
+      # '365_39196_76341': # not required
+    tv:
+  #    '398_50481_99038':
+  #    '397_49980_98389':
+  #    '397_49994_98417':
+      '48_2757_8246':
+  #    '48_2763_8316':
+    car:
+  #    '185_19982_37678':
+  #    '194_20939_43630':
+  #    '194_20900_41097':
+      '206_21810_45890':
+  #    '206_21805_45881':
+      # '216_22836_48452': # not required
+    cellphone:
+  #    '112_13284_23744':
+  #    '241_25539_50962':
+  #    '173_18782_33853':
+      '256_27642_53551':
+  #    '153_16979_32160':
+      # '173_18789_34257': # not required
+    toybus:
+  #    '199_21374_39988':
+  #    '375_42441_85051':
+  #    '396_49702_97897':
+      '404_53714_104744':
+  #    '152_16878_31659':
+      #'162_17773_32957': # not required
+      # '121_14153_28986':
+    toilet:
+  #    '243_25916_51736':
+  #    '205_21696_46125':
+  #    '115_13559_29303':
+      '243_25922_52284':
+  #    '205_21700_46136':
+    suitcase:
+  #    '219_23131_48849':
+  #    '372_41159_81955':
+  #    '353_37359_70296':
+      '188_20344_38306':
+  #    '219_23125_48640':
+    toaster:
+  #    '274_29366_56609':
+  #    '20_779_1840':
+  #    '163_17890_33318':
+      '274_29396_57830':
+  #    '222_23413_48776':
+      # '30_1153_3436': # not required
+    hairdryer:
+  #    '101_11750_20715':
+  #    '306_32185_60457':
+  #    '28_930_2081':
+      '31_1294_3987':
+  #    '252_27081_55271':
+      # '20_713_1324': # not required, but also folded
+    couch:
+  #    '193_20843_43364':
+  #    '193_20797_40499':
+  #    '193_20852_43384':
+      '193_20841_43356':
+  #    '193_20842_43359':
+    handbag:
+  #    '396_49728_97942':
+  #    '28_979_2845':
+  #    '396_49759_97999':
+      '396_49367_97469':
+  #    '396_49691_97880':
+    book:
+  #    '102_11962_21291':
+  #    '119_13961_28527':
+  #    '119_13954_28116':
+      '119_13955_27877':
+  #    '119_13959_28346':
+      # '102_11954_20711': # not required
+    keyboard:
+  #    '200_21526_41664':
+  #    '274_29393_57812':
+  #    '153_16977_32093':
+      '122_14256_27376':
+  #    '191_20573_35674':
+      # '241_25555_52318': # not required
+    laptop:
+  #    '131_15148_29934':
+  #    '163_17903_33591':
+  #    '274_29380_56806':
+      '112_13269_22712':
+  #    '222_23409_48576':
+      # '222_23401_48121': # not requred
+    toytrain:
+  #    '346_36011_65893':
+  #    '255_27504_55322':
+  #    '190_20479_37788':
+      '255_27498_54620':
+  #    '374_41989_83996':
+    bottle:
+  #    '40_1834_5582':
+  #    '40_1843_5616':
+  #    '38_1661_5028':
+      '40_1835_5580':
+  #    '38_1708_5100':
+    teddybear:
+  #    '196_21096_41534':
+  #    '169_18386_34554':
+  #    '208_22018_45660':
+      '187_20219_38873':
+  #    '339_35249_64280':
+      # '246_26320_51798': # not required
+    bench:
+  #    '194_20936_42354':
+  #    '194_20935_42352':
+  #    '194_20884_40057':
+      '206_21811_45891':
+  #    '194_20923_42240':
+      # '250_26758_54244': # not required
+    chair:
+  #    '218_22993_47010':
+  #    '196_21138_44645':
+  #    '196_21091_41396':
+      '127_14751_30004':
+  #    '246_26305_51510':
+  r4:
+    microwave:
+  #    '404_53420_104078':
+  #    '48_2753_8230':
+  #    '422_58682_113779':
+  #    '410_55797_108431':
+      '405_53949_105173':
+    hydrant:
+  #    '185_19984_37720':
+  #    '167_18177_33907':
+  #    '206_21797_45640':
+  #    '250_26749_52968':
+      '194_20925_42241':
+    toyplane:
+  #    '111_13148_23780':
+  #    '373_41710_83247':
+  #    '372_41134_81910':
+  #    '104_12351_22036':
+      '375_42517_85194':
+    toytruck:
+  #    '240_25396_52241':
+  #    '152_16871_32354':
+  #    '190_20481_38360':
+  #    '372_41242_82218':
+      '309_32639_60449':
+      # '104_12350_21857': # not required
+    bicycle:
+  #    '354_37645_70054':
+  #    '372_41153_81941':
+  #    '373_41715_83384':
+  #    '136_15656_31168':
+      '270_28771_56661':
+      #'270_28794_57245': # not required
+      #'108_12879_24911':
+      #'187_20222_38901':
+      #'149_16570_31735':
+      #'108_12855_23322':
+      #'169_18399_34807':
+    cup:
+  #    '34_1421_4329':
+  #    '31_1331_4174':
+  #    '31_1352_4179':
+  #    '31_1348_4176':
+      '28_997_2873':
+    remote:
+  #    '195_21014_43617':
+  #    '117_13757_28342':
+  #    '100_11550_20470':
+  #    '107_12765_24738':
+      '100_11561_21987':
+    backpack:
+  #    '196_21139_44291':
+  #    '187_20217_38869':
+  #    '208_21991_45347':
+  #    '20_778_1839':
+      '20_732_1375':
+      # '246_26337_52204': # not required
+    mouse:
+  #    '14_189_1165':
+  #    '186_20099_39028':
+  #    '195_21009_42771':
+  #    '148_16485_31743':
+      '148_16490_32277':
+    motorcycle:
+  #    '349_36520_66801':
+  #    '365_39208_76369':
+  #    '365_39206_76366':
+  #    '365_39243_76541':
+      '359_37731_71933':
+      # '365_39196_76341': # not required
+    tv:
+  #    '398_50481_99038':
+  #    '397_49980_98389':
+  #    '397_49994_98417':
+  #    '48_2757_8246':
+      '48_2763_8316':
+    car:
+  #    '185_19982_37678':
+  #    '194_20939_43630':
+  #    '194_20900_41097':
+  #    '206_21810_45890':
+      '206_21805_45881':
+      # '216_22836_48452': # not required
+    cellphone:
+  #    '112_13284_23744':
+  #    '241_25539_50962':
+  #    '173_18782_33853':
+  #    '256_27642_53551':
+      '153_16979_32160':
+      # '173_18789_34257': # not required
+    toybus:
+  #    '199_21374_39988':
+  #    '375_42441_85051':
+  #    '396_49702_97897':
+  #    '404_53714_104744':
+      '152_16878_31659':
+      #'162_17773_32957': # not required
+      # '121_14153_28986':
+    toilet:
+  #    '243_25916_51736':
+  #    '205_21696_46125':
+  #    '115_13559_29303':
+  #    '243_25922_52284':
+      '205_21700_46136':
+    suitcase:
+  #    '219_23131_48849':
+  #    '372_41159_81955':
+  #    '353_37359_70296':
+  #    '188_20344_38306':
+      '219_23125_48640':
+    toaster:
+  #    '274_29366_56609':
+  #    '20_779_1840':
+  #    '163_17890_33318':
+  #    '274_29396_57830':
+      '222_23413_48776':
+      # '30_1153_3436': # not required
+    hairdryer:
+  #    '101_11750_20715':
+  #    '306_32185_60457':
+  #    '28_930_2081':
+  #    '31_1294_3987':
+      '252_27081_55271':
+      # '20_713_1324': # not required, but also folded
+    couch:
+  #    '193_20843_43364':
+  #    '193_20797_40499':
+  #    '193_20852_43384':
+  #    '193_20841_43356':
+      '193_20842_43359':
+    handbag:
+  #    '396_49728_97942':
+  #    '28_979_2845':
+  #    '396_49759_97999':
+  #    '396_49367_97469':
+      '396_49691_97880':
+    book:
+  #    '102_11962_21291':
+  #    '119_13961_28527':
+  #    '119_13954_28116':
+  #    '119_13955_27877':
+      '119_13959_28346':
+      # '102_11954_20711': # not required
+    keyboard:
+  #    '200_21526_41664':
+  #    '274_29393_57812':
+  #    '153_16977_32093':
+  #    '122_14256_27376':
+      '191_20573_35674':
+      # '241_25555_52318': # not required
+    laptop:
+  #    '131_15148_29934':
+  #    '163_17903_33591':
+  #    '274_29380_56806':
+  #    '112_13269_22712':
+      '222_23409_48576':
+      # '222_23401_48121': # not requred
+    toytrain:
+  #    '346_36011_65893':
+  #    '255_27504_55322':
+  #    '190_20479_37788':
+  #    '255_27498_54620':
+      '374_41989_83996':
+    bottle:
+  #    '40_1834_5582':
+  #    '40_1843_5616':
+  #    '38_1661_5028':
+  #    '40_1835_5580':
+      '38_1708_5100':
+    teddybear:
+  #    '196_21096_41534':
+  #    '169_18386_34554':
+  #    '208_22018_45660':
+  #    '187_20219_38873':
+      '339_35249_64280':
+      # '246_26320_51798': # not required
+    bench:
+  #    '194_20936_42354':
+  #    '194_20935_42352':
+  #    '194_20884_40057':
+  #    '206_21811_45891':
+      '194_20923_42240':
+      # '250_26758_54244': # not required
+    chair:
+  #    '218_22993_47010':
+  #    '196_21138_44645':
+  #    '196_21091_41396':
+  #    '127_14751_30004':
+      '246_26305_51510':
+
+
+checkpoints_refs_cats_run_name:
+  r0:
+    bicycle: 06-10_23-36-23_CO3D_NeMo_r0_slurm # 10-30_15-31-42_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_r0_slurm
+    train: 10-30_14-29-38_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_r0_slurm
+    car: 10-30_15-43-35_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_r0_slurm
+    bus: 10-30_15-41-33_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_r0_slurm
+    motorcycle: 10-30_15-32-48_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_r0_slurm
+    airplane: 10-30_15-42-34_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_r0_slurm
+    chair: 11-01_09-00-31_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_r0_slurm
+    bottle: 10-30_15-45-38_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_r0_slurm
+    couch: 10-30_16-32-15_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_r0_slurm
+    tv: 11-01_08-59-42_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_r0_slurm
+    backpack: 11-09_20-03-11_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_backpack_r0_slurm
+    bench: 11-09_18-49-53_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bench_r0_slurm
+    book: 11-09_19-57-04_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_book_r0_slurm
+    cellphone: 11-09_18-47-47_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cellphone_r0_slurm
+    cup: 11-10_12-37-52_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cup_r0_slurm
+    hairdryer: 11-09_20-02-10_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hairdryer_r0_slurm
+    handbag: 11-09_19-59-06_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_handbag_r0_slurm
+    hydrant: 11-09_21-05-15_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hydrant_r0_slurm
+    keyboard: 11-09_18-50-56_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_keyboard_r0_slurm
+    laptop: 11-09_18-48-50_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_laptop_r0_slurm
+    microwave: 11-13_08-26-12_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r0_slurm # 11-09_18-55-02_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r0_slurm
+    mouse: 11-09_21-04-13_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_mouse_r0_slurm
+    remote: 11-09_18-54-01_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_remote_r0_slurm
+    suitcase: 11-10_12-37-03_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_suitcase_r0_slurm
+    teddybear: 11-09_20-01-08_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_teddybear_r0_slurm
+    toaster: 11-09_18-51-59_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toaster_r0_slurm
+    toilet: 11-09_18-53-00_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toilet_r0_slurm
+    truck: 11-09_19-56-03_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_truck_r0_slurm
+  r1:
+    bicycle: 06-10_23-36-47_CO3D_NeMo_r1_slurm # 10-31_10-35-20_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_r1_slurm
+    train: 10-30_15-46-51_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_r1_slurm
+    car: 10-30_15-42-47_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_r1_slurm
+    bus: 10-30_15-40-43_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_r1_slurm
+    motorcycle: 10-31_08-44-29_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_r1_slurm
+    airplane: 10-30_15-41-45_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_r1_slurm
+    chair: 11-01_09-32-55_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_r1_slurm
+    bottle: 10-30_15-44-50_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_r1_slurm
+    couch: 11-01_09-00-43_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_r1_slurm
+    tv: 10-31_14-42-29_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_r1_slurm
+    backpack: 11-09_20-02-22_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_backpack_r1_slurm
+    bench: 11-09_18-49-03_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bench_r1_slurm
+    book: 11-09_19-56-15_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_book_r1_slurm
+    cellphone: 11-09_18-46-56_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cellphone_r1_slurm
+    cup: 11-09_19-59-18_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cup_r1_slurm
+    hairdryer: 11-09_20-01-20_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hairdryer_r1_slurm
+    handbag: 11-10_12-37-15_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_handbag_r1_slurm
+    hydrant: 11-09_21-04-26_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hydrant_r1_slurm
+    keyboard: 11-09_18-50-06_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_keyboard_r1_slurm
+    laptop: 11-09_18-47-59_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_laptop_r1_slurm
+    microwave: 11-13_08-25-23_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r1_slurm # 11-09_18-54-13_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r1_slurm
+    mouse: 11-10_12-38-41_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_mouse_r1_slurm
+    remote: 11-09_18-53-12_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_remote_r1_slurm
+    suitcase: 11-09_19-57-16_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_suitcase_r1_slurm
+    teddybear: 11-09_20-00-19_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_teddybear_r1_slurm
+    toaster: 11-09_18-51-09_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toaster_r1_slurm
+    toilet: 11-09_18-52-11_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toilet_r1_slurm
+    truck: 11-09_19-55-14_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_truck_r1_slurm
+  r2:
+    bicycle: 06-10_23-37-12_CO3D_NeMo_r2_slurm # 10-30_15-31-30_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_r2_slurm
+    train: 10-30_14-29-26_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_r2_slurm
+    car: 10-30_14-25-19_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_r2_slurm
+    bus: 10-30_15-41-20_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_r2_slurm
+    motorcycle: 10-30_15-32-31_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_r2_slurm
+    airplane: 10-30_15-42-22_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_r2_slurm
+    chair: 10-30_15-46-27_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_r2_slurm
+    bottle: 10-30_14-27-23_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_r2_slurm
+    couch: 10-30_14-30-28_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_r2_slurm
+    tv: 10-30_15-44-25_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_r2_slurm
+    backpack: 11-09_20-02-59_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_backpack_r2_slurm
+    bench: 11-09_18-49-41_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bench_r2_slurm
+    book: 11-09_19-56-52_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_book_r2_slurm
+    cellphone: 11-09_18-47-34_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cellphone_r2_slurm
+    cup: 11-09_19-59-55_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cup_r2_slurm
+    hairdryer: 11-09_20-01-57_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hairdryer_r2_slurm
+    handbag: 11-09_19-58-54_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_handbag_r2_slurm
+    hydrant: 11-09_21-05-03_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hydrant_r2_slurm
+    keyboard: 11-09_18-50-44_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_keyboard_r2_slurm
+    laptop: 11-09_18-48-37_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_laptop_r2_slurm
+    microwave: 11-13_08-26-00_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r2_slurm # 11-09_18-54-50_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r2_slurm
+    mouse: 11-09_21-04-01_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_mouse_r2_slurm
+    remote: 11-09_18-53-49_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_remote_r2_slurm
+    suitcase: 11-09_19-57-53_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_suitcase_r2_slurm
+    teddybear: 11-09_20-00-56_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_teddybear_r2_slurm
+    toaster: 11-09_18-51-46_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toaster_r2_slurm
+    toilet: 11-09_18-52-47_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toilet_r2_slurm
+    truck: 11-09_19-55-51_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_truck_r2_slurm
+  r3:
+    bicycle: 06-10_23-36-35_CO3D_NeMo_r3_slurm # 10-30_15-31-05_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_r3_slurm
+    train: 10-30_15-47-04_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_r3_slurm
+    car: 10-30_15-42-59_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_r3_slurm
+    bus: 10-30_15-40-56_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_r3_slurm
+    motorcycle: 10-30_15-32-06_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_r3_slurm
+    airplane: 10-30_15-41-57_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_r3_slurm
+    chair: 11-01_09-00-06_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_r3_slurm
+    bottle: 10-30_15-45-02_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_r3_slurm
+    couch: 10-30_15-48-06_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_r3_slurm
+    tv: 10-30_15-44-00_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_r3_slurm
+    backpack: 11-10_12-38-16_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_backpack_r3_slurm
+    bench: 11-09_18-49-15_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bench_r3_slurm
+    book: 11-09_19-56-27_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_book_r3_slurm
+    cellphone: 11-09_18-47-09_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cellphone_r3_slurm
+    cup: 11-09_19-59-30_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cup_r3_slurm
+    hairdryer: 11-09_20-01-33_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hairdryer_r3_slurm
+    handbag: 11-10_12-37-27_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_handbag_r3_slurm
+    hydrant: 11-09_21-04-38_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hydrant_r3_slurm
+    keyboard: 11-09_18-50-18_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_keyboard_r3_slurm
+    laptop: 11-09_18-48-12_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_laptop_r3_slurm
+    microwave: 11-13_08-25-35_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r3_slurm # 11-09_18-54-25_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r3_slurm
+    mouse: 11-09_21-03-36_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_mouse_r3_slurm
+    remote: 11-09_18-53-24_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_remote_r3_slurm
+    suitcase: 11-09_19-57-28_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_suitcase_r3_slurm
+    teddybear: 11-09_20-00-31_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_teddybear_r3_slurm
+    toaster: 11-09_18-51-21_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toaster_r3_slurm
+    toilet: 11-09_18-52-23_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toilet_r3_slurm
+    truck: 11-09_19-55-26_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_truck_r3_slurm
+  r4:
+    bicycle: 06-10_23-36-59_CO3D_NeMo_r4_slurm # 10-30_15-31-17_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bicycle_r4_slurm
+    train: 10-30_15-47-16_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_train_r4_slurm
+    car: 11-01_08-59-29_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_car_r4_slurm
+    bus: 11-01_08-59-17_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bus_r4_slurm
+    motorcycle: 10-30_15-32-19_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_motorcycle_r4_slurm
+    airplane: 10-30_15-42-10_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_airplane_r4_slurm
+    chair: 11-01_09-00-19_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_chair_r4_slurm
+    bottle: 10-30_14-27-10_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bottle_r4_slurm
+    couch: 10-31_08-44-00_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_couch_r4_slurm
+    tv: 10-30_15-44-13_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_tv_r4_slurm
+    backpack: 11-09_20-02-47_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_backpack_r4_slurm
+    bench: 11-09_18-49-28_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_bench_r4_slurm
+    book: 11-09_19-56-39_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_book_r4_slurm
+    cellphone: 11-09_18-47-21_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cellphone_r4_slurm
+    cup: 11-09_19-59-43_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_cup_r4_slurm
+    hairdryer: 11-09_20-01-45_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hairdryer_r4_slurm
+    handbag: 11-09_19-58-41_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_handbag_r4_slurm
+    hydrant: 11-09_21-04-50_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_hydrant_r4_slurm
+    keyboard: 11-09_18-50-31_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_keyboard_r4_slurm
+    laptop: 11-09_18-48-24_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_laptop_r4_slurm
+    microwave: 11-13_08-25-47_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r4_slurm # 11-09_18-54-37_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_microwave_r4_slurm
+    mouse: 11-09_21-03-49_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_mouse_r4_slurm
+    remote: 11-09_18-53-36_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_remote_r4_slurm
+    suitcase: 11-09_19-57-40_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_suitcase_r4_slurm
+    teddybear: 11-09_20-00-44_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_teddybear_r4_slurm
+    toaster: 11-09_18-51-34_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toaster_r4_slurm
+    toilet: 11-09_18-52-35_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_toilet_r4_slurm
+    truck: 11-09_19-55-39_CO3D_NeMo_uni6d_dmtet1k_inst_def6d_coord_conv4_truck_r4_slurm

@@ -1,0 +1,20 @@
+class_name: Meshes
+feats_requires_grad: False
+feats_activation: norm_detach # "norm_detach" "none" "norm" "sigmoid" "tanh"
+feat_dim: 0
+feats_objects: False
+feat_clutter: False
+fpaths_meshes: None
+fpaths_meshes_tforms: None
+normalize_scale: True
+gaussian_splat_enabled: False
+gaussian_splat_opacity: 1.
+geodesic_prob_sigma: 0.
+pt3d_raster_perspective_correct: False
+gaussian_splat_pts3d_size_rel_to_neighbor_dist: 0.1
+verts_requires_grad: False
+face_blend_type: 'hard'
+face_blend_count: 1
+face_opacity: 1.
+face_opacity_face_sdf_sigma: 1e-3
+face_opacity_face_sdf_gamma: 1e-4 # only used in soft_sigmoid_normalized

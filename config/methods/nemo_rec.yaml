@@ -1,0 +1,220 @@
+defaults:
+  - optimizer@train.optimizer: adam
+  - scheduler@train.scheduler: multistep
+  - model@model: dinov2_frozen
+  - objects3d@objects3d: meshes # meshes, meshes_x_gaussians
+
+name: nemo
+class_name: NeMo
+
+objects3d:
+  scale_3D_params: 0.1  # 100 only for meshes without dmtet
+
+  # verts_requires_param: false
+  verts_requires_grad: true
+  instance_deform_net_config:
+  class_name: DMTet
+  face_blend_count: 8
+  face_blend_type: hard
+  face_opacity: 1
+  face_opacity_face_sdf_gamma: 0.0001
+  face_opacity_face_sdf_sigma: 0.005
+  feat_clutter: true
+  feat_clutter_requires_param: true
+  feat_dim: 0
+  feats_activation: sigmoid # "norm_detach" "none" "norm" "sigmoid" "tanh"
+  feats_objects: true
+  feats_requires_grad: true
+  fpaths_meshes: None
+  fpaths_meshes_tforms: None
+  gaussian_splat_enabled: false
+  gaussian_splat_opacity: 1
+  gaussian_splat_pts3d_size_rel_to_neighbor_dist: 0.1
+  geodesic_prob_sigma: 0
+  gs_opacity_requires_grad: false
+  gs_rotation_requires_grad: false
+  gs_scale: 0.07
+  gs_scale_requires_grad: false
+  gs_top_k: 4
+  normalize_scale: true
+  pt3d_raster_perspective_correct: false
+  tet_res: 32 # 16
+  sdf_symmetric: False # True
+  harmonic_functions_count: 9 # 8 10
+
+num_noise: 5
+max_group: 512
+bank_feats_normalize: True
+bank_feats_distribution: 'von-mises-fisher' # 'von-mises-fisher', 'gaussian'
+
+categories: ${train_datasets.labeled.categories}
+fpaths_meshes: ${train_datasets.labeled.fpaths_cuboids}
+
+multiview:
+  enabled: False
+  batch_size: 2
+
+train:
+  pseudo_labels_fraction_per_epoch: 0.
+  early_stopping: True
+  early_stopping_score: pose/acc_pi18
+  loss:
+    appear:
+      type: cross_entropy_coarse #  # cross_entropy, sim_max, nll_softmax, nll_clip, nll_affine_to_prob, l2, l2_squared
+      dropout: 0.
+      dense_loss: True
+      dense_detach_geo: False
+      weight: 0.1
+      use_mask_rgb: True
+      use_mask_object: False
+    geo:
+      rec:
+        type: cd_pcl # cd_mesh, cd_pcl, pf_mesh, pf_pcl
+        weight: 0.1
+      mask:
+        weight: 0.0
+      mask_mse:
+        weight: 1.0
+      mask_dt:
+        weight: 100.0
+      mask_inv_dt:
+        weight: 0.0
+      smooth:
+        weight: 0. # 1.
+      sdf_reg:
+        weight: 0.01
+      deform_smooth_reg:
+        weight: 0.01
+      deform_reg:
+        weight: 0.1
+      deform_latent_reg:
+        type: unit # unit kl
+        weight: 0.
+    pose:
+      weight: 1.
+  bank_feats_update: loss_gradient # loss_gradient, normalize_loss_gradient, moving_average, loss
+  T: 1. # 0.07
+  alpha: 0.96
+  val: True
+  split: random # 'random' 'sequences_separated' 'seqences_shared'
+
+  transform:
+    class_name: SequentialTransform
+    transforms:
+      - class_name: RandomCenterZoom3D
+        apply_txtr: False
+        config: ${texture_dataset}
+        W: 512
+        H: 512
+        scale_with_mask: 1.
+        scale_selection: 'shorter' # 'shorter' 'larger' 'separate'
+        scale_min: 0.8
+        scale_max: 1.2
+        center_rel_shift_xy_min:
+          - -0.
+          - -0.
+        center_rel_shift_xy_max:
+          - +0.
+          - +0.
+      - class_name: RGB_Random
+
+  epochs_to_next_test: 1
+  epochs: 40
+  val_fraction: 0.01
+  batch_accumulate_to_next_step: 1
+
+  visualize:
+      down_sample_rate: 4.
+      count_best: 3
+      count_worst: 3
+      count_rand: 1
+      selected: [0, 10, 20]
+      modalities:
+        - 'gt_verts_ncds_in_rgb'
+      samples_scores: True
+      samples_sorted: True
+      live: False
+
+
+test:
+  kpts3d: vertex_sim_max # vertex_sim_max, avg_kpts3d, vertex_dist2d_min
+  save_results: False
+  transform:
+      class_name: CenterZoom3D
+      W: 512
+      H: 512
+      scale: 1.
+      center_rel_shift_xy:
+        - -0.
+        - -0.
+
+  dataloader:
+      num_workers: 0
+      batch_size: 1
+      pin_memory: True
+
+  visualize:
+    down_sample_rate: 4.
+    count_best: 3
+    count_worst: 3
+    count_rand: 1
+    selected: [0, 10, 20]
+    modalities:
+      - 'pred_vs_gt_verts_ncds_in_rgb'
+      - 'net_feats_nearest_verts'
+      - 'samples'
+      - 'latent_interp'
+      - 'mesh'
+      #- 'sim_pxl'
+      #- 'tsne'
+      #- 'tsne_per_image'
+    samples_scores: True
+    samples_sorted: True
+    live: False
+
+
+inference:
+    feats_corresp_alpha: 0.1
+    add_mask_object_to_sim: False # False
+    render_classify: False
+    only_use_rendered_inliers: False
+    allow_clutter: True
+    normalize_surface: False
+    use_sigmoid: False
+    pre_rendered: True
+    sim_feats_mesh_with_image: 'rendered' # 'rendered', 'verts2d'
+    live: False
+    use_mask_object: False
+    sample:
+      method: uniform # epnp3d2d uniform
+      depth_from_box: False
+      uniform_multiview_rescale: True
+      epnp3d2d:
+        count_cams: 100
+        count_pts: 4
+        pt_nn_top_k: 1
+        pt_nn_weights: True
+        coarse_labels: False
+      uniform:
+        azim:
+            min: '0.'
+            max: math.pi * 2 - (math.pi * 2) / 12.
+            steps: 12
+        elev:
+            min: -math.pi / 6
+            max: math.pi / 3
+            steps: 4
+        theta:
+            min: -math.pi / 6
+            max: math.pi / 6
+            steps: 3
+    refine:
+      enabled: True
+      dims_detached: [0, 1, 2] # 0-5, transl: 0, 1, 2, rot: 3, 4, 5
+      latent_detached: True
+      dims_grad_max: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    optimizer:
+        beta0: 0.4
+        beta1: 0.6
+        lr: 2e-2 # 5e-3 5e-2
+        epochs: 30 # 30

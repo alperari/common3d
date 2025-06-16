@@ -154,13 +154,13 @@ class NeMo_Rec(OD3D_Method):
         self.config.objects3d.update(
             {
                 # "verts_requires_grad": False,
-                "feats_requires_grad": True,
+                #"feats_requires_grad": True,
                 "feat_dim": 3 if not self.use_pbr_rendering else 6,
                 "fpaths_meshes": self.fpaths_meshes,
                 "fpaths_meshes_tforms": self.fpaths_meshes_tform_obj,
-                "feats_objects": True,
-                "feat_clutter": True,
-                "feats_activation": FEATS_ACTIVATION.SIGMOID,
+                #"feats_objects": True,
+                #"feat_clutter": True,
+                #"feats_activation": FEATS_ACTIVATION.SIGMOID,
             },
         )
 

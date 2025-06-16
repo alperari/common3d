@@ -708,7 +708,8 @@ class Meshes(OD3D_Objects3D):
         rgbs = []
         vertices.append(
             torch.from_numpy(mesh_trimesh.vertices).to(
-                dtype=torch.float, device=device
+                dtype=torch.float,
+                device=device,
             ),
         )
         faces.append(

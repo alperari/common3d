@@ -294,9 +294,9 @@ train:
                 type: unit
                 weight: 0
             deform_reg:
-                weight: 0.05 # 0.1
+                weight: 0.075 # 0.1
             deform_smooth_reg:
-                weight: 0.005 # 0.01
+                weight: 0.0075 # 0.01
             mask:
                 weight: 0
             mask_dt:

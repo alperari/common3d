@@ -307,7 +307,7 @@ train:
                 weight: 2.  # 2. 1.
             rec:
                 type: cd_pcl
-                weight: 0.1 # 0.1
+                weight: 0.01 # 0.1
             sdf_reg:
                 weight: 0.01
             smooth:

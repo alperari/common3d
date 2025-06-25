@@ -122,6 +122,7 @@ class OD3D_PCL_TYPES(StrEnum):
 
 class OD3D_TFROM_OBJ_TYPES(StrEnum):
     RAW = "raw"
+    CENTER3D_AUTO = "center3d_auto"
     CENTER3D = "center3d"
     LABEL3D_ZSP = "label3d_zsp"
     LABEL3D_ZSP_CUBOID = "label3d_zsp_cuboid"
@@ -157,8 +158,8 @@ class OD3D_TformObjMixin:
         if tform_obj_type is None:
             tform_obj_type = self.tform_obj_type
 
-        if tform_obj_type == OD3D_TFROM_OBJ_TYPES.RAW:
-            return None
+        if tform_obj_type == OD3D_TFROM_OBJ_TYPES.CENTER3D_AUTO:
+            return torch.eye(4)
         else:
             fpath_tform_obj = self.get_fpath_tform_obj(tform_obj_type=tform_obj_type)
             if fpath_tform_obj.exists():

@@ -1295,7 +1295,7 @@ class Meshes(OD3D_Objects3D):
         load_texts=True,
         **kwargs,
     ):
-        if fpath is None:
+        if fpath is None or str(fpath).lower() == "none":
             return Meshes.create_sphere(
                 verts_count=1000,
                 radius=scale,
@@ -1566,7 +1566,7 @@ class Meshes(OD3D_Objects3D):
         meshes = []
         for i, fpath_mesh in enumerate(fpaths_meshes):
             mesh = Meshes.read_from_ply_file(fpath=fpath_mesh, device=device)
-            if fpaths_meshes_tforms is not None and fpaths_meshes_tforms[i] is not None:
+            if fpaths_meshes_tforms is not None and fpaths_meshes_tforms[i] is not None and str(fpaths_meshes_tforms[i]).lower() != "none":
                 mesh_tform = torch.load(fpaths_meshes_tforms[i]).to(device)
                 mesh.verts = transf3d_broadcast(pts3d=mesh.verts, transf4x4=mesh_tform)
             if normalize_scale:

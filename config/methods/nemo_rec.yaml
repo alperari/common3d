@@ -9,7 +9,7 @@ class_name: NeMo
 
 objects3d:
   scale_3D_params: 0.1  # 100 only for meshes without dmtet
-
+  init_radius: 1.0 # 0.5
   # verts_requires_param: false
   verts_requires_grad: true
   instance_deform_net_config:
@@ -20,7 +20,7 @@ objects3d:
   face_opacity_face_sdf_gamma: 0.0001
   face_opacity_face_sdf_sigma: 0.005
   feat_clutter: true
-  feat_clutter_requires_param: true
+  feat_clutter_requires_param: false
   feat_dim: 0
   feats_activation: sigmoid # "norm_detach" "none" "norm" "sigmoid" "tanh"
   feats_objects: true
@@ -108,15 +108,15 @@ train:
         H: 512
         scale_with_mask: 1.
         scale_selection: 'shorter' # 'shorter' 'larger' 'separate'
-        scale_min: 0.8
-        scale_max: 1.2
+        scale_min: 1. # 0.8
+        scale_max: 1. # 1.2
         center_rel_shift_xy_min:
           - -0.
           - -0.
         center_rel_shift_xy_max:
           - +0.
           - +0.
-      - class_name: RGB_Random
+      - class_name: RGB_UInt8ToFloat
 
   epochs_to_next_test: 1
   epochs: 40

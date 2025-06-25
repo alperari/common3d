@@ -1,0 +1,32 @@
+defaults:
+  - shapenet
+#   - override @dict_nested_frames:
+
+sequences_count_max_per_category: 1 # None
+# frames_count_max_per_sequence: 3
+#mesh_type: alpha500
+
+dict_nested_frames:
+  r2n2_v2_icorealtraj100_uni64_theta_uni1:
+#    motorbike:
+#      '3a94134ec9698b74ec5901a85efd6b67':
+    chair:
+      '28a60e0e9adf7eb0a3340564b56a7f70':
+
+
+mesh_type: 'alpha500' # note: this is anyway ignored as we are using dmtet
+tform_obj_type: "center3d_auto"
+
+preprocess:
+  pcl:
+    enabled: True
+    override: False
+  mesh:
+    enabled: True
+    override: False
+  mesh_feats:
+    enabled: False
+    override: False
+  mesh_feats_dist:
+    enabled: False
+    override: False

@@ -1,0 +1,14 @@
+
+link: local
+path_home: /home/sommerl
+path_logs: /home/sommerl
+path_od3d: /home/sommerl/PycharmProjects/od3d
+#path_exps: /scratch/sommerl/exps
+path_datasets_raw: /data/lmbraid19/sommerl/datasets # sshfs maythux@192.168.xx.xx:/home/maythuxServ/Mounted ~/remoteDir
+path_datasets_preprocess: /data/lmbraid19/sommerl/datasets # for student: /misc/student/srinivap/datasets_preprocess
+path_exps: /data/lmbraid21/sommerl/exps
+path_cuda: /usr/local/cuda-12.4
+url_od3d: git@github.com:Generative-Vision-Robust-Learning/od3d.git
+
+renderer: open3d
+# renderer: pytorch3d

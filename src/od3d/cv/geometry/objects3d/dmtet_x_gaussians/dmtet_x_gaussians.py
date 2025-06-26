@@ -66,7 +66,8 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         gs_rotation_requires_grad=False,
         tet_res=16,
         sdf_symmetric=True,
-        harmonic_functions_count=8,init_radius=1.,
+        harmonic_functions_count=8,
+        init_radius=1.0,
         **kwargs,
     ):
         super().__init__(

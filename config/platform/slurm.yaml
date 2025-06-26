@@ -4,7 +4,7 @@ restart_upon_fail: True
 ws_name: od3d # /work/dlclarge1/sommerl-od3d
 pull_od3d: True
 pull_od3d_submodules: True
-install_od3d: True
+install_od3d: False
 path_od3d: /work/dlclarge1/sommerl-od3d/common3d
 #path_od3d: /work/dlclarge1/sommerl-od3d/common3d
 path_datasets_raw: /work/dlclarge1/sommerl-od3d/datasets

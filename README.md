@@ -11,25 +11,17 @@
 }
 ```
 
-### Installation
+### Code Setup
+- Setup Local
+  - `bash setup/shuri.sh`
+  - `config/platform/local.yaml` from `config/platform/slurm.yaml`
+  - `wandb init`
+    - verify `od3d debug hello-world`
 
-```
-bash setup/shuri.sh
-```
-
-### Configuration
-
-- Platform
-  - `config/platform/local.yaml`
+- Setup Slurm
   - `config/platform/slurm.yaml`
   - `~/.ssh/config` with `config/platform/ssh-config-template`
-    - Verify
-      - `od3d platform run -p [torque|slurm]`
-- Wandb
-  - `wandb init`
-- Credentials (optional)
-    - `config/credentials/default.yaml`
-
+  - `od3d platform setup -p slurm` # set install_od3d=true in slurm.yaml
 
 ### Dataset Setup
 

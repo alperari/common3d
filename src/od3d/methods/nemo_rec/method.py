@@ -392,13 +392,13 @@ class NeMo_Rec(OD3D_Method):
         self.scheduler.step()
         self.optim.zero_grad()
 
-        #results_visual = self.get_results_visual(
+        # results_visual = self.get_results_visual(
         #    results_epoch=results_epoch,
         #    dataset=dataset,
         #    config_visualize=self.config.train.visualize,
-        #)
+        # )
         results_epoch = results_epoch.mean()
-        #results_epoch += results_visual
+        # results_epoch += results_visual
         return results_epoch
 
     def train_batch(self, batch) -> OD3D_Results:

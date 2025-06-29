@@ -2,7 +2,7 @@ defaults:
   - shapenet
 #   - override @dict_nested_frames:
 
-sequences_count_max_per_category: 1 # None
+sequences_count_max_per_category: 10 # None
 # frames_count_max_per_sequence: 3
 #mesh_type: alpha500
 

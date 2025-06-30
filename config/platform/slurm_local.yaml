@@ -1,0 +1,4 @@
+defaults:
+  - slurm
+
+link: local

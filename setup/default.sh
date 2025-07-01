@@ -22,7 +22,7 @@ sudo apt install libgtk2.0-dev pkg-config # for cv2
 
 CUDA_HOME=/usr/local/cuda-12.2
 CUDA_HOME=/usr/local/cuda-12.4
-PATH_OD3D=/home/sommerl/PycharmProjects/od3d
+PATH_OD3D=/home/sommerl/PycharmProjects/common3d
 CUDA_VERSION=$(basename "${CUDA_HOME}")
 
 # ${{PATH_OD3D}}
@@ -68,7 +68,7 @@ if [[ "${CUDA_HOME}" == *"12.4"* ]]; then
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
     pip install pytorch3d==0.7.8+pt2.6.0cu124 --extra-index-url https://miropsota.github.io/torch_packages_builder
     pip install torch_cluster -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
-    pip install kaolin==0.17.0 -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.5.1_cu124.html # needs to remain 2.5.1
+    pip install kaolin==0.17.0 -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.6.0_cu124.html # needs to remain 2.5.1
 
     # torch 2.5.1
     #pip install pytorch3d==0.7.8+pt2.5.1cu124 --extra-index-url https://miropsota.github.io/torch_packages_builder

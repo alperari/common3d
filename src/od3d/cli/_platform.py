@@ -101,6 +101,17 @@ def run(
     else:
         raise NotImplementedError
 
+@app.command()
+def interactive(
+    platform: str = typer.Option(None, "-p", "--platform")
+):
+    logging.basicConfig(level=logging.INFO)
+
+    cfg = od3d.io.load_hierarchical_config(platform=platform)
+
+    cmd = f"srun --nodes=1 --ntasks=1 --ntasks-per-node 1 --cpus-per-task {cfg.platform.cpu_count} --gres gpu:{cfg.platform.gpu_count} --time {cfg.platform.walltime} --mem {cfg.platform.ram} -p {cfg.platform.partition} --pty /bin/bash"
+    logger.info(f'{cmd}')
+
 
 @app.command()
 def setup(

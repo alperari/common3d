@@ -22,7 +22,7 @@ sudo apt install libgtk2.0-dev pkg-config # for cv2
 
 CUDA_HOME=/usr/local/cuda-12.2
 CUDA_HOME=/usr/local/cuda-12.4
-PATH_OD3D=/home/sommerl/PycharmProjects/od3d
+PATH_OD3D=/home/sommerl/PycharmProjects/common3d
 CUDA_VERSION=$(basename "${CUDA_HOME}")
 
 # ${{PATH_OD3D}}

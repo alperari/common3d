@@ -2018,8 +2018,9 @@ class Meshes(OD3D_Objects3D):
 
             # new version
             dist_nearest_std = self.verts_coarse_prob_sigma
-            label_smooth = (-dist_pts ** 2 / ((dist_nearest_std) ** 2)).softmax(
-                dim=-1)  # N x K
+            label_smooth = (-(dist_pts**2) / ((dist_nearest_std) ** 2)).softmax(
+                dim=-1,
+            )  # N x K
 
             verts_label_coarse.append(label_smooth)
             verts_coarse.append(pts_vals)
@@ -3905,7 +3906,7 @@ class Meshes(OD3D_Objects3D):
         rgb_diffusion_alpha=0.0,
         rgb_bg=None,
         rgb_light_env=None,
-        fglut_fpath = "./data/light_bsdf/bsdf_256_256.bin",
+        fglut_fpath="./data/light_bsdf/bsdf_256_256.bin",
         obj_tform4x4_objs=None,
         zfar=1e3,
         znear=1e-2,
@@ -4084,8 +4085,8 @@ class Meshes(OD3D_Objects3D):
             from od3d.cv.visual.show import OPEN3D_CAM_TFORM_CAM
 
             cams_proj4x4 = (ndc_mat @ cams_persp4x4) @ (
-                    OPEN3D_CAM_TFORM_CAM.clone()[None,].to(device=device)
-                    @ cams_tform4x4_obj
+                OPEN3D_CAM_TFORM_CAM.clone()[None,].to(device=device)
+                @ cams_tform4x4_obj
             )
 
             verts, verts_counts = self.get_vert_mod_from_objs(
@@ -4515,9 +4516,13 @@ class Meshes(OD3D_Objects3D):
                                 instance_deform=instance_deform,
                             )
                             viewpoint_pos = inv_tform4x4(cams_tform4x4_obj)[..., :3, 3]
-                            viewpoint_pos_norm = torch.nn.functional.normalize(viewpoint_pos, dim=-1)
-                            dot_normals_viewpoint = torch.einsum('bvc,bc->bv', normals, viewpoint_pos_norm)
-                            normals[dot_normals_viewpoint < 0.] *= -1.
+                            viewpoint_pos_norm = torch.nn.functional.normalize(
+                                viewpoint_pos, dim=-1
+                            )
+                            dot_normals_viewpoint = torch.einsum(
+                                "bvc,bc->bv", normals, viewpoint_pos_norm
+                            )
+                            normals[dot_normals_viewpoint < 0.0] *= -1.0
 
                             normals = normals.reshape(-1, normals.shape[-1])
 
@@ -4612,7 +4617,10 @@ class Meshes(OD3D_Objects3D):
                             ).to(device=device)
 
                             from od3d.cv.visual.show import OPEN3D_OBJ_TFORM_OBJ
-                            OPENGL_OBJ_TFORM_OBJ = OPEN3D_OBJ_TFORM_OBJ.clone().to(device=device)
+
+                            OPENGL_OBJ_TFORM_OBJ = OPEN3D_OBJ_TFORM_OBJ.clone().to(
+                                device=device
+                            )
 
                             normals_rendered_gl = transf3d_broadcast(
                                 normals_rendered,

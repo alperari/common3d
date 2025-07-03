@@ -44,7 +44,7 @@ OPEN3D_CAM_TFORM_CAM = torch.Tensor(
         [0.0, 0.0, -1.0, 0.0],
         [0.0, 0.0, 0.0, 1.0],
     ],
-) # could be wrong
+)  # could be wrong
 
 CAM_TFORM_OPEN3D_CAM = torch.Tensor(
     [
@@ -53,7 +53,7 @@ CAM_TFORM_OPEN3D_CAM = torch.Tensor(
         [0.0, 0.0, -1.0, 0.0],
         [0.0, 0.0, 0.0, 1.0],
     ],
-) # could be wrong
+)  # could be wrong
 
 OPEN3D_OBJ_TFORM_OBJ = torch.Tensor(
     [
@@ -90,6 +90,7 @@ OBJ_TFORM_OPEN3D_CAM = torch.Tensor(
         [0.0, 0.0, 0.0, 1.0],
     ],
 )
+
 
 def get_default_camera_intrinsics_from_img_size(
     W,
@@ -342,8 +343,8 @@ def render_trimesh_to_tensor(
     ambient_light=[1.0, 1.0, 1.0, 1.0],
     znear=0.01,
     zfar=100.0,
-    material = None,
-    light_tform4x4_obj= None,
+    material=None,
+    light_tform4x4_obj=None,
 ):
     """
     Render a trimesh mesh using given camera intrinsics and extrinsics, and return the RGB image as a torch tensor.
@@ -395,10 +396,14 @@ def render_trimesh_to_tensor(
     )
 
     # FOLLOWING OPENGL convention
-    pyrender_cam_tform4x4_obj = tform4x4(OPEN3D_CAM_TFORM_CAM.clone().to(device=cam_tform4x4_obj.device), cam_tform4x4_obj,)
+    pyrender_cam_tform4x4_obj = tform4x4(
+        OPEN3D_CAM_TFORM_CAM.clone().to(device=cam_tform4x4_obj.device),
+        cam_tform4x4_obj,
+    )
     # pyrender_cam_tform4x4_obj = tform4x4(cam_tform4x4_obj, OBJ_TFORM_OPEN3D_OBJ.clone().to(device=cam_tform4x4_obj.device),)
 
     from od3d.cv.geometry.transform import inv_tform4x4
+
     obj_tform4x4_pyrender_cam = inv_tform4x4(pyrender_cam_tform4x4_obj)
     obj_tform4x4_pyrender_cam_np = obj_tform4x4_pyrender_cam.detach().cpu().numpy()
     scene.add(camera, pose=obj_tform4x4_pyrender_cam_np)

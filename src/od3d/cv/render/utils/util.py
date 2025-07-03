@@ -224,6 +224,7 @@ def cubemap_rays3d(res):
     vs = torch.stack(vs)
     return vs
 
+
 def cubemap_to_latlong(cubemap, res):
     gy, gx = torch.meshgrid(
         torch.linspace(0.0 + 1.0 / res[0], 1.0 - 1.0 / res[0], res[0], device="cuda"),

@@ -150,13 +150,13 @@ pip install wheel
 
 if [[ {cfg.platform.path_cuda} == *"12"* ]]; then
     echo "installing for CUDA 12"
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
-    pip install pytorch3d==0.7.8+pt2.5.1cu124 --extra-index-url https://miropsota.github.io/torch_packages_builder
-    pip install torch_cluster -f https://data.pyg.org/whl/torch-2.5.1+cu124.html
+    pip install torch==2.6.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+    pip install pytorch3d==0.7.8+pt2.6.0cu124 --extra-index-url https://miropsota.github.io/torch_packages_builder
+    pip install torch_cluster -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
     pip install kaolin==0.17.0 -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.5.1_cu124.html
 else
     echo "installing for CUDA 11"
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+    pip install torch==2.0.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
     pip install pytorch3d@git+https://github.com/facebookresearch/pytorch3d@stable
     # pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu117_pyt1131/download.html
     pip install torch-cluster -f https://data.pyg.org/whl/torch-2.0.1+cu117.html
@@ -351,13 +351,13 @@ pip install wheel
 
 if [[ {cfg.platform.path_cuda} == *"12"* ]]; then
     echo "installing for CUDA 12"
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+    pip install torch==2.6.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
     pip install pytorch3d==0.7.8+pt2.6.0cu124 --extra-index-url https://miropsota.github.io/torch_packages_builder
     pip install torch_cluster -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
-    pip install kaolin==0.17.0 -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.6.0_cu124.html
+    pip install kaolin==0.17.0 -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.5.1_cu124.html
 else
     echo "installing for CUDA 11"
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+    pip install torch==2.0.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
     pip install pytorch3d@git+https://github.com/facebookresearch/pytorch3d@stable
     # pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu117_pyt1131/download.html
     pip install torch-cluster -f https://data.pyg.org/whl/torch-2.0.1+cu117.html

@@ -337,7 +337,7 @@ class OD3D_Objects3D(abc.ABC, nn.Module):
             self._feat_clutter = value
         else:
             with torch.no_grad():
-                _ = self._feats_objects.copy_(value)
+                _ = self._feat_clutter.copy_(value)
 
     def activate_feats(self, feats):
         if feats is not None:

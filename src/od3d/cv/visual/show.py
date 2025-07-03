@@ -17,9 +17,9 @@ import PIL
 
 import open3d as o3d
 import numpy as np
-from od3d.cv.geometry.transform import tform4x4
+from od3d.cv.geometry.transform import tform4x4, inv_tform4x4
 
-DEFAULT_CAM_TFORM_OBJ = torch.Tensor(
+CAM_TFORM_OBJ = torch.Tensor(
     [
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, -1.0, 0.0],
@@ -37,42 +37,34 @@ OBJ_TFORM_OBJ_SHAPENET = torch.Tensor(
     ],
 )
 
-OPEN3D_DEFAULT_CAM_TFORM_OPEN3D_OBJ = torch.Tensor(
+OPEN3D_CAM_TFORM_CAM = torch.Tensor(
     [
-        [-1.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, -1.0, 0.0, 0.0],
         [0.0, 0.0, -1.0, 0.0],
         [0.0, 0.0, 0.0, 1.0],
     ],
-)
+) # could be wrong
+
+CAM_TFORM_OPEN3D_CAM = torch.Tensor(
+    [
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, -1.0, 0.0, 0.0],
+        [0.0, 0.0, -1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ],
+) # could be wrong
+
 OPEN3D_OBJ_TFORM_OBJ = torch.Tensor(
     [
-        [-1.0, 0.0, 0.0, 0.0],
-        [0.0, -1.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 1.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0],
-    ],
-)
-
-OPEN3D_DEFAULT_CAM_TFORM_OBJ = torch.Tensor(
-    [
-        [1.0, 0.0, 0.0, 0.0],
         [0.0, -1.0, 0.0, 0.0],
-        [0.0, 0.0, -1.0, 0.0],
         [0.0, 0.0, 0.0, 1.0],
     ],
 )
 
-OBJ_TFORM_OPEN3D_DEFAULT_CAM = torch.Tensor(
-    [
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, -1.0, 0.0, 0.0],
-        [0.0, 0.0, -1.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0],
-    ],
-)
-
-OPEN3D_DEFAULT_TFORM_DEFAULT = torch.Tensor(
+OBJ_TFORM_OPEN3D_OBJ = torch.Tensor(
     [
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, -1.0, 0.0],
@@ -81,7 +73,7 @@ OPEN3D_DEFAULT_TFORM_DEFAULT = torch.Tensor(
     ],
 )
 
-DEFAULT_TFORM_OPEN3D_DEFAULT = torch.Tensor(
+OPEN3D_CAM_TFORM_OBJ = torch.Tensor(
     [
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 1.0, 0.0],
@@ -90,10 +82,14 @@ DEFAULT_TFORM_OPEN3D_DEFAULT = torch.Tensor(
     ],
 )
 
-
-# OPEN3D_DEFAULT_TFORM_DEFAULT = tform4x4(OPEN3D_DEFAULT_CAM_TFORM_OBJ, inv_tform4x4(DEFAULT_CAM_TFORM_OBJ))
-# DEFAULT_TFORM_OPEN3D_DEFAULT = inv_tform4x4(OPEN3D_DEFAULT_TFORM_DEFAULT)
-
+OBJ_TFORM_OPEN3D_CAM = torch.Tensor(
+    [
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, -1.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ],
+)
 
 def get_default_camera_intrinsics_from_img_size(
     W,
@@ -343,8 +339,11 @@ def render_trimesh_to_tensor(
     H=512,
     W=512,
     rgb_bg=[0.0, 0.0, 0.0],
+    ambient_light=[1.0, 1.0, 1.0, 1.0],
     znear=0.01,
     zfar=100.0,
+    material = None,
+    light_tform4x4_obj= None,
 ):
     """
     Render a trimesh mesh using given camera intrinsics and extrinsics, and return the RGB image as a torch tensor.
@@ -366,17 +365,17 @@ def render_trimesh_to_tensor(
     import pyrender
     import numpy as np
     import torch
-    from pyrender import DirectionalLight, SpotLight
+    from pyrender import DirectionalLight, SpotLight, PointLight
     from PIL import Image
 
     # mesh_trimesh.show()
 
     # Convert trimesh mesh to pyrender mesh
-    pyrender_mesh = pyrender.Mesh.from_trimesh(mesh_trimesh)
+    pyrender_mesh = pyrender.Mesh.from_trimesh(mesh_trimesh, material=material)
 
     # Create scene and add mesh
     scene = pyrender.Scene(
-        ambient_light=np.array([1.0, 1.0, 1.0, 1.0]),
+        ambient_light=np.array(ambient_light),
         bg_color=rgb_bg,
     )
     scene.add(pyrender_mesh)
@@ -396,21 +395,25 @@ def render_trimesh_to_tensor(
     )
 
     # FOLLOWING OPENGL convention
-    pyrender_cam_tform4x4_obj = tform4x4(
-        OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device),
-        cam_tform4x4_obj,
-    )
+    pyrender_cam_tform4x4_obj = tform4x4(OPEN3D_CAM_TFORM_CAM.clone().to(device=cam_tform4x4_obj.device), cam_tform4x4_obj,)
+    # pyrender_cam_tform4x4_obj = tform4x4(cam_tform4x4_obj, OBJ_TFORM_OPEN3D_OBJ.clone().to(device=cam_tform4x4_obj.device),)
 
     from od3d.cv.geometry.transform import inv_tform4x4
-
     obj_tform4x4_pyrender_cam = inv_tform4x4(pyrender_cam_tform4x4_obj)
     obj_tform4x4_pyrender_cam_np = obj_tform4x4_pyrender_cam.detach().cpu().numpy()
     scene.add(camera, pose=obj_tform4x4_pyrender_cam_np)
 
     # pyrender.Viewer(scene)
 
-    direc_l = DirectionalLight(color=np.ones(3), intensity=2.0)
-    direc_l_node = scene.add(direc_l, pose=obj_tform4x4_pyrender_cam_np)
+    direc_l = PointLight(color=np.ones(3), intensity=50.0)
+    if light_tform4x4_obj is None:
+        light_tform4x4_obj = CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device)
+
+    pyrender_light_tform4x4_obj = light_tform4x4_obj
+    obj_tform4x4_pyrender_light = inv_tform4x4(pyrender_light_tform4x4_obj)
+    obj_tform4x4_pyrender_light_np = obj_tform4x4_pyrender_light.detach().cpu().numpy()
+
+    direc_l_node = scene.add(direc_l, pose=obj_tform4x4_pyrender_light_np)
 
     # pyrender.Viewer(scene, shadows=True)
 
@@ -861,7 +864,7 @@ def show_scene(
                 # width = W
                 # camera = pyrender.IntrinsicsCamera(float(fx), float(fy), float(cx), float(cy), znear=znear, zfar=zfar)
                 # FOLLOWING OPENGL convention
-                pyrender_cam_tform4x4_obj = OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone()
+                pyrender_cam_tform4x4_obj = OPEN3D_CAM_TFORM_OBJ.clone()
                 # pyrender_cam_tform4x4_obj = tform4x4(
                 #    OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device), cam_tform4x4_obj, )
                 from od3d.cv.geometry.transform import inv_tform4x4
@@ -889,7 +892,7 @@ def show_scene(
             elif renderer == OD3D_RENDERER.PYTORCH3D:
                 from pytorch3d.vis.plotly_vis import plot_scene, AxisArgs
 
-                cam_tform4x4_obj = DEFAULT_CAM_TFORM_OBJ.clone().to(
+                cam_tform4x4_obj = CAM_TFORM_OBJ.clone().to(
                     dtype=dtype,
                     device=device,
                 )
@@ -1010,7 +1013,7 @@ def show_scene(
                         vertices = transf3d_broadcast(
                             pts3d=vertices,
                             transf4x4=tform4x4(
-                                OBJ_TFORM_OPEN3D_DEFAULT_CAM.to(
+                                OBJ_TFORM_OPEN3D_CAM.to(
                                     dtype=dtype,
                                     device=device,
                                 ),
@@ -1494,7 +1497,7 @@ def get_engine_geometries_for_cams(
                     # frustum_mesh.show()
 
                     # # FOLLOWING OPENGL convention
-                    pyrender_cam_tform4x4_obj = OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone()
+                    pyrender_cam_tform4x4_obj = OPEN3D_CAM_TFORM_OBJ.clone()
                     # pyrender_cam_tform4x4_obj = tform4x4(OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device), cam_tform4x4_obj, )
                     from od3d.cv.geometry.transform import inv_tform4x4
 
@@ -1984,7 +1987,7 @@ def img_to_mesh(
 
     if cam_tform4x4_obj is not None:
         # # FOLLOWING OPENGL convention
-        pyrender_cam_tform4x4_obj = OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone()
+        pyrender_cam_tform4x4_obj = OPEN3D_CAM_TFORM_OBJ.clone()
         # pyrender_cam_tform4x4_obj = tform4x4(OPEN3D_DEFAULT_CAM_TFORM_OBJ.clone().to(device=cam_tform4x4_obj.device), cam_tform4x4_obj, )
         from od3d.cv.geometry.transform import inv_tform4x4
 

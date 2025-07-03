@@ -4170,7 +4170,7 @@ class NeMo(OD3D_Method):
 
         else:
             B = len(feats2d_net)
-            if "pred" in config_sample.method:
+            if config_sample.method == "pred":
                 C = pred_cam_tform4x4_objs.shape[1]
                 b_cams_multiview_tform4x4_obj = pred_cam_tform4x4_objs.clone()
                 # assumption 1: distance translation to object is known
@@ -4243,6 +4243,9 @@ class NeMo(OD3D_Method):
                     :,
                     None,
                 ].repeat(1, C, 1, 1)[:, :, :3, 3]
+
+                if "pred" in config_sample.method:
+                    b_cams_multiview_tform4x4_obj[:, :, :3, 3] = pred_cam_tform4x4_objs.clone()[:, :, :3, 3]
 
                 b_cams_multiview_intr4x4 = cam_intr4x4[:, None].repeat(1, C, 1, 1)
 

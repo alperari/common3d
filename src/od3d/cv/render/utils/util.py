@@ -201,6 +201,29 @@ def latlong_to_cubemap(latlong_map, res):
     return cubemap
 
 
+def cubemap_rays3d(res):
+    vs = []
+    for s in range(6):
+        gy, gx = torch.meshgrid(
+            torch.linspace(
+                -1.0 + 1.0 / res[0],
+                1.0 - 1.0 / res[0],
+                res[0],
+                device="cuda",
+            ),
+            torch.linspace(
+                -1.0 + 1.0 / res[1],
+                1.0 - 1.0 / res[1],
+                res[1],
+                device="cuda",
+            ),
+            indexing="ij",
+        )
+        v = safe_normalize(cube_to_dir(s, gx, gy))
+        vs.append(v)
+    vs = torch.stack(vs)
+    return vs
+
 def cubemap_to_latlong(cubemap, res):
     gy, gx = torch.meshgrid(
         torch.linspace(0.0 + 1.0 / res[0], 1.0 - 1.0 / res[0], res[0], device="cuda"),

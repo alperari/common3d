@@ -804,7 +804,7 @@ class ShapeNet(OD3D_SequenceDataset):
                         rgb = read_image(frame_fpath_rgb)
 
                         from od3d.cv.visual.show import (
-                            DEFAULT_CAM_TFORM_OBJ,
+                            CAM_TFORM_OBJ,
                             OBJ_TFORM_OBJ_SHAPENET,
                         )
                         from od3d.cv.geometry.transform import (

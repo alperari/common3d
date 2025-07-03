@@ -110,7 +110,7 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         )
 
         self.init_radius = init_radius
-        self.mesh_update_jitter_scale = 0.05
+        self.mesh_update_jitter_scale = 0.05 # 1. / (tet_res + 1)
 
         self.marching_tets = DMTet_Core()
         self.sdf_coordmlps = torch.nn.ModuleList()

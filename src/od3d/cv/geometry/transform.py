@@ -1045,6 +1045,15 @@ def tform4x4_from_transl3d(transl3d: torch.Tensor):
     a_tform4x4_b[..., :3, 3] = transl3d
     return a_tform4x4_b
 
+def transl3d_from_tform4x4(tform4x4: torch.Tensor):
+    """
+    Args:
+        tform4x4 (torch.Tensor): ...x4x4
+    Returns:
+        transl3d (torch.Tensor): ...x3
+    """
+    transl3d = tform4x4[..., :3, 3].clone()
+    return transl3d
 
 def rot2d(pts2d, rot2x2):
     pts2d_shape_in = pts2d.shape
@@ -1226,6 +1235,14 @@ def cam_intr4x4_downsample(cams_intr4x4=None, imgs_sizes=None, down_sample_rate=
             imgs_sizes = imgs_sizes.clone()
     return cams_intr4x4, imgs_sizes
 
+def cam_transl3d_2_cam_transl_norm3d(cam_intr4x4, cam_transl3d, H, W):
+    pxl2d = proj3d2d(pts3d=cam_transl3d, proj4x4=cam_intr4x4)
+    pxl2d_norm = pxl2d.clone()
+    pxl2d_norm
+    pass
+
+def cam_transl_norm3d_2_cam_transl3d(cam_intr4x4, cam_transl_norm3d):
+    pass
 
 def cam_intr4x4_2_rays3d(cam_intr4x4, size):
     #  depth: ...x1xHxW
@@ -1431,6 +1448,7 @@ def transf3d(pts3d, transf4x4):
     """
     device = pts3d.device
     dtype = pts3d.dtype
+    transf4x4 = transf4x4.to(device)
     ones1d = torch.ones(size=list(pts3d.shape[:-1]) + [1]).to(
         device=device,
         dtype=dtype,

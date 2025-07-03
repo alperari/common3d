@@ -2007,19 +2007,19 @@ class Meshes(OD3D_Objects3D):
             # dist_nearest_std = dist_nearest_std.clamp(min=1e-10)
 
             # old version
-            dist_nearest_std_factor = 1
-            dist_nearest_std = (dist_pts**2).min(dim=1, keepdim=True)[0].mean() ** 0.5
-            dist_nearest_std = dist_nearest_std.clamp(min=1e-10)
-            label_smooth = (
-                -(dist_pts**2) / ((dist_nearest_std_factor * dist_nearest_std) ** 2)
-            ).softmax(
-                dim=-1,
-            )  # N x K
+            # dist_nearest_std_factor = 1
+            # dist_nearest_std = (dist_pts**2).min(dim=1, keepdim=True)[0].mean() ** 0.5
+            # dist_nearest_std = dist_nearest_std.clamp(min=1e-10)
+            # label_smooth = (
+            #     -(dist_pts**2) / ((dist_nearest_std_factor * dist_nearest_std) ** 2)
+            # ).softmax(
+            #     dim=-1,
+            # )  # N x K
 
             # new version
-            # dist_nearest_std = self.verts_coarse_prob_sigma
-            # label_smooth = (-dist_pts ** 2 / ((dist_nearest_std) ** 2)).softmax(
-            #     dim=-1)  # N x K
+            dist_nearest_std = self.verts_coarse_prob_sigma
+            label_smooth = (-dist_pts ** 2 / ((dist_nearest_std) ** 2)).softmax(
+                dim=-1)  # N x K
 
             verts_label_coarse.append(label_smooth)
             verts_coarse.append(pts_vals)
@@ -3905,6 +3905,7 @@ class Meshes(OD3D_Objects3D):
         rgb_diffusion_alpha=0.0,
         rgb_bg=None,
         rgb_light_env=None,
+        fglut_fpath = "./data/light_bsdf/bsdf_256_256.bin",
         obj_tform4x4_objs=None,
         zfar=1e3,
         znear=1e-2,
@@ -4080,11 +4081,11 @@ class Meshes(OD3D_Objects3D):
 
             # Squash matrices together to form complete perspective projection matrix which maps to NDC coordinates
             #
-            from od3d.cv.visual.show import OBJ_TFORM_OPEN3D_DEFAULT_CAM
+            from od3d.cv.visual.show import OPEN3D_CAM_TFORM_CAM
 
             cams_proj4x4 = (ndc_mat @ cams_persp4x4) @ (
-                OBJ_TFORM_OPEN3D_DEFAULT_CAM.clone()[None,].to(device=device)
-                @ cams_tform4x4_obj
+                    OPEN3D_CAM_TFORM_CAM.clone()[None,].to(device=device)
+                    @ cams_tform4x4_obj
             )
 
             verts, verts_counts = self.get_vert_mod_from_objs(
@@ -4513,7 +4514,13 @@ class Meshes(OD3D_Objects3D):
                                 meshes_ids=objects_ids,
                                 instance_deform=instance_deform,
                             )
+                            viewpoint_pos = inv_tform4x4(cams_tform4x4_obj)[..., :3, 3]
+                            viewpoint_pos_norm = torch.nn.functional.normalize(viewpoint_pos, dim=-1)
+                            dot_normals_viewpoint = torch.einsum('bvc,bc->bv', normals, viewpoint_pos_norm)
+                            normals[dot_normals_viewpoint < 0.] *= -1.
+
                             normals = normals.reshape(-1, normals.shape[-1])
+
                             normals_rendered, _ = dr.interpolate(
                                 normals,
                                 rast_out,
@@ -4530,7 +4537,6 @@ class Meshes(OD3D_Objects3D):
                                 rast_out,
                                 faces,
                             )
-                            viewpoint_pos = inv_tform4x4(cams_tform4x4_obj)[..., 3, :3]
 
                             LIGHT_MIN_RES = 16
                             MIN_ROUGHNESS = 0.08
@@ -4605,6 +4611,9 @@ class Meshes(OD3D_Objects3D):
                                 ],
                             ).to(device=device)
 
+                            from od3d.cv.visual.show import OPEN3D_OBJ_TFORM_OBJ
+                            OPENGL_OBJ_TFORM_OBJ = OPEN3D_OBJ_TFORM_OBJ.clone().to(device=device)
+
                             normals_rendered_gl = transf3d_broadcast(
                                 normals_rendered,
                                 transf4x4=OPENGL_OBJ_TFORM_OBJ,
@@ -4671,7 +4680,7 @@ class Meshes(OD3D_Objects3D):
                             if not hasattr(self, "_FG_LUT"):
                                 self._FG_LUT = torch.as_tensor(
                                     np.fromfile(
-                                        "./data/light_bsdf/bsdf_256_256.bin",
+                                        fglut_fpath,
                                         dtype=np.float32,
                                     ).reshape(1, 256, 256, 2),
                                     dtype=torch.float32,
@@ -4692,13 +4701,6 @@ class Meshes(OD3D_Objects3D):
                             eye_final += light_specular_rendered * reflectance_rendered
 
                             mod2d_rendered = eye_final  # * mask
-
-                            mod2d_rendered = dr.antialias(
-                                mod2d_rendered,
-                                rast_out,
-                                verts_cam,
-                                faces,
-                            )
 
                             # For now no RGBA support
                             mod2d_rendered = mod2d_rendered[..., :3]
@@ -4952,7 +4954,7 @@ class Meshes(OD3D_Objects3D):
                         )
                         verts3d = verts3d.reshape(-1, verts3d.shape[-1])
                         verts3d_rendered, _ = dr.interpolate(verts3d, rast_out, faces)
-                        viewpoint_pos = inv_tform4x4(cams_tform4x4_obj)[..., 3, :3]
+                        viewpoint_pos = inv_tform4x4(cams_tform4x4_obj)[..., :3, 3]
 
                         LIGHT_MIN_RES = 16
                         MIN_ROUGHNESS = 0.08

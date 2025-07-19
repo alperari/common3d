@@ -258,6 +258,14 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
                         self.tets_faces,
                     )
 
+            # Safety check for empty meshes from marching tetrahedra, 
+            # I implemented this after getting errors from initializing the values to 0, the values of sdf must be positive, negative and zero
+            if _verts.shape[0] == 0:
+                logger.warning(f"Marching tetrahedra produced empty mesh for object {m}")
+                # Create minimal dummy mesh to prevent pipeline failure
+                _verts = torch.zeros((1, 3), device=device, dtype=dtype)
+                _faces = torch.zeros((0, 3), device=device, dtype=torch.long)
+                
             if require_feats_grad:
                 # logger.info(m)
                 # logger.info(_verts.shape)
@@ -372,14 +380,74 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
             sdf (torch.Tensor): BxN
         """
 
-        sdf_init = pts.detach().norm(dim=-1, keepdim=True) - self.init_radius
+
+
+        """***********************************************************************************************************************"""
+         #Original
+        #sdf_init = pts.detach().norm(dim=-1, keepdim=True) - self.init_radius   
+
+        #@NOTE, this is another thing I tried, by trying to get an sdf with chair-like template that include holes as a starting point. 
+        # Initialize SDF with chair-like template that includes holes, If  you want random initialization, use the commented code and comment this one.
+        sdf_init = self._get_chair_template_sdf(pts)
+
+        #sdf_init = torch.zeros_like(pts.detach().norm(dim=-1, keepdim=True ))
+
+        # OR to random values
+        #sdf_init = torch.rand_like(pts.detach().norm(dim=-1, keepdim=True)) * self.tets_scale
+
         from od3d.data.batch_datatypes import OD3D_ModelData
 
         sdf_delta = self.sdf_coordmlps[object_id](
             OD3D_ModelData(pts3d=pts[None,]),
         ).feat[0]
         sdf_vals = sdf_init + sdf_delta
+
+        #@NOTE, This is where I implemented the denoising, basically just clamping the values within a certain range, I tried using 
+        # guassian smmoothening via convolution, but produced same result. So I just left it like this
+        # denoise the sdf, clamping the values with -tets_scale and tets_scale   
+        sdf_vals = torch.clamp(sdf_vals, min=-self.tets_scale, max=self.tets_scale)
+        
+        # Safeguard: ensure there are always some negative values to guarantee a surface
+        if sdf_vals.min() >= 0:
+            center_mask = torch.norm(pts, dim=-1) < self.init_radius * 0.2
+            sdf_vals = torch.where(center_mask, sdf_vals - 0.1, sdf_vals)
+        
         return sdf_vals
+
+    def _get_chair_template_sdf(self, pts):
+        """
+        Initialize SDF with chair-like template that includes holes
+        """
+        x, y, z = pts.unbind(-1)
+        
+        # a basic sphere sdf
+        sphere_sdf = torch.sqrt(x**2 + y**2 + z**2) - self.init_radius * 0.5
+        
+        # for hole formation in the bottom center
+        scale = self.init_radius * 0.3
+        
+        # Create a hole
+        hole_center_dist = torch.sqrt(x**2 + z**2)
+        hole_radius = 0.15 * scale
+        hole_depth = 0.1 * scale
+        
+        # Bottom region mask
+        bottom_mask = (y < -0.05 * scale) & (y > -0.25 * scale)
+        
+        # Strong hole carving - make SDF more positive in hole region
+        hole_mask = bottom_mask & (hole_center_dist < hole_radius)
+        hole_adjustment = torch.where(hole_mask, hole_depth, 0.0)
+        
+        # Gradual transition at hole edges
+        edge_mask = bottom_mask & (hole_center_dist < hole_radius * 1.5) & (hole_center_dist >= hole_radius)
+        edge_adjustment = torch.where(edge_mask, 
+                                     hole_depth * 0.5 * (1.0 - (hole_center_dist - hole_radius) / (hole_radius * 0.5)), 
+                                     0.0)
+        
+        # Apply hole modifications
+        chair_sdf = sphere_sdf + hole_adjustment + edge_adjustment
+        
+        return chair_sdf.unsqueeze(-1)
 
     def get_feats(self, pts, object_id):
         from od3d.data.batch_datatypes import OD3D_ModelData
@@ -422,8 +490,115 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
                     (self.get_sdf_gradient(object_id=object_id).norm(dim=-1) - 1) ** 2
                 ).mean(),
             )
-        regs_losses = torch.stack(regs_losses)
+        regs_losses = torch.stack(regs_losses)    
         return regs_losses
+
+
+
+#@NOTE, added topological loss, but it didn't work, that was the last run with chair handles. 
+# I will delete it, since I implement this to work explicitely for chair with holes, and it didn't work as expected.
+    def get_topology_loss(self, objects_ids):
+       
+        topology_losses = []
+        for object_id in objects_ids:
+            # Sample points inside the expected hole region
+            hole_region_pts = self._sample_chair_hole_region()
+            
+            # Get SDF values at these points
+            sdf_vals = self.get_sdf(hole_region_pts, object_id)
+            
+            # Strong loss encourages positive SDF values (outside surface) in hole region
+            # Use exponential loss for more aggressive hole formation
+            hole_loss = torch.exp(-sdf_vals.clamp(min=0)).mean()
+            
+            # Also add a loss to maintain chair structure outside hole region
+            structure_pts = self._sample_chair_structure_region()
+            structure_sdf = self.get_sdf(structure_pts, object_id)
+            structure_loss = torch.clamp(structure_sdf, min=0).mean()
+            
+            # Add direct hole-carving loss
+            hole_carve_loss = self._get_hole_carving_loss(object_id)
+            
+            
+            total_loss = 2.0 * hole_loss + 0.3 * structure_loss + hole_carve_loss
+            topology_losses.append(total_loss)
+        
+        return torch.stack(topology_losses)
+    
+    def _get_hole_carving_loss(self, object_id):
+       
+        device = self.verts.device
+        scale = self.init_radius * 0.3
+        
+        # Create a grid in the hole region
+        n_grid = 20
+        x_range = torch.linspace(-0.15 * scale, 0.15 * scale, n_grid, device=device)
+        z_range = torch.linspace(-0.15 * scale, 0.15 * scale, n_grid, device=device)
+        y_val = -0.1 * scale  # Fixed y in hole region
+        
+        x_grid, z_grid = torch.meshgrid(x_range, z_range, indexing='ij')
+        x_flat = x_grid.flatten()
+        z_flat = z_grid.flatten()
+        y_flat = torch.full_like(x_flat, y_val)
+        
+        # Only keep points within the hole radius
+        hole_radius = 0.15 * scale
+        radii = torch.sqrt(x_flat**2 + z_flat**2)
+        hole_mask = radii < hole_radius
+        
+        if hole_mask.sum() > 0:
+            hole_pts = torch.stack([x_flat[hole_mask], y_flat[hole_mask], z_flat[hole_mask]], dim=-1)
+            hole_pts = hole_pts.unsqueeze(0)  # Add batch dimension
+            
+            # Get SDF values and encourage them to be positive (outside surface)
+            sdf_vals = self.get_sdf(hole_pts, object_id)
+            
+            
+            hole_carve_loss = torch.mean(torch.clamp(-sdf_vals, min=0) ** 2)
+            return hole_carve_loss
+        else:
+            return torch.tensor(0.0, device=device)
+    
+    def _sample_chair_hole_region(self):
+        
+        # Define hole region to match the SDF initialization
+        n_samples = 1000
+        device = self.verts.device
+        
+        # Sample in the bottom center region where we carved the hole
+        scale = self.init_radius * 0.3
+        hole_radius = 0.15 * scale
+        
+        # Sample in cylindrical region for hole
+        theta = torch.rand(n_samples, device=device) * 2 * torch.pi
+        r = torch.sqrt(torch.rand(n_samples, device=device)) * hole_radius
+        
+        x = r * torch.cos(theta)
+        z = r * torch.sin(theta)
+        
+        # Sample in the bottom region where hole should be
+        y = torch.rand(n_samples, device=device) * 0.2 * scale - 0.15 * scale
+        
+        return torch.stack([x, y, z], dim=-1)
+    
+    def _sample_chair_structure_region(self):
+        
+        n_samples = 1000
+        device = self.verts.device
+        
+        # Sample points around the sphere structure, avoiding the hole region
+        pts = torch.randn(n_samples, 3, device=device) * 0.3 * self.init_radius
+        
+        # Filter out points that are in the hole region
+        x, y, z = pts.unbind(-1)
+        hole_mask = (y < 0) & (torch.sqrt(x**2 + z**2) < 0.08 * self.init_radius)
+        
+        # Keep only points outside the hole region
+        valid_mask = ~hole_mask
+        if valid_mask.sum() > 0:
+            pts = pts[valid_mask][:min(n_samples, valid_mask.sum())]
+        
+        return pts
 
     #
     # @property

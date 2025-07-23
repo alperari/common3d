@@ -1,0 +1,14 @@
+My thoughts
+
+1. Leaving the sphere initialization + clamping is best, converges faster, other methods just give rise to several other issues and the convergence is slower
+2. I kept the random initialization and guassian denoising because, we all agreed to implement it. 
+3. All methods might eventually form the hole, just that it requires longer epoch. 
+4. The chamfer loss is key to the hole formation, without it it just doesn't work irrespective of the initialization
+5. Using bigger learning rate (1e-3) is best, others are too small for convergence
+
+NOTE
+Runs on wandb are only tested for complete runs, if you use large epochs like 1000, the trainning stops at 600+, the resulting model will be good, but test evaluation
+won't be recorded on wandb
+
+Working solution
+Chamfer distance + clamping sdf values using torch.clamp() + sphere initialization

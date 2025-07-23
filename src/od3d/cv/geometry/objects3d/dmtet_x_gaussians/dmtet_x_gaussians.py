@@ -379,23 +379,20 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         Returns:
             sdf (torch.Tensor): BxN
         """
-
-
-
-        """***********************************************************************************************************************"""
         # Original sphere initialization - this works and provides proper SDF with surface
+        #The altenative variant, which also works is using the zero initialization, 
         sdf_init = pts.detach().norm(dim=-1, keepdim=True) - self.init_radius   
 
-        #@NOTE, this is another thing I tried, by trying to get an sdf with chair-like template that include holes as a starting point. 
-        # Initialize SDF with chair-like template that includes holes, If  you want random initialization, use the commented code and comment this one.
+        #initialization to a sphere. 
         #sdf_init = self._get_chair_template_sdf(pts)
 
-        # PROBLEM: Initializing to zeros causes tensor shape issues in DMTet marching tetrahedra
-        # because there's no implicit surface defined (no positive/negative boundary)
-        #sdf_init = torch.zeros_like(pts.detach().norm(dim=-1, keepdim=True ))
+        # Random initialization centered around zero with proper positive/negative distribution
+        # This ensures DMTet can find surface boundaries (zero-crossings) for mesh extraction
+        #sdf_init = (torch.randn_like(pts.detach().norm(dim=-1, keepdim=True)) * 0.3) - 0.1
 
-        # OR to random values
+        # OR to random values, all the extra numbers are to avoid issues with sdf having only positive values
         #sdf_init = torch.rand_like(pts.detach().norm(dim=-1, keepdim=True)) * self.tets_scale
+        #sdf_init = (torch.rand_like(pts.detach().norm(dim=-1, keepdim=True)) - 0.5) * self.tets_scale * 0.2
 
         from od3d.data.batch_datatypes import OD3D_ModelData
 
@@ -406,21 +403,61 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
 
         #@NOTE, This is where I implemented the denoising, basically just clamping the values within a certain range, I tried using 
         # guassian smmoothening via convolution, but produced same result. So I just left it like this
-        # denoise the sdf, clamping the values with -tets_scale and tets_scale   
+        # denoise the sdf, clamping the values with -tets_scale and tets_scale 
+        # 
+        # This was the previous implementation, using basic clamping, it works though. lol  
         sdf_vals = torch.clamp(sdf_vals, min=-self.tets_scale, max=self.tets_scale)
+        
+        # Using gaussian denoising implementation 
+        # The Gaussian smoothing helps create proper implicit surfaces from zero-initialized values
+        #sdf_vals = self._gaussian_denoise_sdf(sdf_vals)
+        
         return sdf_vals
 
     def _get_chair_template_sdf(self, pts):
-        """
-        DISABLED: Chair template SDF causing tensor shape issues
-        Using standard sphere initialization for now
-        """
+        #Using standard sphere initialization for now
+        
         x, y, z = pts.unbind(-1)
         
         # Standard sphere SDF - no modifications
         sphere_sdf = torch.sqrt(x**2 + y**2 + z**2) - self.init_radius
         
         return sphere_sdf.unsqueeze(-1)
+
+    def _gaussian_denoise_sdf(self, sdf_vals, sigma=0.1, kernel_size=5):
+       # function to apply 1D gaussian smoothening (e^-(x^2 / (2 * sigma^2))) to the sdf values
+       # Optimized for random initialization: moderate sigma for balanced smoothing
+        import torch.nn.functional as F
+        
+        # Ensure kernel_size is odd
+        if kernel_size % 2 == 0:
+            kernel_size += 1
+        
+        # Create 1D Gaussian kernel, i.e the weights for the convolution, implements the function e^-(x^2 / (2 * sigma^2))
+        coords = torch.arange(kernel_size, dtype=torch.float32, device=sdf_vals.device)
+        coords = coords - (kernel_size - 1) / 2.0
+        kernel = torch.exp(-(coords ** 2) / (2 * sigma ** 2))
+        kernel = kernel / kernel.sum()
+        
+        # Reshape for convolution: [out_channels, in_channels, kernel_size]
+        kernel = kernel.view(1, 1, kernel_size)
+        
+        # Prepare sdf_vals for 1D convolution: [batch, channels, length]
+        # We treat the N dimension as the spatial dimension for smoothing
+        sdf_reshaped = sdf_vals.transpose(0, 1).unsqueeze(0)  # [1, 1, N]
+        
+        # Apply 1D convolution with padding to maintain size
+        padding = kernel_size // 2
+        denoised = F.conv1d(sdf_reshaped, kernel, padding=padding)
+        
+        # Reshape back to original format
+        denoised = denoised.squeeze(0).transpose(0, 1)  # [N, 1]
+        
+        # For random initialization: gentle clamping to preserve distribution while preventing extremes
+        # Apply soft clamping to maintain the random distribution characteristics
+        denoised = torch.tanh(denoised / (self.tets_scale * 0.7)) * (self.tets_scale * 0.7)
+        
+        return denoised
 
     def get_feats(self, pts, object_id):
         from od3d.data.batch_datatypes import OD3D_ModelData
@@ -467,9 +504,6 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         return regs_losses
 
 
-
-
-"""********************************************************************************************************************"""
 
     #
     # @property

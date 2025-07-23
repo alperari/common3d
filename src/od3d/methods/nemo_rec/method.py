@@ -494,7 +494,7 @@ class NeMo_Rec(OD3D_Method):
                 
                 with torch.cuda.device(self.device):
                     chamfer_distance = batch_chamfer_distance(vertices, pcl) # chamfer distance
-                    # Clean up intermediate tensors
+                    # Clean up intermediate tensors, was just trying to avoid memory errors that I was getting, might not be necessary
                     del vertices, pcl
                     torch.cuda.empty_cache()
             else:

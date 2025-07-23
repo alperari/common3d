@@ -152,7 +152,7 @@ def batch_chamfer_distance(
         pairs_pred_gt_ext[:, :M, 0][~pts2_mask] = N
         pairs_pred_gt_ext[:, M:, 0][~pts1_mask] = N
         
-        # Handle one_hot more efficiently to avoid large memory allocation
+        # This is where I edited the code to handle creating large memory for one hot encoding
         max_idx = pairs_pred_gt_ext[:, :, 0].max().item()
         if max_idx > 10000:  # If indices are too large, use a different approach
             # Use bincount instead of one_hot for memory efficiency

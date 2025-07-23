@@ -151,8 +151,23 @@ def batch_chamfer_distance(
         pairs_pred_gt_ext = pairs_pred_gt.clone()
         pairs_pred_gt_ext[:, :M, 0][~pts2_mask] = N
         pairs_pred_gt_ext[:, M:, 0][~pts1_mask] = N
-        pts1_counts = torch.nn.functional.one_hot(pairs_pred_gt_ext[:, :, 0]).sum(dim=1)
-        pts1_counts = pts1_counts[:, :N]
+        
+        # This is where I edited the code to handle creating large memory for one hot encoding
+        max_idx = pairs_pred_gt_ext[:, :, 0].max().item()
+        if max_idx > 10000:  # If indices are too large, use a different approach
+            # Use bincount instead of one_hot for memory efficiency
+            pts1_counts = torch.zeros(B, N + 1, device=pairs_pred_gt_ext.device)
+            for b in range(B):
+                indices = pairs_pred_gt_ext[b, :, 0]
+                valid_mask = indices <= N
+                valid_indices = indices[valid_mask]
+                counts = torch.bincount(valid_indices, minlength=N + 1)
+                pts1_counts[b] = counts
+            pts1_counts = pts1_counts[:, :N]
+        else:
+            pts1_counts = torch.nn.functional.one_hot(pairs_pred_gt_ext[:, :, 0]).sum(dim=1)
+            pts1_counts = pts1_counts[:, :N]
+            
         pts1_weights = 1.0 / pts1_counts
         pts2_weights_from_pts1 = batched_index_select(
             index=pairs_pred_gt[:, :M, 0],

@@ -35,6 +35,7 @@ class HarmonicEmbedding(nn.Module):
         evaluting the harmonic functions.
         """
         super().__init__()
+        self.n_harmonic_functions = n_harmonic_functions
         self.frequencies = scalar * (2.0 ** torch.arange(n_harmonic_functions))
         self.dim = dim
 
@@ -46,8 +47,19 @@ class HarmonicEmbedding(nn.Module):
             embedding: a harmonic embedding of `x`
                 of shape [..., n_harmonic_functions * dim * 2]
         """
+        # Backward compatibility: ensure n_harmonic_functions exists
+        if not hasattr(self, 'n_harmonic_functions'):
+            self.n_harmonic_functions = len(self.frequencies)
+            
         if self.dim != -1:
             x = x.transpose(self.dim, -1).contiguous()
+
+        # Safety check for empty tensors
+        if x.numel() == 0:
+            # Backward compatibility: get n_harmonic_functions from frequencies if not stored
+            if not hasattr(self, 'n_harmonic_functions'):
+                self.n_harmonic_functions = len(self.frequencies)
+            return torch.empty((*x.shape[:-1], self.n_harmonic_functions * x.shape[-1] * 2), device=x.device, dtype=x.dtype)
 
         embed = (x[..., None] * self.frequencies.to(x.device)).view(*x.shape[:-1], -1)
 
@@ -158,6 +170,14 @@ class CoordMLP(MLP):
     def forward(self, x: OD3D_ModelData):
         pts3d = x.pts3d  # BxNx3
         B, N = pts3d.shape[0], pts3d.shape[1]
+        
+        # Safety check for empty point clouds
+        if N == 0:
+            # Return empty features with correct shape
+            empty_feats = torch.empty((B, 0, self.config.out_dim), 
+                                    device=pts3d.device, dtype=pts3d.dtype)
+            return OD3D_ModelData(feat=empty_feats)
+            
         if self.symmetrize:
             # pts3d[:, :, 0] = pts3d[:, :, 0].abs() # mirror -x to +x
             pts3d_x, pts3d_y, pts3d_z = pts3d.unbind(-1)

@@ -457,18 +457,67 @@ class NeMo_Rec(OD3D_Method):
             objects_ids=batch.category_id,
         )
 
-        losses_names = ["rec_rgb_mse", "rec_mask_mse", "rec_mask_dt_dot", "sdf_reg"]
+        # @NOTE This is where I added the chamfer distance loss
+        # A one hot encoder was implemented in the chamfer distance calculation, which is not efficient for 3d and was getting cuda out of memory error
+        # Hence why I created safeguards, so that the onehot is only used when the size is less than 10000, and bins are used otherwise
+
+        # This is where I extracted the point cloud from the batch as discussed during the session
+        pcl = batch.pcl # point clouds 
+        
+        # Check if pcl is None or not available
+        if pcl is None:
+            chamfer_distance = torch.tensor(0.0, device=self.device)
+        else:
+            # Get mesh vertices
+            vertices = self.meshes.verts
+            
+            # Handle case where vertices might be a list
+            # I did this because vertices was returning instance of a list instead of tensors
+            if isinstance(vertices, list):
+                if len(vertices) > 0 and torch.is_tensor(vertices[0]):
+                    vertices = torch.cat(vertices, dim=0)
+                else:
+                    chamfer_distance = torch.tensor(0.0, device=self.device)
+            
+            # Handle case where pcl might be a list
+            if isinstance(pcl, list):
+                if len(pcl) > 0 and torch.is_tensor(pcl[0]):
+                    pcl = torch.stack(pcl, dim=0) if len(pcl[0].shape) == 2 else torch.cat(pcl, dim=0)
+                else:
+                    chamfer_distance = torch.tensor(0.0, device=self.device)
+            
+            # Only compute chamfer distance if we have valid vertices and pcl tensors
+            if torch.is_tensor(vertices) and vertices.numel() > 0 and torch.is_tensor(pcl) and pcl.numel() > 0:
+                # Ensure vertices has the same batch dimension as pcl
+                if vertices.dim() == 2:  # Shape: (N, 3)
+                    vertices = vertices.unsqueeze(0).expand(pcl.shape[0], -1, -1)  # Shape: (B, N, 3)
+                
+                with torch.cuda.device(self.device):
+                    chamfer_distance = batch_chamfer_distance(vertices, pcl) # chamfer distance
+                    # Clean up intermediate tensors, was just trying to avoid memory errors that I was getting, might not be necessary
+                    del vertices, pcl
+                    torch.cuda.empty_cache()
+            else:
+                chamfer_distance = torch.tensor(0.0, device=self.device)
+
+    
+        # Added the chamfer distance loss to the losses here
+        losses_names = ["rec_rgb_mse", "rec_mask_mse", "rec_mask_dt_dot", "sdf_reg", "chamfer_loss"]
         loss_batch = (
             task_metrics.rec_rgb_mse
             + task_metrics.rec_mask_mse
             + task_metrics.rec_mask_dt_dot
             + loss_geo_sdf_reg
+            + chamfer_distance
+           
         )
         losses = [
             task_metrics.rec_rgb_mse.mean() * 1.0,
             task_metrics.rec_mask_mse.mean() * 10.0,
             -task_metrics.rec_mask_dt_dot.mean() * 100.0,
             loss_geo_sdf_reg.mean() * 0.01,
+            chamfer_distance.mean() * 0.1,
+         
         ]
 
         if len(losses) > 0:

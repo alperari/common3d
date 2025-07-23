@@ -501,15 +501,15 @@ class NeMo_Rec(OD3D_Method):
                 chamfer_distance = torch.tensor(0.0, device=self.device)
 
     
-        if self.config.train.loss.geo.topology_loss.weight > 0.0:
-            topology_loss = self.meshes.get_topology_loss(
-                objects_ids=batch.category_id,
-            )
-            topology_loss = (
-                topology_loss.mean() * self.config.train.loss.geo.topology_loss.weight
-            )
-        else:
-            topology_loss = torch.tensor(0.0, device=self.device)
+        # if self.config.train.loss.geo.topology_loss.weight > 0.0:
+        #     topology_loss = self.meshes.get_topology_loss(
+        #         objects_ids=batch.category_id,
+        #     )
+        #     topology_loss = (
+        #         topology_loss.mean() * self.config.train.loss.geo.topology_loss.weight
+        #     )
+        # else:
+        #     topology_loss = torch.tensor(0.0, device=self.device)
 
         # remove topology loss from here
         losses_names = ["rec_rgb_mse", "rec_mask_mse", "rec_mask_dt_dot", "sdf_reg", "chamfer_loss", "topology_loss"]
@@ -520,7 +520,7 @@ class NeMo_Rec(OD3D_Method):
             + loss_geo_sdf_reg
             + chamfer_distance
             # remove this if you don't want topology loss
-            + topology_loss
+            #+ topology_loss
         )
         losses = [
             task_metrics.rec_rgb_mse.mean() * 1.0,
@@ -529,7 +529,7 @@ class NeMo_Rec(OD3D_Method):
             loss_geo_sdf_reg.mean() * 0.01,
             chamfer_distance.mean() * 0.1,
             # remove this if you don't want topology loss
-            topology_loss.mean() * 1.0,
+            #topology_loss.mean() * 1.0,
         ]
 
         if len(losses) > 0:

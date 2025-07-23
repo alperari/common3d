@@ -136,7 +136,7 @@ method:
             type: unit
             weight: 0.0
           topology_loss:
-            weight: 0.05  # Added topology loss for hole preservation
+            weight: 0  # Added topology loss for hole preservation
         appear:
           type: cross_entropy_coarse
           dropout: 0.0

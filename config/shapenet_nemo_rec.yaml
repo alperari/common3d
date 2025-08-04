@@ -65,8 +65,7 @@ skip_co3d_no_zsp_test: False
 train_sequences_count_max_per_category: 50
 
 categories:
-   - toilet
-#  - chair
+  - chair
 #  - motorcycle
 #  - truck
 #  - train

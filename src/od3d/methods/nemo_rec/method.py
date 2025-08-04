@@ -479,7 +479,8 @@ class NeMo_Rec(OD3D_Method):
                 else:
                     chamfer_distance = torch.tensor(0.0, device=self.device)
             
-            # Handle case where pcl might be a list
+            # Handle case where pcl (the pointcloud) might be a list, again this is because of errors during run, where pcl was a list instance
+            # and not a tensor, so I added this safeguard to ensure that pcl is a tensor
             if isinstance(pcl, list):
                 if len(pcl) > 0 and torch.is_tensor(pcl[0]):
                     pcl = torch.stack(pcl, dim=0) if len(pcl[0].shape) == 2 else torch.cat(pcl, dim=0)
@@ -489,7 +490,7 @@ class NeMo_Rec(OD3D_Method):
             # Only compute chamfer distance if we have valid vertices and pcl tensors
             if torch.is_tensor(vertices) and vertices.numel() > 0 and torch.is_tensor(pcl) and pcl.numel() > 0:
                 # Ensure vertices has the same batch dimension as pcl
-                if vertices.dim() == 2:  # Shape: (N, 3)
+                if vertices.dim() == 2:  
                     vertices = vertices.unsqueeze(0).expand(pcl.shape[0], -1, -1)  # Shape: (B, N, 3)
                 
                 with torch.cuda.device(self.device):
@@ -508,15 +509,16 @@ class NeMo_Rec(OD3D_Method):
             + task_metrics.rec_mask_mse
             + task_metrics.rec_mask_dt_dot
             + loss_geo_sdf_reg
-            + chamfer_distance
-           
+            + chamfer_distance      
         )
+
         losses = [
             task_metrics.rec_rgb_mse.mean() * 1.0,
             task_metrics.rec_mask_mse.mean() * 10.0,
             -task_metrics.rec_mask_dt_dot.mean() * 100.0,
             loss_geo_sdf_reg.mean() * 0.01,
-            chamfer_distance.mean() * 0.1,
+            # scaling factor for chamfer distance as discussed 
+            chamfer_distance.mean(),
          
         ]
 

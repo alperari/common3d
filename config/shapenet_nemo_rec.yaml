@@ -65,7 +65,8 @@ skip_co3d_no_zsp_test: False
 train_sequences_count_max_per_category: 50
 
 categories:
-  - chair
+   - toilet
+#  - chair
 #  - motorcycle
 #  - truck
 #  - train
@@ -111,42 +112,6 @@ method:
     train:
 
       early_stopping_score: loss
-      loss:
-        geo:
-          rec:
-            type: cd_pcl # cd_mesh, cd_pcl, pf_mesh, pf_pcl
-            weight: 0.1
-          mask:
-            weight: 0.0
-          mask_mse:
-            weight: 1.0
-          mask_dt:
-            weight: 100.0
-          mask_inv_dt:
-            weight: 0.0
-          smooth:
-            weight: 0.0
-          sdf_reg:
-            weight: 0.01
-          deform_smooth_reg:
-            weight: 0.01
-          deform_reg:
-            weight: 0.1
-          deform_latent_reg:
-            type: unit
-            weight: 0.0
-          topology_loss:
-            weight: 0.0  
-        appear:
-          type: cross_entropy_coarse
-          dropout: 0.0
-          dense_loss: True
-          dense_detach_geo: False
-          weight: 0.1
-          use_mask_rgb: True
-          use_mask_object: False
-        pose:
-          weight: 1.0
       #loss:
       #  geo:
       #    deform_latent_reg:
@@ -160,7 +125,7 @@ method:
       val: True
       T: 0.07
       early_stopping: True
-      epochs: 1000 # 300 500
+      epochs: 500 # 300 500
       epochs_to_next_test: 25
       dataloader:
         num_workers: 8

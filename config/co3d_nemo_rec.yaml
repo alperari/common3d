@@ -111,42 +111,6 @@ method:
     train:
 
       early_stopping_score: loss
-      loss:
-        geo:
-          rec:
-            type: cd_pcl # cd_mesh, cd_pcl, pf_mesh, pf_pcl
-            weight: 0.1
-          mask:
-            weight: 0.0
-          mask_mse:
-            weight: 1.0
-          mask_dt:
-            weight: 100.0
-          mask_inv_dt:
-            weight: 0.0
-          smooth:
-            weight: 0.0
-          sdf_reg:
-            weight: 0.01
-          deform_smooth_reg:
-            weight: 0.01
-          deform_reg:
-            weight: 0.1
-          deform_latent_reg:
-            type: unit
-            weight: 0.0
-          topology_loss:
-            weight: 0  # Added topology loss for hole preservation
-        appear:
-          type: cross_entropy_coarse
-          dropout: 0.0
-          dense_loss: True
-          dense_detach_geo: False
-          weight: 0.1
-          use_mask_rgb: True
-          use_mask_object: False
-        pose:
-          weight: 1.0
       #loss:
       #  geo:
       #    deform_latent_reg:
@@ -157,7 +121,7 @@ method:
       optimizer:
         kwargs:
         # reducing the learning rate from the discussion from the last session
-          lr: 1e-5 #1e-4 # 0.0001
+          lr: 1e-3 #1e-4 # 0.0001
       val: True
       T: 0.07
       early_stopping: True

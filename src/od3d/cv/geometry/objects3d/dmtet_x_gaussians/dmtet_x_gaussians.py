@@ -258,6 +258,12 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
                         self.tets_faces,
                     )
 
+            # I implemented this after getting errors from initializing the values to 0, the values of sdf must be positive, negative and zero
+            if _verts.shape[0] == 0:
+                # Create minimal dummy mesh to prevent pipeline failure
+                _verts = torch.zeros((1, 3), device=device, dtype=dtype)
+                _faces = torch.zeros((0, 3), device=device, dtype=torch.long)
+                
             if require_feats_grad:
                 # logger.info(m)
                 # logger.info(_verts.shape)
@@ -371,15 +377,71 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
         Returns:
             sdf (torch.Tensor): BxN
         """
+        # Original sphere initialization - this works and provides proper SDF with sherical surface
+        #The altenative variant, which also works is using the zero initialization, 
+        sdf_init = pts.detach().norm(dim=-1, keepdim=True) - self.init_radius   
 
-        sdf_init = pts.detach().norm(dim=-1, keepdim=True) - self.init_radius
+
+        # Random initialization centered around zero with random positive and negative values distribution
+        #sdf_init = (torch.randn_like(pts.detach().norm(dim=-1, keepdim=True)) * self.tets_scale) - 0.1
+
+        # OR to zeroes
+        #sdf_init = torch.zeros_like(pts.detach().norm(dim=-1, keepdim=True))
+        #@NOTE : Both random and zero initialization gives no shape and converges very slowly. So I just abandon them. 
+
         from od3d.data.batch_datatypes import OD3D_ModelData
 
         sdf_delta = self.sdf_coordmlps[object_id](
             OD3D_ModelData(pts3d=pts[None,]),
         ).feat[0]
         sdf_vals = sdf_init + sdf_delta
+
+        #@NOTE, This is where I implemented the denoising, basically just clamping the values within a certain range, I tried using 
+        # guassian smoothening via convolution, but produced same result. So I just left it like this 
+
+        # This was the previous implementation, using basic clamping, it works though. lol  
+        sdf_vals = torch.clamp(sdf_vals, min=-self.tets_scale, max=self.tets_scale)
+        
+        # Using gaussian denoising implementation instead of clamping, both works 
+        #sdf_vals = self._gaussian_denoise_sdf(sdf_vals)
+        
         return sdf_vals
+
+
+    def _gaussian_denoise_sdf(self, sdf_vals, sigma=0.1, kernel_size=5):
+       # function to apply 1D gaussian smoothening (e^-(x^2 / (2 * sigma^2))) to the sdf values
+        import torch.nn.functional as F
+        
+        # Use an odd kernel size.
+        if kernel_size % 2 == 0:
+            kernel_size += 1
+        
+        # Create 1D Gaussian kernel, i.e the weights for the convolution. Basically this implements the function e^-(x^2 / (2 * sigma^2))
+        coords = torch.arange(kernel_size, dtype=torch.float32, device=sdf_vals.device)
+        coords = coords - (kernel_size - 1) / 2.0
+        kernel = torch.exp(-(coords ** 2) / (2 * sigma ** 2))
+        kernel = kernel / kernel.sum()
+        
+        # Reshape for convolution
+        kernel = kernel.view(1, 1, kernel_size)
+        
+        # Prepare sdf_vals for 1D convolution
+        sdf_reshaped = sdf_vals.transpose(0, 1).unsqueeze(0) 
+        
+        # Apply 1D convolution with padding to maintain size
+        padding = kernel_size // 2
+        denoised = F.conv1d(sdf_reshaped, kernel, padding=padding)
+        
+        # Reshape back to original format
+        denoised = denoised.squeeze(0).transpose(0, 1)  
+     
+        # Clamp the denoised values to the range of [-self.tets_scale, self.tets_scale]
+        # I added this to see if there will be improvement from using gaussian denoising, but didn't really see much difference. can be removed. 
+        denoised = torch.clamp(denoised, min=-self.tets_scale, max=self.tets_scale)
+        #This is another variant of clamping I tried. with values between -1 and 1, (tanh function). 
+        #denoised = torch.tanh(denoised / (self.tets_scale * 0.7)) * (self.tets_scale * 0.7)
+        
+        return denoised
 
     def get_feats(self, pts, object_id):
         from od3d.data.batch_datatypes import OD3D_ModelData
@@ -422,8 +484,10 @@ class DMTet_x_Gaussians(Meshes_x_Gaussians):
                     (self.get_sdf_gradient(object_id=object_id).norm(dim=-1) - 1) ** 2
                 ).mean(),
             )
-        regs_losses = torch.stack(regs_losses)
+        regs_losses = torch.stack(regs_losses)    
         return regs_losses
+
+
 
     #
     # @property

@@ -7,8 +7,8 @@ defaults:
   - datasets@test_datasets.co3d: shapenet_ico_sub1
   - datasets@texture_dataset: dtd
   - ablations/co3d_refs@: r0
-  - platform@platform_local: local
-  - platform: local
+  - platform@platform_local: slurm
+  - platform: slurm
   - _self_
 
 mesh_type: 'alpha500' # note: this is anyway ignored as we are using dmtet
@@ -120,19 +120,19 @@ method:
       val_fraction: 0.1
       optimizer:
         kwargs:
-          lr: 1e-4 # 0.0001
+          lr: 1e-3 # 0.0001
       val: True
       T: 0.07
       early_stopping: True
-      epochs: 300 # 300 500
-      epochs_to_next_test: 10
+      epochs: 500 # 300 500
+      epochs_to_next_test: 25
       dataloader:
         num_workers: 8
-        batch_size: 11
+        batch_size: 10
     test:
       dataloader:
         num_workers: 8
-        batch_size: 12
+        batch_size: 11
       transform:
         class_name: SequentialTransform
         transforms:

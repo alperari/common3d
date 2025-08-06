@@ -1,8 +1,8 @@
 defaults:
     - logger: wandb
     - credentials: default
-    - platform: local
-    - platform@platform_local: local
+    - platform: slurm
+    - platform@platform_local: slurm
     - _self_
 
 use_wandb: true
